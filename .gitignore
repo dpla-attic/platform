@@ -9,3 +9,4 @@ pgsql/
 notes.txt
 config/elasticsearch/elasticsearch.yml
 config/elasticsearch/logging.yml
+apache2/
