@@ -1,0 +1,24 @@
+development:
+  adapter: postgresql
+  encoding: unicode
+  host: localhost
+  hostname: localhost
+  database: dpla
+  username: dpla
+  password: fooble
+  port: 8911
+
+test:
+  adapter: postgresql
+  encoding: unicode
+  database: dpla_test
+  username: dpla
+  password:
+  port: 8911
+
+production:
+  adapter: postgresql
+  encoding: unicode
+  database: dpla
+  username: dpla
+  password: boop

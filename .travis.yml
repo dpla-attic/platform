@@ -1,0 +1,9 @@
+language: ruby
+rvm:
+  - 1.9.3
+before_script:
+  - psql -c 'create database dpla_test;' -U postgres
+  - ./bin/travis-before-script.rb
+branches:
+  only:
+    - engines
