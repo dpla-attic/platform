@@ -6,4 +6,4 @@ before_script:
   - ./bin/travis-before-script.rb
 branches:
   only:
-    - engines
+    - develop
