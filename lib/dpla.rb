@@ -7,7 +7,7 @@ module Dpla
     config_file = File.expand_path('../../config/api_role.yml', __FILE__)
     api_role = YAML.load_file(config_file)['api_role']
 
-    if api_role.nil? or ![Dpla::API_ROLE_SANDBOX, Dpla::API_ROLE_PRODUCTION].include?(api_role)
+    if ![Dpla::API_ROLE_SANDBOX, Dpla::API_ROLE_PRODUCTION].include?(api_role)
       raise "Missing or invalid 'api_role' config value found in #{config_file}"
     end
 
