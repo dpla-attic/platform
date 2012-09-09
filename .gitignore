@@ -10,3 +10,4 @@ notes.txt
 config/elasticsearch/elasticsearch.yml
 config/elasticsearch/logging.yml
 apache2/
+api/v1/spec/test_app/log
