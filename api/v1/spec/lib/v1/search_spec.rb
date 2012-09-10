@@ -34,14 +34,14 @@ module V1
         }
         Search.stub(:get_search_config)
         YAML.stub(:load_file) { config_values }
-        Search.get_search_endpoint.should == "http://testhost:9999/"
+        Search.get_search_endpoint.should == "http://testhost:9999"
       end
 
       it "should construct the correct elasticsearch URL based on some defaults" do
         config_values = {}
         Search.stub(:get_search_config)
         YAML.stub(:load_file) { config_values }
-        Search.get_search_endpoint.should == "http://0.0.0.0:9200/"
+        Search.get_search_endpoint.should == "http://0.0.0.0:9200"
       end
     end
   end

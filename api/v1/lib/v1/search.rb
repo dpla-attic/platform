@@ -19,7 +19,7 @@ module V1
         config = YAML.load_file(config_file)
         host = config['network.host'] || config['network.bind_host'] || '0.0.0.0'
         port = config['http.port'] || '9200'
-        return "http://#{host}:#{port}/"
+        return "http://#{host}:#{port}"
       rescue Errno::ENOENT => e
         raise "Missing elasticsearch.yml specified in #{ELASTICSEARCH_POINTER_PATH}"
       end
