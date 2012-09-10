@@ -9,13 +9,16 @@ namespace :v1 do
     puts `curl #{endpoint} -s -S`
   end
 
-  desc "Diplays the search_endpoint the API is configured to use"
+  desc "Diplays the ElasticSearch search_endpoint the API is configured to use"
   task :search_endpoint do
     puts V1::Search.get_search_endpoint
   end
 
-  desc "Checks that all required config files are in place"
+  desc "Verify all required V1 API config files exist"
   task :check_config do
-    #TODO
+    require 'dpla'
+    if Dpla.check_config( __FILE__, %w( config/elasticsearch/elasticsearch_pointer.yml ) )
+      puts "OK. All required V1 API config files present."
+    end
   end
 end
