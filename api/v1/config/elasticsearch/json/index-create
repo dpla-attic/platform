@@ -1,0 +1,11 @@
+"mappings" : {
+    "item" : {
+        "_source" : { "enabled" : false },
+        "properties" : {
+            "title" : { "type" : "string", "index" : "analyzed" },
+            "cast_members" : { "type" : "array", "index" : "analyzed" },
+            "created" : { "type" : "date", "index" : "not_analyzed" },
+        }
+    }
+}
+
