@@ -3,7 +3,7 @@ source 'https://rubygems.org'
 gem 'rails', '3.2.8'
 gem 'pg', :require => 'pg'
 gem 'json'
-#gem 'devise'
+gem 'devise', '2.1.2'
 #gem 'acl9'
 gem 'jquery-rails'
 gem 'dpla_search_api_v1', :path => 'api/v1'
@@ -13,6 +13,8 @@ group :assets do
   gem 'coffee-rails', '~> 3.2.1'
   gem 'therubyracer', :platforms => :ruby
   gem 'uglifier', '>= 1.0.3'
+  gem 'twitter-bootstrap-rails'
+  gem 'less'
 end
 
 gem 'rspec-rails', :group => [:test, :development]
