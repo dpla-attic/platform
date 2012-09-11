@@ -7,6 +7,7 @@ gem 'devise', '2.1.2'
 #gem 'acl9'
 gem 'jquery-rails'
 gem 'dpla_search_api_v1', :path => 'api/v1'
+gem 'tire'
 
 group :assets do
   gem 'sass-rails',   '~> 3.2.3'
