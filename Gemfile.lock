@@ -106,13 +106,9 @@ GEM
     method_source (0.8)
     mime-types (1.19)
     multi_json (1.3.6)
-<<<<<<< HEAD
     nokogiri (1.5.5)
     orm_adapter (0.4.0)
-    pg (0.14.0)
-=======
     pg (0.14.1)
->>>>>>> 34dea7983c2c1f2ff8961aea65cd3065bd87253f
     polyglot (0.3.3)
     pry (0.9.10)
       coderay (~> 1.0.5)
@@ -187,15 +183,12 @@ GEM
     tzinfo (0.3.33)
     uglifier (1.3.0)
       execjs (>= 0.3.0)
-<<<<<<< HEAD
       multi_json (~> 1.3)
     warden (1.2.1)
       rack (>= 1.0)
     xpath (0.1.4)
-      nokogiri (~> 1.3)
-=======
       multi_json (~> 1.0, >= 1.0.2)
->>>>>>> 34dea7983c2c1f2ff8961aea65cd3065bd87253f
+      nokogiri (~> 1.3)
 
 PLATFORMS
   ruby
