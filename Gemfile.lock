@@ -2,6 +2,7 @@ PATH
   remote: api/v1
   specs:
     dpla_search_api_v1 (0.0.1)
+      pg
       rails (~> 3.2.8)
 
 GEM
@@ -84,7 +85,7 @@ GEM
     gherkin (2.11.2)
       json (>= 1.4.6)
     hike (1.2.1)
-    i18n (0.6.0)
+    i18n (0.6.1)
     journey (1.0.4)
     jquery-rails (2.1.1)
       railties (>= 3.1.0, < 5.0)
@@ -105,9 +106,13 @@ GEM
     method_source (0.8)
     mime-types (1.19)
     multi_json (1.3.6)
+<<<<<<< HEAD
     nokogiri (1.5.5)
     orm_adapter (0.4.0)
     pg (0.14.0)
+=======
+    pg (0.14.1)
+>>>>>>> 34dea7983c2c1f2ff8961aea65cd3065bd87253f
     polyglot (0.3.3)
     pry (0.9.10)
       coderay (~> 1.0.5)
@@ -180,13 +185,17 @@ GEM
       railties (>= 3.1)
       therubyracer (~> 0.10.2)
     tzinfo (0.3.33)
-    uglifier (1.2.7)
+    uglifier (1.3.0)
       execjs (>= 0.3.0)
+<<<<<<< HEAD
       multi_json (~> 1.3)
     warden (1.2.1)
       rack (>= 1.0)
     xpath (0.1.4)
       nokogiri (~> 1.3)
+=======
+      multi_json (~> 1.0, >= 1.0.2)
+>>>>>>> 34dea7983c2c1f2ff8961aea65cd3065bd87253f
 
 PLATFORMS
   ruby

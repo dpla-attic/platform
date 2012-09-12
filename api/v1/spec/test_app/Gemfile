@@ -1,0 +1,16 @@
+source 'https://rubygems.org'
+
+# This gemfile will typically be a slimmed down version of the Gemfile in the
+# host application
+
+gem 'rails', '3.2.8'
+gem 'pg', :require => 'pg'
+gem 'dpla_search_api_v1', :path => '../../'
+gem 'rspec-rails', :group => [:test, :development]
+
+# group :test do
+#   gem 'rake'
+#   gem 'factory_girl_rails'
+#   gem 'database_cleaner'
+# end
+
