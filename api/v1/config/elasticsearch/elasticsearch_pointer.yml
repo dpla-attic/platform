@@ -1,3 +1,0 @@
-### This YAML config file simply defines the full path to your API-version specific
-### production elasticsearch.yml file.
-config_file: /home/phunk/camp15/config/elasticsearch/elasticsearch.yml

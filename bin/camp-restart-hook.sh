@@ -11,7 +11,7 @@ es_cmd="/usr/share/elasticsearch/bin/elasticsearch"
 es_pidfile="${camp_dir}/var/elasticsearch.pid"
 
 function start {
-  `$es_cmd -Des.config=${camp_dir}/config/elasticsearch/elasticsearch.yml  -p $es_pidfile`
+  `$es_cmd -Des.config=${camp_dir}/api/v1/config/elasticsearch/elasticsearch.yml -p $es_pidfile`
 }
 
 function stop {

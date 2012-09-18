@@ -2,6 +2,11 @@
 
 require 'yaml'
 
+####
+puts "TRAVIS: Creating dpla_test database"
+puts %x( psql -c 'create database dpla_test;' -U postgres )
+
+####
 yaml_file = "config/database.yml"
 
 if File.exist? yaml_file
@@ -16,4 +21,4 @@ File.open(yaml_file, 'w') do |f|
           }.to_yaml)
 end
 
-
+puts "TRAVIS: Done."

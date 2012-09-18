@@ -7,7 +7,9 @@ pgsql/
 *.swp
 .sass-cache/
 notes.txt
-config/elasticsearch/elasticsearch.yml
-config/elasticsearch/logging.yml
+config/elasticsearch/elasticsearch_pointer.yml
+api/v1/config/elasticsearch/elasticsearch_pointer.yml
+api/v1/config/elasticsearch/elasticsearch.yml
+api/v1/config/elasticsearch/logging.yml
 apache2/
 api/v1/spec/test_app/log
