@@ -1,8 +1,10 @@
 language: ruby
+bundler_args: --without development
 rvm:
   - 1.9.3
 before_script:
   - ./bin/travis-before-script.rb
+  - RAILS_ENV=test bundle exec rake --trace db:migrate
 notifications:
   email:
     - bgadoury@endpoint.com
@@ -11,5 +13,5 @@ services:
 branches:
   only:
     - develop
-    - travisfix
+    - travischeck
 
