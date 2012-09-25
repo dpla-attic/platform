@@ -1,0 +1,15 @@
+Feature: Search for content by keyword without valid API key (UC001)
+
+  In order to authenticate DPLA API users
+  API users must have a valid API key
+
+  Scenario: Basic keyword search without API key
+    When I search for "banana"
+      And do not provide an API key
+    Then the API should return an error
+
+    Scenario: Basic keyword search with invalid API key
+      When I search for "banana"
+        And provide an invalid API key
+      Then the API should return an error
+

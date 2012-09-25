@@ -1,0 +1,78 @@
+Feature: Search for content by date range (UC003)
+  
+  In order to find content through the DPLA
+  API users should be able to perform searches based on date ranges
+            
+  Background:
+    Given that I have have a valid API key
+      # The way dates are described in these tests is not meant to be an prescriptive representation of how
+      # they will be represented in the repository, nor the format that will be used to query them. Also, this 
+      # assumes that any "fuzzy" dates ranges (e.g. 'circa 16th Century') will have been converted to explicit date
+      # ranges (e.g. '1500 - 1599') during the ingestion process
+      And there is a metadata record 'A' with the value of "June 1, 1950" in the 'temporal' field
+      And there is a metadata record 'B' with the value of "July 1, 1955 - July 30, 1955" in the 'temporal' field
+      And there is a metadata record 'C' with the value of "1970 - 1979 CE" in the 'temporal' field
+      And there is a metadata record 'D' with values of '1200 - 1250 CE' and '1270 - 1300 CE' in the 'temporal' field
+      And there is a metadata record 'E' with a value of '2000-4000 BCE' in the 'temporal' field
+# really old dates
+# dates without specifying month/day
+                  
+  Scenario: Date search after a date
+    When I search the 'temporal' field for records with a date after 'January 1, 1950'
+    Then the API should return records A, B, and C                     
+
+  Scenario: Date search before a date
+    When I search the 'temporal' field for records with a date before 'December 31, 1960'
+    Then the API should return records A, B, and D
+    
+  Scenario: Date search after a date that overlaps a date range
+    When I search the 'temporal' field for records with a date after 'July 15, 1955'
+    Then the API should return records B and C
+
+  Scenario: Date search before a date that overlaps a date range
+    When I search the 'temporal' field for records with a date before 'July 15, 1955'
+    Then the API should return records A, B, D, and E
+
+  # This demonstrates that date searches after a year should be treated as after January 1 of that year
+  Scenario: Date search after a date without specifying the month and year
+    When I search the 'temporal' field for records with a date after '1950'
+    Then the API should return records A, B, and C
+                                                                           
+  # This demonstrates that date searches before a year should be treated as before December 31 of that year
+  Scenario: Date search before a date without specifying the month and year  
+    When I search the 'temporal' field for records with a date before '1950'
+    Then the API should return records A, D, and E
+    
+  Scenario: Date range search around a specific date
+    When I search the 'temporal' field for records with a date between 'January 1, 1950' and 'December 31, 1950'
+    Then the API should return record A
+    
+  Scenario: Date range search outside a date
+    When I search the 'temporal' field for records with a date between 'January 1, 1800' and 'December 31, 1850'
+    Then the API should not return records A, B, C, D, nor E
+
+  Scenario: Date range search around a date range
+    When I search the 'temporal' field for records with a date between 'January 1, 1955' and 'December 31, 1955'
+    Then the API should return record B
+                                       
+  Scenario: Date range search within a date range
+    When I search the 'temporal' field for records with a date between '1210' and '1220'
+    Then the API should return record D
+
+  Scenario: Date range search overlapping end of a date range
+    When I search the 'temporal' field for records with a date between '1975' and '1985'
+    Then the API should return record D
+
+  Scenario: Date range search overlapping beginning of a date range
+    When I search the 'temporal' field for records with a date between '1965' and '1975'
+    Then the API should return record D
+
+
+
+
+
+
+
+
+
+
