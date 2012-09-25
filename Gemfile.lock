@@ -1,5 +1,5 @@
 PATH
-  remote: api/v1
+  remote: v1
   specs:
     dpla_search_api_v1 (0.0.1)
       pg

@@ -6,7 +6,7 @@ gem 'json'
 gem 'devise', '2.1.2'
 #gem 'acl9'
 gem 'jquery-rails'
-gem 'dpla_search_api_v1', :path => 'api/v1'
+gem 'dpla_search_api_v1', :path => 'v1'
 gem 'tire'
 
 group :assets do
@@ -25,5 +25,5 @@ group :test do
   gem 'rake'
   gem 'factory_girl_rails'
   gem 'database_cleaner'
-  gem 'cucumber-rails'
+  gem 'cucumber-rails', :require => false
 end

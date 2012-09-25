@@ -5,6 +5,7 @@ rvm:
 before_script:
   - ./bin/travis-before-script.rb
   - RAILS_ENV=test bundle exec rake --trace db:migrate
+script: bundle exec rspec spec v1/spec && bundle exec rake cucumber
 notifications:
   email:
     - bgadoury@endpoint.com
@@ -13,5 +14,5 @@ services:
 branches:
   only:
     - develop
-    - travischeck
+
 
