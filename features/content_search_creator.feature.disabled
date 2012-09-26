@@ -1,0 +1,21 @@
+Feature: Search for content by creator (UC005)
+
+  In order to find content through the DPLA
+  API users should be able to perform searches based on the creator of the content
+
+  Background:
+    Given that I have have a valid API key
+      And there is a metadata record 'P' with the value of "Paul Revere" in the 'creator' field 
+      And a value of "http://id.loc.gov/authorities/names/n80037041" in the 'creator' field
+
+  Scenario: Creator search by text string
+    When I search for 'Paul Revere' in the 'creator' field
+    Then the API should return record P
+
+  Scenario: Keyword search matching text in 'creator' field
+    When I search for 'Paul Revere' without specifying a specific field to search in
+    Then the API should return record P
+
+  Scenario: Creator search by authority file reference
+    When I search for 'http://id.loc.gov/authorities/names/n80037041' in the 'creator' field
+    Then the API should return record P
