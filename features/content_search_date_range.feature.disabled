@@ -3,19 +3,19 @@ Feature: Search for content by date range (UC003)
   In order to find content through the DPLA
   API users should be able to perform searches based on date ranges
             
+  # The way dates are described in these tests is not meant to be an prescriptive representation of how
+  # they will be represented in the repository, nor the format that will be used to query them. Also, this 
+  # assumes that any "fuzzy" dates ranges (e.g. 'circa 16th Century') will have been converted to explicit date
+  # ranges (e.g. '1500 - 1599') during the ingestion process.
+
   Background:
     Given that I have have a valid API key
-      # The way dates are described in these tests is not meant to be an prescriptive representation of how
-      # they will be represented in the repository, nor the format that will be used to query them. Also, this 
-      # assumes that any "fuzzy" dates ranges (e.g. 'circa 16th Century') will have been converted to explicit date
-      # ranges (e.g. '1500 - 1599') during the ingestion process
-      And there is a metadata record 'A' with the value of "June 1, 1950" in the 'temporal' field
+      And there is a metadata record 'A' with the value of "June 1, 1950" in the 'temporal' field 
       And there is a metadata record 'B' with the value of "July 1, 1955 - July 30, 1955" in the 'temporal' field
       And there is a metadata record 'C' with the value of "1970 - 1979 CE" in the 'temporal' field
       And there is a metadata record 'D' with values of '1200 - 1250 CE' and '1270 - 1300 CE' in the 'temporal' field
-      And there is a metadata record 'E' with a value of '2000-4000 BCE' in the 'temporal' field
-# really old dates
-# dates without specifying month/day
+      And there is a metadata record 'E' with a value of '2000-4000 BCE' in the 'temporal' field   
+      And there is a metadata record 'F' with a value of 'April 19, 1973' in the 'created' field 
                   
   Scenario: Date search after a date
     When I search the 'temporal' field for records with a date after 'January 1, 1950'
@@ -67,12 +67,11 @@ Feature: Search for content by date range (UC003)
     When I search the 'temporal' field for records with a date between '1965' and '1975'
     Then the API should return record D
 
+  Scenario: Date range search a long time ago
+    When I search the 'temporal' field for records with a date before '1000 BCE'
+    Then the API should return record E
 
-
-
-
-
-
-
-
+  Scenario: Date range search in the 'created' field
+    When I search the 'created' field for records with a date between 'January 1, 1973' and 'December 31, 1973'
+    Then the API should return record F
 
