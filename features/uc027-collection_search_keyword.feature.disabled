@@ -1,0 +1,22 @@
+Feature: Search for collections by keyword (UC027)
+  
+  In order to find content through the DPLA
+  API users should be able to search for content using free text search
+
+  Given that I have have a valid API key
+    And there is a Collection with title "Antique Farming Implements" with identifier "12345"
+    And there is a Collection with title "Sheds of the Northeast" with identifier "98765"
+
+  Scenario: Basic keyword search of collections
+    When I search for collections matching "Farming"
+    Then the API should return all collections with "Farming" in the title
+
+  Scenario: Faceted search of collections
+    When I search for collections matching "Farming"
+      And request the 'language' facet
+    Then the API should return all collections with "Farming" in the title
+      And the API should return the 'language' facet
+      And the 'language' facet should contain items for every unique language within the full result set
+      And the each item within the facet should contain a count of matching items
+    
+    
