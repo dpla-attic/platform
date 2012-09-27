@@ -1,0 +1,26 @@
+Feature: Search for items using collection-specific fields (UC009)
+
+  In order to find content within the DPLA
+  Using all the metadata provided by the organization providing content to the DPLA
+  API users should be able to search on fields that don't fit into the core DPLA schema
+  And are specific to individual collections or contributors
+  
+  Background:
+    Given that I have have a valid API key
+      And there is a collection named "Small Books of the World"
+      And items within that collection contain a numeric field "number of pages"
+      And there is an item A within the collection with a value of 100 for "number of pages"
+      And items within that collection contain a text field "binding"
+      And there is an item B within the collection with a value of "Leather" for "binding"
+  
+  Scenario: Search by collection-specific text field 
+    When I search for items with "binding" of "Leather" 
+      And restrict my search to the collection "Small Books of the World"
+    Then the API returns item B
+
+  Scenario: Search by collection-specific numeric field 
+    When I search for items with "number of pages" of greater than 50 
+      And restrict my search to the collection "Small Books of the World"
+    Then the API returns item A
+
+

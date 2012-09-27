@@ -1,0 +1,22 @@
+Feature: Retrieve detailed information about collections (UC007)
+
+  In order to find content through the DPLA
+  API users should be able to retrieve information about the collections with the DPLA
+
+  Background:
+    Given that I have have a valid API key
+      And there is a Collection with title "Antique Farming Implements" with identifier "12345"
+      And there is a Collection with title "Sheds of the Northeast" with identifier "98765"
+
+  Scenario: Try to retrieve a collection that doesn't exist in the repository
+    When I search for a collection with identifier "idontexist" 
+    Then the API will return an error message
+
+  Scenario: Retrieve a single collection from the repository
+    When I request a collection with identifier "12345" 
+    Then the API will return the collection with the identifier "12345"
+
+  Scenario: Retrieve multiple collections from the repository
+    When I request collections with identifiers "12345" and "98765"
+    Then the API will return the collections with the identifiers "12345" and "98765"
+
