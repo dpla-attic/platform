@@ -7,15 +7,15 @@
 camp_dir=$( cd "$( dirname "$0" )/.." && pwd )
 
 # ElasticSearch
-es_cmd="/usr/share/elasticsearch/bin/elasticsearch"
 es_pidfile="${camp_dir}/var/elasticsearch.pid"
+es_cmd="/usr/share/elasticsearch/bin/elasticsearch"
 
 # CouchDB
-couch_cmd="/usr/local/bin/couchdb"
 couch_pidfile="${camp_dir}/var/run/couchdb/couchdb.pid"
+couch_cmd="/usr/local/bin/couchdb -a ${camp_dir}/config/couchdb.ini -p $couch_pidfile"
 
 function start {
-    $couch_cmd -a config/couchdb.ini -p $couch_pidfile -b -o /dev/null -e /dev/null
+    $couch_cmd -b -o /dev/null -e /dev/null
     $es_cmd -Des.config=${camp_dir}/v1/config/elasticsearch/elasticsearch.yml -p $es_pidfile
 }
 
@@ -24,7 +24,7 @@ function stop {
         kill -HUP `cat $es_pidfile`
     fi
     if [ -e $couch_pidfile ] ; then
-        $couch_cmd -a config/couchdb.ini -p $couch_pidfile -d
+        $couch_cmd -d
     fi
 }
 
