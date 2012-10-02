@@ -2,7 +2,7 @@
 # 
 # Simple script to automate managing camp-specific services.
 # Used in conjunction with DevCamps.org camps.
-# Brian 'Phunk' Gadoury <bgadoury@endpoint.com. 
+# Brian 'Phunk' Gadoury <bgadoury@endpoint.com> 
 
 camp_dir=$( cd "$( dirname "$0" )/.." && pwd )
 
@@ -10,13 +10,21 @@ camp_dir=$( cd "$( dirname "$0" )/.." && pwd )
 es_cmd="/usr/share/elasticsearch/bin/elasticsearch"
 es_pidfile="${camp_dir}/var/elasticsearch.pid"
 
+# CouchDB
+couch_cmd="/usr/local/bin/couchdb"
+couch_pidfile="${camp_dir}/var/run/couchdb/couchdb.pid"
+
 function start {
-  `$es_cmd -Des.config=${camp_dir}/v1/config/elasticsearch/elasticsearch.yml -p $es_pidfile`
+    $couch_cmd -a config/couchdb.ini -p $couch_pidfile -b -o /dev/null -e /dev/null
+    $es_cmd -Des.config=${camp_dir}/v1/config/elasticsearch/elasticsearch.yml -p $es_pidfile
 }
 
 function stop {
     if [ -e $es_pidfile ] ; then
         kill -HUP `cat $es_pidfile`
+    fi
+    if [ -e $couch_pidfile ] ; then
+        $couch_cmd -a config/couchdb.ini -p $couch_pidfile -d
     fi
 }
 

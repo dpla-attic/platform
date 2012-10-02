@@ -1,10 +1,11 @@
 v1/config/elasticsearch/*.yml
 config/database.yml
+config/couchdb.ini
 tmp/
 var/
 vendor/bundle/
-httpd/
 pgsql/
 *.swp
 .sass-cache/
 apache2/
+erl_crash.dump
