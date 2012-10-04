@@ -65,7 +65,7 @@
            <div class="span12">
     	     
     	      <% if flash[:notice] %>
-                <p class=notice"><%= notice %></p>
+                <p class="notice"><%= notice %></p>
               <% end %>
     	      <% if flash[:alert] %>
                 <p class="alert"><%= alert %></p>
@@ -77,6 +77,7 @@
 
       <footer>
         <p>&copy; Copyright President and Fellows of Harvard College, 2012</p>
+        <p><%= link_to "Canned test links", v1_api.items_links_path %></p>
       </footer>
 
     </div> <!-- /container -->
