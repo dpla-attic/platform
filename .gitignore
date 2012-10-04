@@ -1,6 +1,6 @@
 v1/config/elasticsearch/*.yml
+v1/config/couchdb.ini
 config/database.yml
-config/couchdb.ini
 tmp/
 var/
 vendor/bundle/

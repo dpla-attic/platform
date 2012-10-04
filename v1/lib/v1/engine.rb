@@ -6,8 +6,7 @@ module V1
     engine_name 'v1_api'
 
     initializer "v1.tire_config" do
-      Tire::Configuration.url(V1::Search.get_search_endpoint)
-      Tire::Model::Search.index_prefix("test_") if Rails.env.test?
+      V1::Config.initialize_tire
     end
 
   end

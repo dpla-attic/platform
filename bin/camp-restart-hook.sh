@@ -12,7 +12,7 @@ es_cmd="/usr/share/elasticsearch/bin/elasticsearch"
 
 # CouchDB
 couch_pidfile="${camp_dir}/var/run/couchdb/couchdb.pid"
-couch_cmd="/usr/local/bin/couchdb -a ${camp_dir}/config/couchdb.ini -p $couch_pidfile"
+couch_cmd="/usr/local/bin/couchdb -a ${camp_dir}/v1/config/couchdb.ini -p $couch_pidfile"
 
 function start {
     $couch_cmd -b -o /dev/null -e /dev/null

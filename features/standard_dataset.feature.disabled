@@ -1,0 +1,5 @@
+#TODO: Test standard dataset contents here or (more likely) by unit testing the source JSON
+
+      And there are 1 items that contain the word "banana" in the title
+      And there are 2 items that contain the word "perplexed" in the description
+      And there are 0 items that contain the word "perplexed" in the title

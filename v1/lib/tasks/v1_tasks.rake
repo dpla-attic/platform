@@ -1,30 +1,38 @@
-require 'v1'
-
 namespace :v1 do
+
+  desc "Creates new ElasticSearch index and populates it with the standard dataset"
+  task :recreate_search_index => :environment do
+    require 'v1/standard_dataset'
+    V1::StandardDataset.recreate_index!
+  end
 
   desc "Gets ES search cluster status"
   task :search_status do
-    endpoint = V1::Search.get_search_endpoint
+    endpoint = V1::Config.get_search_endpoint
     # silly curl arguments to suppress the progress bar but let errors through
     puts %x( curl #{endpoint} -s -S )
   end
 
   desc "Diplays the ElasticSearch search_endpoint the API is configured to use"
   task :search_endpoint do
-    puts V1::Search.get_search_endpoint
+    puts V1::Config.get_search_endpoint
   end
 
-  desc "Creates new ElasticSearch index and populates it with data from v1/json/"
-  task :create_test_search_index do
-    search_endpoint = V1::Search.get_search_endpoint
-    puts %x( curl -XPOST #{search_endpoint}/dpla -d '#{get_json('index-create')}' )
-    puts %x( curl -XPUT  #{search_endpoint}/dpla/item/1 -d '#{get_json('item1-create')}' )
-    puts %x( curl -XPUT  #{search_endpoint}/dpla/item/2 -d '#{get_json('item2-create')}' )
+
+  desc "Diplays the CouchDB repository_endpoint the API is configured to use"
+  task :repository_endpoint do
+    puts V1::Config.get_repository_endpoint
   end
+
+  desc "Creates new CouchDB database and populates it with the standard dataset"
+  task :recreate_repo_database => :environment do
+    require 'v1/couchdb'
+    V1::Couchdb.recreate_database!
+  end
+
 
   desc "Verify all required V1 API config files exist"
   task :check_config do
-    require 'dpla'
     if Dpla.check_config( __FILE__, %w( config/elasticsearch/elasticsearch_pointer.yml ) )
       puts "OK. All required V1 API config files present."
     end

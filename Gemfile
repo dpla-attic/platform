@@ -8,6 +8,8 @@ gem 'devise', '2.1.2'
 gem 'jquery-rails'
 gem 'dpla_search_api_v1', :path => 'v1'
 gem 'tire'
+gem 'couchrest'
+gem 'inifile'
 
 group :assets do
   gem 'sass-rails',   '~> 3.2.3'
@@ -21,7 +23,7 @@ end
 gem 'rspec-rails', :group => [:test, :development]
 
 group :test do
-  gem 'pry'
+  gem 'pry', :require => false
   gem 'rake'
   gem 'factory_girl_rails'
   gem 'database_cleaner'

@@ -11,6 +11,8 @@ Dir[Rails.root.join("spec/support/**/*.rb")].each {|f| require f}
 RSpec.configure do |config|
   # Does not work
   #config.files_to_run << "v1/spec/lib/v1/version_spec.rb"
+# TODO: Require RSpec 2.11+ expect syntax in place of older should syntax
+#     config.syntax = :expect
 
   # If you're not using ActiveRecord, or you'd prefer not to run each of your
   # examples within a transaction, remove the following line or assign false
