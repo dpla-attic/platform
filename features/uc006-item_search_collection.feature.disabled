@@ -1,0 +1,17 @@
+Feature: Search for items by collection (UC006)
+
+  In order to find content through the DPLA
+  API users should be able to perform searches based on collections
+
+  Background:
+    Given that I have have a valid API key
+    And the default test dataset is loaded
+
+  Scenario: Search for all items within a single collection
+    When I search for items within the collection "12345"
+    Then the API should return items A, B
+    
+  Scenario: Search for all items within multiple collections
+    When I search for items within the collections "12345" and "98765"
+    Then the API should return items A, B, C, D
+    

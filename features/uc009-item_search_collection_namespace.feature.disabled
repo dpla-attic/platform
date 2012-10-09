@@ -7,19 +7,15 @@ Feature: Search for items using collection-specific fields (UC009)
   
   Background:
     Given that I have have a valid API key
-      And there is a collection named "Small Books of the World"
-      And items within that collection contain a numeric field "number of pages"
-      And there is an item A within the collection with a value of 100 for "number of pages"
-      And items within that collection contain a text field "binding"
-      And there is an item B within the collection with a value of "Leather" for "binding"
+    And the default test dataset is loaded
   
   Scenario: Search by collection-specific text field 
-    When I search for items with "binding" of "Leather" 
+    When I search for items with "binding" equals "Leather" 
       And restrict my search to the collection "Small Books of the World"
     Then the API returns item B
 
   Scenario: Search by collection-specific numeric field 
-    When I search for items with "number of pages" of greater than 50 
+    When I search for items with "number of pages" is greater than 50 
       And restrict my search to the collection "Small Books of the World"
     Then the API returns item A
 

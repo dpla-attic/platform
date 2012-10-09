@@ -1,6 +1,6 @@
-Feature: Search for content by date range (UC003)
+Feature: Search for items by date range (UC003)
   
-  In order to find content through the DPLA
+  In order to find items through the DPLA
   API users should be able to perform searches based on date ranges
             
   # The way dates are described in these tests is not meant to be an prescriptive representation of how
@@ -10,13 +10,8 @@ Feature: Search for content by date range (UC003)
 
   Background:
     Given that I have have a valid API key
-      And there is a metadata record 'A' with the value of "June 1, 1950" in the 'temporal' field 
-      And there is a metadata record 'B' with the value of "July 1, 1955 - July 30, 1955" in the 'temporal' field
-      And there is a metadata record 'C' with the value of "1970 - 1979 CE" in the 'temporal' field
-      And there is a metadata record 'D' with values of '1200 - 1250 CE' and '1270 - 1300 CE' in the 'temporal' field
-      And there is a metadata record 'E' with a value of '2000-4000 BCE' in the 'temporal' field   
-      And there is a metadata record 'F' with a value of 'April 19, 1973' in the 'created' field 
-                  
+    And the default test dataset is loaded
+
   Scenario: Date search after a date
     When I search the 'temporal' field for records with a date after 'January 1, 1950'
     Then the API should return records A, B, and C                     

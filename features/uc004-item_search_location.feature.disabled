@@ -1,4 +1,4 @@
-Feature: Search for content by location (UC004)
+Feature: Search for items by location (UC004)
   
   In order to find content through the DPLA
   API users should be able to perform searches based on location
@@ -13,17 +13,10 @@ Feature: Search for content by location (UC004)
   Background:
     Given that I have have a valid API key
       And the default search radius for location search is 10 miles
-      And there is a metadata record 'M' with the value of "Cambridge" in the 'spatial' field 
-      And a value of "MA" in the 'spatial' field
-      And a value of "Massachusetts" in the 'spatial' field
-      And a value of "42.373611, -71.110556" in the 'spatial' field
+      And the default test dataset is loaded
 
   Scenario: Location search by text string
     When I search for 'Cambridge' in the 'spatial' field
-    Then the API should return record M
-  
-  Scenario: Keyword search matching text in 'spatial' field
-    When I search for 'Cambridge' without specifying a specific field to search in
     Then the API should return record M
   
   Scenario: Location search 
