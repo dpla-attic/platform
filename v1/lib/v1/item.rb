@@ -1,6 +1,8 @@
 require 'tire'
+require 'v1/repository'
 
 module V1
+
   module Item
     # Specific fields that can be searched directly
     SEARCHABLE_FIELDS = %w( title description ).freeze
@@ -16,9 +18,9 @@ module V1
         search.query { |query| query.string(params['q']) }
       end
 
-      # specific field search
       #TODO: queries on free-text AND specific queries: not implemented
       #TODO: queries on multiple specific fields: not implemented
+      # If the user queried on a specific field that is allowed:
       specific_field = (SEARCHABLE_FIELDS & params.keys).first
       if !specific_field.nil?
         search.query { |query| query.string("#{specific_field}:#{params[specific_field]}") }
@@ -28,6 +30,10 @@ module V1
       Rails.logger.debug search.results.inspect
 
       search.results
+    end
+
+    def self.fetch(id)
+      V1::Repository.fetch(id)
     end
 
     def self.present?(string)

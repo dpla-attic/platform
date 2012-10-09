@@ -11,6 +11,16 @@ module V1
       Rails.stub_chain(:logger, :debug) { stub }
     end
 
+    describe "#fetch" do
+
+      it "delegates to V1::Repository.fetch" do
+        id = stub
+        V1::Repository.should_receive(:fetch).with(id)
+        subject.fetch(id)
+      end
+
+    end
+
     describe "#search" do
       let(:search) { mock('search').as_null_object }
       let(:query) { mock('query').as_null_object }

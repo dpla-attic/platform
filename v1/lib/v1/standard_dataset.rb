@@ -18,7 +18,7 @@ module V1
           :item => {
             :properties => {
               #NOTE: No longer needed now that the source data uses _id, I think. -phunk
-              :id       => { :type => 'string' },  
+              #:id       => { :type => 'string' },  
               :title    => { :type => 'string' },
               :dplaContributor    => { :type => 'string' },
               :collection    => { :type => 'string' },
@@ -47,12 +47,43 @@ module V1
     end
 
     def self.process_input_file(json_file)
-      # load and pre-process items from the json file
+      # Load and pre-process items from the json file
       items_file = File.expand_path(json_file, __FILE__)
       items = JSON.load( File.read(items_file) )
       items.each {|item| item['_type'] = "item"}
     end
 
+    def self.recreate_river!
+      repository_uri = URI.parse(V1::Config.get_repository_endpoint)
+
+      river_payload = {
+        type: "couchdb",
+        couchdb: {
+          host: repository_uri.host,
+          port: repository_uri.port,
+          db: V1::Config::REPOSITORY_DATABASE,
+          filter: nil
+        },
+        index: {
+          index: V1::Config::SEARCH_INDEX,
+          type: 'item'
+        }
+      }
+
+      Tire::Configuration.url(V1::Config.get_search_endpoint)
+      delete_river!
+      create_result = Tire::Configuration.client.put(
+                                                  "#{Tire::Configuration.url}/_river/items/_meta",
+                                                  river_payload.to_json
+                                                  )
+      puts "River create: #{create_result.inspect}"
+      refresh_result = Tire.index('_river').refresh
+      puts "River refresh: #{refresh_result.inspect}"
+    end
+
+    def self.delete_river!
+      Tire::Configuration.client.delete("#{V1::Config.get_search_endpoint}/_river/items")
+    end
   end
 
 end

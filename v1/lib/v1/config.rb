@@ -1,8 +1,11 @@
+require 'inifile'
+
 module V1
 
   module Config
 
-    SEARCH_INDEX = 'dpla'
+    SEARCH_INDEX = 'dpla'.freeze
+    REPOSITORY_DATABASE = SEARCH_INDEX
     DEFAULT_PAGE_SIZE = 10
     
     def self.get_search_config
@@ -28,9 +31,9 @@ module V1
 
     def self.get_search_endpoint
       # Use the config file or supply reasonable defaults
-      config = YAML.load_file(get_search_config) || {}
-      host = config['network.host'] || config['network.bind_host'] || '0.0.0.0'
-      port = config['http.port'] || '9200'
+      search_config ||= YAML.load_file(get_search_config) || {}
+      host = search_config['network.host'] || search_config['network.bind_host'] || '0.0.0.0'
+      port = search_config['http.port'] || '9200'
       return "http://#{host}:#{port}"
     end
 

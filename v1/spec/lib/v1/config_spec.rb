@@ -6,12 +6,16 @@ module V1
 
     context "Constants" do
 
-      it "should have the correct DEFAULT_PAGE_SIZE value" do
+      it "has the correct DEFAULT_PAGE_SIZE value" do
         expect(V1::Config::DEFAULT_PAGE_SIZE).to eq 10
       end
 
-      it "should have the correct SEARCH_INDEX value" do
+      it "has the correct SEARCH_INDEX value" do
         expect(V1::Config::SEARCH_INDEX).to eq 'dpla'
+      end
+
+      it "has the correct REPOSITORY_DATABASE value" do
+        expect(V1::Config::REPOSITORY_DATABASE).to eq 'dpla'
       end
 
     end
@@ -19,7 +23,7 @@ module V1
     describe "#get_search_config" do
 
       context "when the custom elasticsearch config files are set up correctly" do
-        it "should return the existing file from elasticsearch_pointer.yml" do
+        it "returns the existing file from elasticsearch_pointer.yml" do
           File.stub(:expand_path) { '/existing_pointer_file.yml' }
           File.should_receive(:exist?).with('/existing_pointer_file.yml') { true }
           File.should_receive(:exist?).with('elasticsearch.yml') { true }
@@ -31,7 +35,7 @@ module V1
       context "when elasticsearch_pointer.yml is missing" do
 
         context "and the default '/etc/elasticsearch/elasticsearch.yml' exists" do
-          it "should check for default elasticsearch.yml and return it" do
+          it "checks for default elasticsearch.yml and return it" do
             File.stub(:expand_path) { '/non existent pointer file' }
             File.should_receive(:exist?).with('/non existent pointer file') { false }
             File.should_receive(:exist?).with('/etc/elasticsearch/elasticsearch.yml') { true }
@@ -40,7 +44,7 @@ module V1
         end
 
         context "and the default '/etc/elasticsearch/elasticsearch.yml' does not exist" do
-          it "should raise an error" do
+          it "raises an error" do
             File.stub(:expand_path) { '/non existent pointer file' }
             File.should_receive(:exist?).with('/non existent pointer file') { false }
             File.should_receive(:exist?).with('/etc/elasticsearch/elasticsearch.yml') { false }
@@ -54,7 +58,7 @@ module V1
 
       context "when elasticsearch_pointer.yml points to an invalid location" do
 
-        it "should raise an error" do
+        it "raises an error" do
           File.stub(:expand_path) { 'elasticsearch_pointer.yml' }
           File.should_receive(:exist?).with('elasticsearch_pointer.yml') { true }
           YAML.stub(:load_file) { {'config_file' => 'wrong_elasticsearch.yml'} }
@@ -72,7 +76,7 @@ module V1
 
     context "#get_search_endpoint" do
 
-      it "should construct the correct elasticsearch URL based on explicit values in elasticsearch.yml" do
+      it "constructs the correct elasticsearch URL based on explicit values in elasticsearch.yml" do
         config_values = {
           'network.host' => 'testhost',
           'http.port' => '9999'          
@@ -83,7 +87,7 @@ module V1
         Config.get_search_endpoint.should == "http://testhost:9999"
       end
 
-      it "should handle an empty elasticsearch.yml by supplying default values" do
+      it "handles an empty elasticsearch.yml by supplying default values" do
         Config.stub(:get_search_config)
         YAML.stub(:load_file) { false }
         expect(Config.get_search_endpoint).to eq "http://0.0.0.0:9200"

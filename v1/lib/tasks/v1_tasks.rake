@@ -24,22 +24,29 @@ namespace :v1 do
     puts V1::Config.get_repository_endpoint
   end
 
-  desc "Creates new CouchDB database and populates it with the standard dataset"
+  desc "Creates new CouchDB database (and River) and populates it with the standard dataset"
   task :recreate_repo_database => :environment do
-    require 'v1/couchdb'
-    V1::Couchdb.recreate_database!
+    require 'v1/repository'
+    V1::Repository.recreate_database!
   end
 
+  desc "Creates new CouchDB River on 'items'"
+  task :recreate_repo_river => :environment do
+    require 'v1/standard_dataset'
+    V1::StandardDataset.recreate_river!
+  end
+
+  desc "Deletes CouchDB River on 'items'"
+  task :delete_repo_river => :environment do
+    require 'v1/standard_dataset'
+    V1::StandardDataset.delete_river!
+  end
 
   desc "Verify all required V1 API config files exist"
   task :check_config do
     if Dpla.check_config( __FILE__, %w( config/elasticsearch/elasticsearch_pointer.yml ) )
       puts "OK. All required V1 API config files present."
     end
-  end
-
-  def get_json(file)
-    IO.read File.expand_path("../../../config/elasticsearch/json/#{file}", __FILE__)
   end
 
 end
