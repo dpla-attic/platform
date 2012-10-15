@@ -59,7 +59,7 @@ module V1
     def self.initialize_tire
       #TODO: test
       Tire::Configuration.url(get_search_endpoint)
-      #Tire::Configuration.wrapper(Hash)
+      Tire::Configuration.wrapper(Hash)
       Tire.configure { logger 'var/log/elasticsearch.log', :level => 'debug' }
       Tire::Model::Search.index_prefix("test_") if Rails.env.test?
     end

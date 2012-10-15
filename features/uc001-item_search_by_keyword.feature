@@ -17,6 +17,6 @@ Feature: Search for items by keyword (UC001)
 
   @wip
   Scenario: Keyword search matching text in 'spatial' field
-    When I search for 'Cambridge' without specifying a specific field to search in
-    Then the API should return record M
+    When I search for "Cambridge" without specifying a specific field to search in
+    Then the API should return record "M"
   

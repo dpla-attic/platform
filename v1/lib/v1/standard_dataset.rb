@@ -41,7 +41,9 @@ module V1
           }
         }
 
-        import items
+        import_result = import items
+        #puts "import_result: #{import_result.body.to_json}"
+        #TODO: eval as JSON and assert items.size == result size
         refresh
       end
     end
@@ -50,6 +52,7 @@ module V1
       # Load and pre-process items from the json file
       items_file = File.expand_path(json_file, __FILE__)
       items = JSON.load( File.read(items_file) )
+      puts "Loaded #{items.size} items from source JSON file"
       items.each {|item| item['_type'] = "item"}
     end
 

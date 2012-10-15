@@ -17,7 +17,7 @@ uc003:
       And there is a metadata record 'C' with "1970 - 1979 CE" in the 'temporal' field
       And there is a metadata record 'D' with '1200 - 1250 CE' and '1270 - 1300 CE' in the 'temporal' field
       And there is a metadata record 'E' with '2000-4000 BCE' in the 'temporal' field   
-      And there is a metadata record 'F' with 'April 19, 1973' in the 'created' field 
+      And there is a metadata record 'F' with '1973-04-19' in the 'created' field 
 
 uc004:
       And there is a metadata record 'M' with the value of "Cambridge" in the 'spatial' field 
