@@ -22,7 +22,6 @@ module V1
       subject
       rights
       spatial
-      temporal
       relation
       source
       contributor
@@ -32,15 +31,29 @@ module V1
     # Exclusion list
     SEARCH_OPTION_FIELDS = %w( fields page_size offset )
 
-    def self.date_range_query_string(base_name, params)
-      # Inclusive range queries: square brackets. Exclusive range queries: curly brackets.
-      min = params["#{base_name}.start"].presence || '*'
-      max = params["#{base_name}.end"].presence || '*'
-      "#{base_name}:[#{min} TO #{max}]"
-    end
+    def self.search(params={})
+      search = Tire::Search::Search.new(V1::Config::SEARCH_INDEX)
+      queries = build_query_booleans(params) + build_temporal_query(params)
+      
+      #TODO: unrecognized field searches are currently returning the entire index.
+      if queries.any?
+        search.query do |query|
+          queries.each {|q| query.boolean &q }
+        end
+      end
 
-    def self.searchable_field?(field)
-      SEARCHABLE_FIELDS.include?(field =~ /^(.+)\.(start|end)$/ ? $1 : field)
+      if search.to_json == '{}'
+        puts "********* WARNING ********* "
+        puts "* Running a completely empty query. Probably not what you intended. *"
+        puts "*************************** "
+      end
+      #puts "CURL: #{search.to_curl}"
+      
+      #search.results.each do |result|
+      #  puts "### HIT (#{result['_id']}): #{result['_source']}"
+      #end
+
+      search.results
     end
 
     def self.build_query_strings(params)
@@ -49,33 +62,26 @@ module V1
 
       params.each do |field, value|
         next unless searchable_field?(field)
-        query_string = nil
 
-        # if it has .start or .end, look for matching inverse, process as date range (and remember it's handled)
-        # date ranges can be $field.start and/or $field.end
-        if field =~ /^(.+)\.(start|end)$/
-          # date range search
+        if field == 'q'
+          # free text search
+          query_strings << value if !value.nil?
+        elsif field =~ /^(.+)\.(before|after)$/
+          # generic date field range search
           base_name = $1
           if !date_ranges_seen.include? base_name
             # remember base field name to avoid double-processing 
             date_ranges_seen << base_name
-            query_string = date_range_query_string(base_name, params)
+            query_strings << date_range_query_string(base_name, params)
           end            
-        elsif field == 'q'
-          # free text search
-          query_string = value
         else
           # field search
-          query_string = "#{field}:#{value}"
+          query_strings << "#{field}:#{value}"
         end
-
-        #TODO: handle empty field, empty value or otherwise-bad search?
-        query_strings << query_string if !query_string.nil?
       end
 
-      query_strings
+      query_strings.flatten
     end
-
     def self.build_query_booleans(params)
       queries = []
       build_query_strings(params).each do |query_string|
@@ -88,19 +94,76 @@ module V1
       queries
     end
 
-    def self.search(params={})
-      search = Tire::Search::Search.new(V1::Config::SEARCH_INDEX)
-      queries = build_query_booleans(params)
+    def self.date_range_query_string(base_name, params)
+      # Inclusive range queries: square brackets. Exclusive range queries: curly brackets.
+      after = params["#{base_name}.after"].presence || '*'
+      before = params["#{base_name}.before"].presence || '*'
+      "#{base_name}:[#{after} TO #{before}]"
+    end
 
-      if queries.any?
-        search.query do |query|
-          queries.each {|q| query.boolean &q }
+    def self.build_temporal_ranges(params)
+      ranges = []
+      if params['temporal.after']
+        limits = { :gte => params['temporal.after'] }
+        # uncomment the below to enforce a strict "between" query rather than the
+        # the default "if there is any overlap in timeframes" we use now.
+        #limits[:lte] = params['temporal.before'] if params['temporal.before']
+        ranges << ['temporal.end', limits]
+      end
+      if params['temporal.before']
+        limits = { :lte => params['temporal.before'] }
+        # see above "between" comment
+        #limits[:gte] = params['temporal.after'] if params['temporal.after']
+        ranges << ['temporal.start', limits]
+      end
+      ranges
+    end
+
+    def self.build_temporal_query(params)
+      build_temporal_ranges(params).inject([]) do |memo, range|
+        memo << lambda do |boolean|
+          boolean.must do |must|
+            must.range(*range)
+          end
+        end
+        memo
+      end
+    end
+
+    def self.direct_range(hash={})
+      #TODO: Remove (DEV only)
+      search = Tire::Search::Search.new(V1::Config::SEARCH_INDEX)
+      rangeq = ['temporal.end', { :gte => '1960' }]
+      search.query do
+        boolean do
+          must { range(*rangeq) }
         end
       end
+      puts "CURL: #{search.to_curl}"
+      puts "Got: #{search.results.size}"
 
-      #puts "#CURL: #{search.to_curl}"
-      #"Got: #{search.results.size}"
-      search.results
+      search.results.each do |result|
+        puts result.inspect
+      end
+    end
+
+    def self.direct(str)
+      #TODO: Remove (DEV only)
+      search = Tire::Search::Search.new(V1::Config::SEARCH_INDEX)
+      search.query do
+          must { string "#{str}" }
+      end
+      puts "CURL: #{search.to_curl}"
+
+      "Got: #{search.results.size}"
+      search.results.each do |result|
+        puts result.inspect
+      end
+    end
+
+    def self.searchable_field?(field)
+      # Note: Properly detects range searches on searchable fields
+      SEARCHABLE_FIELDS.include?(field =~ /^(.+)\.(before|after)$/ ? $1 : field)
     end
 
     def self.fetch(id)
@@ -117,3 +180,4 @@ end
 #puts V1::Item.search({'created.start' => '2012-01-07'}).first
 #puts V1::Item.search({'created.start' => '1950', 'created.end' => '1980'}).first
 #puts V1::Item.search({'created.end' => '1980'}).first
+#puts V1::Item.direct_range({}).first

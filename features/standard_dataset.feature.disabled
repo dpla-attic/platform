@@ -9,7 +9,6 @@ Features that include the background phrease:
       And there are 2 items that contain the word "perplexed" in the description
       And there are 0 items that contain the word "perplexed" in the title
 
-
 # metadata record 'A' indicates a record with id = 'A'
 uc003:
       And there is a metadata record 'A' with "June 1, 1950" in the 'temporal' field 
@@ -28,7 +27,6 @@ uc004:
 uc005:
       And there is a metadata record 'P' with the value of "Paul Revere" in the 'creator' field 
       And a value of "http://id.loc.gov/authorities/names/n80037041" in the 'creator' field
-
 
 uc006:
       And there is a Collection with identifier "12345"

@@ -26,9 +26,9 @@ module V1
         expect(subject.searchable_field?('title')).to be_true
       end
       
-      it "detects .start and .end variations of a searchable field as searchable" do
-        expect(subject.searchable_field?('created.start')).to be_true
-        expect(subject.searchable_field?('created.end')).to be_true
+      it "detects .after and .before variations of a searchable field as searchable" do
+        expect(subject.searchable_field?('created.after')).to be_true
+        expect(subject.searchable_field?('created.before')).to be_true
       end
       
       it "rejects unknown fields" do
@@ -48,20 +48,20 @@ module V1
       #    def self.date_range_query_string(base_name, value, params)
 
       it "handles closed date ranges" do
-        params = {'created.start' => '2012-01-01', 'created.end' => '2012-01-31'}
+        params = {'created.after' => '2012-01-01', 'created.before' => '2012-01-31'}
         expect(
                subject.date_range_query_string('created', params)
                ).to eq 'created:[2012-01-01 TO 2012-01-31]'
       end
       
       it "handles begin-only date ranges" do
-        params = {'created.start' => '2012-01-01'}
+        params = {'created.after' => '2012-01-01'}
         expect(
                subject.date_range_query_string('created', params)
                ).to eq 'created:[2012-01-01 TO *]'
       end
       it "handles end-only date ranges" do
-        params = {'created.end' => '2012-01-31'};
+        params = {'created.before' => '2012-01-31'};
         expect(
                subject.date_range_query_string('created', params)
                ).to eq 'created:[* TO 2012-01-31]'

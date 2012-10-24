@@ -1,4 +1,9 @@
 <ul>
-  <li>UC001: <%= link_to v1_api.items_path(:q => 'banana'), v1_api.items_path(:q => 'banana') %> </li>
-  <li>UC001: <%= link_to v1_api.items_path(:q => 'perplexed'), v1_api.items_path(:q => 'perplexed') %> </li>
+  <li>UC001: <%= link_to v1_api.items_path('q' => 'banana'), v1_api.items_path('q' => 'banana') %> </li>
+  <li>UC001: <%= link_to v1_api.items_path('q' => 'perplexed'), v1_api.items_path('q' => 'perplexed') %> </li>
+  <li>UC002: <%= link_to v1_api.items_path('title' => 'banana'), v1_api.items_path('title' => 'banana') %> </li>
+  <li>UC002: <%= link_to v1_api.items_path('description' => 'banana'), v1_api.items_path('description' => 'banana') %> (zero results)</li>
+  <li>UC003: <%= link_to v1_api.items_path('temporal.after' => '1950-01-01'), v1_api.items_path('temporal.after' => '1950-01-01') %> (A, B, C)</li>
+  <li>UC003: <%= link_to v1_api.items_path('temporal.before' => '1955-07-15'), v1_api.items_path('temporal.before' => '1955-07-15') %> (A, B, D)</li>
+  <li>UC003: <%= link_to v1_api.items_path('temporal.after' => '1800-01-01', 'temporal.before' => '1850-12-31'), v1_api.items_path('temporal.after' => '1800-01-01', 'temporal.before' => '1850-12-31') %> (zero results)</li>
 </ul>

@@ -26,7 +26,7 @@ module V1
       db = CouchRest.database!(endpoint)
       V1::StandardDataset.recreate_river!
 
-      items = process_input_file("../standard_dataset/item.json")
+      items = process_input_file("../standard_dataset/items.json")
       db.bulk_save items
     end
 

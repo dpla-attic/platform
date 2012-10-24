@@ -1,4 +1,5 @@
 require 'v1/config'
+require 'json'
 
 module V1
 
@@ -8,12 +9,12 @@ module V1
       # Delete and create the index
       #TODO: add production env check
 
-      items = process_input_file("../standard_dataset/item.json")
+      items = process_input_file("../standard_dataset/items.json")
 
+      import_result = nil
       Tire.index(V1::Config::SEARCH_INDEX) do
         delete
 
-        # TODO: move to ES's config/default-mapping.json 
         create :mappings => {
           :item => {
             :properties => {
@@ -24,7 +25,7 @@ module V1
               :collection    => { :type => 'string' },
               :creator    => { :type => 'string' },
               :publisher   => { :type => 'string' },
-              :created => { :type => 'date' },
+              :created => { :type => 'date' }, #"format" : "YYYY-MM-dd"
               :type    => { :type => 'string' }, #image, text, etc
               :format    => { :type => 'string' }, #mime-type
               :language    => { :type => 'string' }, 
@@ -32,7 +33,14 @@ module V1
               :description    => { :type => 'string' },
               :rights    => { :type => 'string' },
               :spatial   => { :type => 'string' },
-              :temporal    => { :type => 'string' },
+              :temporal => {
+                :properties => {
+                  #:type => 'nested',
+                  :name => { :type => "string" },
+                  :start => { :type => "date", :null_value => "-9999" }, #requiredevenifnull #, :format=>"YYYY G"}
+                  :end => { :type => "date", :null_value => "9999" } #requiredevenifnull
+                 }
+              },
               :relation    => { :type => 'string' },
               :source    => { :type => 'string' },
               :contributor    => { :type => 'string' },
@@ -42,10 +50,25 @@ module V1
         }
 
         import_result = import items
-        #puts "import_result: #{import_result.body.to_json}"
-        #TODO: eval as JSON and assert items.size == result size
         refresh
       end
+
+      return display_import_result(import_result)
+    end
+
+    def self.display_import_result(import_result)
+      result = JSON.load import_result.body.as_json
+      failures = result['items'].select {|item| !item['index']['error'].nil? }
+      result_count = result['items'].size
+      puts "Imported #{result_count - failures.size}/#{result_count} items OK"
+
+      if failures.any?
+        puts "\nERROR: The following items failed to import correctly:"
+        failures.each do |item|
+          puts "#{ item['index']['_id'] }: #{ item['index']['error'] }"
+        end
+      end
+      return result['items']
     end
 
     def self.process_input_file(json_file)
@@ -53,6 +76,7 @@ module V1
       items_file = File.expand_path(json_file, __FILE__)
       items = JSON.load( File.read(items_file) )
       puts "Loaded #{items.size} items from source JSON file"
+      #TODO: Should not need the below if we are posting to the item type within ES
       items.each {|item| item['_type'] = "item"}
     end
 
