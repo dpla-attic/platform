@@ -3,28 +3,24 @@ Feature: Search for items by location (UC004)
   In order to find content through the DPLA
   API users should be able to perform searches based on location
 
-# An assumption here is that the ingestion process will take care of generating all these various
-# representations of the location
-
 # Not explicitly covered in this test case
 # - searching based on TGN (Getty Thesauraus of Geographic Names)
 # - searching based on geonames.org linked data URIs
 
   Background:
     Given that I have have a valid API key
-      And the default search radius for location search is 10 miles
       And the default test dataset is loaded
+      And the default search radius for location search is 10 miles
 
   Scenario: Location search by text string
-    When I search for 'Cambridge' in the 'spatial' field
+    When I search for "Cambridge" in the "spatial.city" field 
     Then the API should return record M
-  
+
   Scenario: Location search 
-    When I search for records near "42, -71"
+    When I search for records with location near coordinates "42.3,-71"
     Then the API should return record M
 
   Scenario: Location search with expanded search radius
-    When I search for records near "41, -71"
-      And request a search radius of 100 miles
+    When I search for records with location near coordinates "41, -71" with a range of 100 miles
     Then the API should return record M
   

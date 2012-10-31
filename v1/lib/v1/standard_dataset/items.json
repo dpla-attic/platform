@@ -13,7 +13,6 @@
     "language": "", 
     "subject": "",
     "rights": "",
-    "spatial": "",
     "relation": "",
     "source": "",
     "contributor": "",
@@ -33,7 +32,6 @@
     "language": "", 
     "subject": "",
     "rights": "",
-    "spatial": "",
     "relation": "",
     "source": "",
     "contributor": "",
@@ -53,7 +51,6 @@
     "language": "", 
     "subject": "",
     "rights": "",
-    "spatial": "",
     "relation": "",
     "source": "",
     "contributor": "",
@@ -72,7 +69,6 @@
     "language": "", 
     "subject": "",
     "rights": "",
-    "spatial": "",
     "temporal": {
       "name": "temporal name A",
       "start": "1950-06-01",
@@ -96,7 +92,6 @@
     "language": "", 
     "subject": "",
     "rights": "",
-    "spatial": "",
     "temporal": {
       "name": "temporal name B",
       "start": "1955-07-01",
@@ -120,7 +115,6 @@
     "language": "", 
     "subject": "",
     "rights": "",
-    "spatial": "",
     "temporal": {
       "name": "temporal name C",
       "start": "1970",
@@ -144,7 +138,6 @@
     "language": "", 
     "subject": "",
     "rights": "",
-    "spatial": "",
     "temporal": [
       {
         "name": "temporal name D",
@@ -178,6 +171,37 @@
     "rights": "",
     "spatial": null,
     "temporal": {},
+    "relation": "",
+    "source": "",
+    "contributor": "",
+    "sourceRecord": ""
+  },
+  {
+    "_id": "M",
+    "title": "title M",
+    "description": "",
+    "dplaContributor": "",
+    "collection": "",
+    "creator": "",
+    "publisher": "",
+    "created": "2012-01-26",
+    "type": "",
+    "format": "",
+    "language": "", 
+    "subject": "",
+    "rights": "",
+    "spatial": [
+      {
+        "name": "Harvard Town",
+        "coordinates": "42.373611,-71.110556",
+        "state": "MA",
+        "city": "Cambridge",
+        "iso3166-2" : "US-SC"                                          
+      },
+      {
+        "state": "Massachusetts"
+      }
+    ],
     "relation": "",
     "source": "",
     "contributor": "",

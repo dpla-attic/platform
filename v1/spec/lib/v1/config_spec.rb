@@ -5,11 +5,7 @@ module V1
   describe Config do
 
     context "Constants" do
-
-      it "has the correct DEFAULT_PAGE_SIZE value" do
-        expect(V1::Config::DEFAULT_PAGE_SIZE).to eq 10
-      end
-
+      #TODO: move these to their more specific modules
       it "has the correct SEARCH_INDEX value" do
         expect(V1::Config::SEARCH_INDEX).to eq 'dpla'
       end

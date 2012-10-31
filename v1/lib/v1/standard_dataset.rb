@@ -15,6 +15,7 @@ module V1
       Tire.index(V1::Config::SEARCH_INDEX) do
         delete
 
+        #"enabled" => false  turns off indexing for that doc
         create :mappings => {
           :item => {
             :properties => {
@@ -32,13 +33,21 @@ module V1
               :subject    => { :type => 'string' },
               :description    => { :type => 'string' },
               :rights    => { :type => 'string' },
-              :spatial   => { :type => 'string' },
+              :spatial   => {
+                :properties => {
+                  :name => { :type => 'string' },
+                  :state => { :type => 'string' },
+                  :city => { :type => 'string' },
+                  'iso3166-2' => { :type => 'string' },
+                  :coordinates => { :type => "geo_point", :lat_lon => true }
+                 }
+              },
               :temporal => {
                 :properties => {
                   #:type => 'nested',
-                  :name => { :type => "string" },
-                  :start => { :type => "date", :null_value => "-9999" }, #requiredevenifnull #, :format=>"YYYY G"}
-                  :end => { :type => "date", :null_value => "9999" } #requiredevenifnull
+                  :name => { :type => 'string' },
+                  :start => { :type => 'date', :null_value => "-9999" }, #requiredevenifnull #, :format=>"YYYY G"}
+                  :end => { :type => 'date', :null_value => "9999" } #requiredevenifnull
                  }
               },
               :relation    => { :type => 'string' },
@@ -57,7 +66,7 @@ module V1
     end
 
     def self.display_import_result(import_result)
-      result = JSON.load import_result.body.as_json
+      result = JSON.load(import_result.body.as_json)
       failures = result['items'].select {|item| !item['index']['error'].nil? }
       result_count = result['items'].size
       puts "Imported #{result_count - failures.size}/#{result_count} items OK"

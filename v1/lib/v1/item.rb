@@ -5,6 +5,16 @@ require 'active_support/core_ext'
 module V1
 
   module Item
+
+    # Default spatial.distance "range" value
+    DEFAULT_SPATIAL_DISTANCE = '20mi'.freeze
+
+    # Default pagination size for search results
+    DEFAULT_PAGE_SIZE = 10.freeze
+
+    # Exclusion list
+    SEARCH_OPTION_FIELDS = %w( fields page_size offset ).freeze
+
     # Specific fields that can be searched directly
     #TODO: Support collection-specific fields
     SEARCHABLE_FIELDS = %w( 
@@ -22,69 +32,102 @@ module V1
       subject
       rights
       spatial
+      spatial.name
+      spatial.state
+      spatial.city
+      spatial.iso3166-2
       relation
       source
       contributor
-      sourceRecord
     ).freeze
 
-    # Exclusion list
-    SEARCH_OPTION_FIELDS = %w( fields page_size offset )
+    def self.build_spatial_coordinates_query(params)
+      #TODO: validate spatial.distance units?
+      #TODO: add default distance
+      return nil unless params['spatial.coordinates'].present?
+      
+      coordinates = params['spatial.coordinates']
+      distance = params['spatial.distance'].presence || DEFAULT_SPATIAL_DISTANCE
+
+      ['geo_distance', 'spatial.coordinates' => coordinates, 'distance' => distance]
+    end
+
+    def self.build_all_queries(params)
+      queries = []
+      queries << build_field_queries(params)
+      queries << build_temporal_query(params)
+      queries.flatten
+    end
 
     def self.search(params={})
-      search = Tire::Search::Search.new(V1::Config::SEARCH_INDEX)
-      queries = build_query_booleans(params) + build_temporal_query(params)
-      
-      #TODO: unrecognized field searches are currently returning the entire index.
-      if queries.any?
-        search.query do |query|
-          queries.each {|q| query.boolean &q }
+      queries = build_all_queries(params)
+
+      searcher = Tire.search(V1::Config::SEARCH_INDEX) do |search|
+
+        if queries.any?
+          search.query do |query|
+            queries.each {|q| query.boolean &q }
+          end
         end
+
+        spatial_query_params = build_spatial_coordinates_query(params)
+        search.filter(*spatial_query_params) if spatial_query_params
+
+        #sort_attrs = [:title, 'desc']
+        #sort { by *sort_attrs }
+        #paginate
+
+        # for testability, this block should always return its search object
+        search
       end
 
-      if search.to_json == '{}'
-        puts "********* WARNING ********* "
-        puts "* Running a completely empty query. Probably not what you intended. *"
-        puts "*************************** "
-      end
-      #puts "CURL: #{search.to_curl}"
-      
-      #search.results.each do |result|
-      #  puts "### HIT (#{result['_id']}): #{result['_source']}"
-      #end
+      # if searcher.to_json == '{}'
+      #   puts "********* WARNING ********* "
+      #   puts "* Running a completely empty query. Probably not what you intended. *"
+      #   puts "*************************** "
+      # end
+      puts "CURL: #{searcher.to_curl}"
 
-      search.results
+#      searcher.results.each do |result|
+#        puts "### HIT (#{result['_id']}): #{result['_source']}"
+#      end
+
+      searcher.results
     end
 
-    def self.build_query_strings(params)
-      date_ranges_seen = []
+    def self.build_field_query_strings(params)
       query_strings = []
-
+      seen_date_ranges = []
       params.each do |field, value|
-        next unless searchable_field?(field)
+        next if value.blank?
 
         if field == 'q'
-          # free text search
-          query_strings << value if !value.nil?
-        elsif field =~ /^(.+)\.(before|after)$/
-          # generic date field range search
-          base_name = $1
-          if !date_ranges_seen.include? base_name
-            # remember base field name to avoid double-processing 
-            date_ranges_seen << base_name
-            query_strings << date_range_query_string(base_name, params)
-          end            
-        else
-          # field search
+          query_strings << value
+        elsif searchable_field?(field)
           query_strings << "#{field}:#{value}"
+        elsif field =~ /^(created)\.(before|after)$/
+          if !seen_date_ranges.include? $1
+            query_strings << build_date_range_queries($1, params)
+            # remember field so we don't doubledip it
+            seen_date_ranges << $1
+          end
         end
       end
-
-      query_strings.flatten
+      query_strings
     end
-    def self.build_query_booleans(params)
+
+    def self.build_date_range_queries(field, params)
+      if params.keys.include?("#{field}.before") || params.keys.include?("#{field}.after")
+        after = params["#{field}.after"].presence || '*'
+        before = params["#{field}.before"].presence || '*'
+        # Inclusive range queries: square brackets. Exclusive range queries: curly brackets.
+        "#{field}:[#{after} TO #{before}]"
+      end
+    end
+
+    def self.build_field_queries(params)
       queries = []
-      build_query_strings(params).each do |query_string|
+      build_field_query_strings(params).each do |query_string|
         queries << lambda do |boolean|
           boolean.must do |must|
             must.string query_string
@@ -92,13 +135,6 @@ module V1
         end
       end
       queries
-    end
-
-    def self.date_range_query_string(base_name, params)
-      # Inclusive range queries: square brackets. Exclusive range queries: curly brackets.
-      after = params["#{base_name}.after"].presence || '*'
-      before = params["#{base_name}.before"].presence || '*'
-      "#{base_name}:[#{after} TO #{before}]"
     end
 
     def self.build_temporal_ranges(params)
@@ -162,8 +198,7 @@ module V1
     end
 
     def self.searchable_field?(field)
-      # Note: Properly detects range searches on searchable fields
-      SEARCHABLE_FIELDS.include?(field =~ /^(.+)\.(before|after)$/ ? $1 : field)
+      SEARCHABLE_FIELDS.include?(field)
     end
 
     def self.fetch(id)
@@ -180,4 +215,6 @@ end
 #puts V1::Item.search({'created.start' => '2012-01-07'}).first
 #puts V1::Item.search({'created.start' => '1950', 'created.end' => '1980'}).first
 #puts V1::Item.search({'created.end' => '1980'}).first
-#puts V1::Item.direct_range({}).first
+#puts V1::Item.direct_coordinates().first
+
+#V1::Item.search({ 'spatial.distance' => '100mi', 'spatial.coordinates' => '42.1,-71' })

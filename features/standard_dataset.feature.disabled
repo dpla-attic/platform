@@ -50,5 +50,5 @@ uc009:
       And there is an item B within the collection with a value of "Leather" for "binding"
 
 uc027:
-    And there is a Collection with title "Antique Farming Implements" with identifier "12345"
-    And there is a Collection with title "Sheds of the Northeast" with identifier "98765"
+    SEE uc007
+

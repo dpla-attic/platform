@@ -6,7 +6,6 @@ module V1
 
     SEARCH_INDEX = 'dpla'.freeze
     REPOSITORY_DATABASE = SEARCH_INDEX
-    DEFAULT_PAGE_SIZE = 10
     
     def self.get_search_config
       #TODO: Refactor to look for ../../../config/elasticsearch/elasticsearch.yml or default to std location yml file
