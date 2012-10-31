@@ -6,7 +6,7 @@ module V1
 
     SEARCH_INDEX = 'dpla'.freeze
     REPOSITORY_DATABASE = SEARCH_INDEX
-    
+
     def self.get_search_config
       #TODO: Refactor to look for ../../../config/elasticsearch/elasticsearch.yml or default to std location yml file
       default_file = '/etc/elasticsearch/elasticsearch.yml'
@@ -47,12 +47,61 @@ module V1
       config || {}
     end
 
-    def self.get_repository_endpoint
+    def self.get_repository_admin
+      #TODO test
+      dpla_config = get_dpla_config
+      admin = dpla_config['couch_db']['admin']
+      password = dpla_config['couch_db']['password']
+      return "#{admin}:#{password}"
+    end
+
+    def self.get_repository_read_only_password
+      dpla_config = get_dpla_config
+      dpla_config['elasticsearch']['password']
+    end
+
+    def self.get_repository_read_only_username
+      dpla_config = get_dpla_config
+      dpla_config['elasticsearch']['username']
+    end
+
+    def self.get_dpla_config
+      #TODO: test
+      begin
+        dpla_config_path = File.expand_path("../../../config/dpla.yml", __FILE__)
+        if File.exists? dpla_config_path
+          dpla_config = YAML.load_file(dpla_config_path)
+          required_config_params = ["couch_db", "elasticsearch"]
+          if (dpla_config.keys - required_config_params).empty?
+            return dpla_config
+          else
+            raise "The DPLA config file found at #{dpla_config_path} is lacking needed values"
+          end
+        else
+         raise "No DPLA config file found at #{dpla_config_path}"
+        end
+      end
+    end
+
+    def self.get_repository_host
       #TODO: test
       config = get_repository_config
       host = config['httpd']['bind_address'] || '127.0.0.1'
       port = config['httpd']['port'] || '5984'
-      return "http://#{host}:#{port}"
+      "#{host}:#{port}"
+    end
+
+    def self.get_repository_endpoint
+      #TODO do we need this method?
+      "http://#{get_repository_host}"
+    end
+
+    def self.get_repository_read_only_endpoint
+      "http://#{get_repository_read_only_username}:#{get_repository_read_only_password}@#{get_repository_host}"
+    end
+
+    def self.get_repository_admin_endpoint
+      "http://#{get_repository_admin}@#{get_repository_host}"
     end
 
     def self.initialize_tire

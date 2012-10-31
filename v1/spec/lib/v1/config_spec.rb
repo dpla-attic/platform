@@ -3,7 +3,6 @@ require 'v1/config'
 module V1
 
   describe Config do
-
     context "Constants" do
       #TODO: move these to their more specific modules
       it "has the correct SEARCH_INDEX value" do
@@ -15,7 +14,90 @@ module V1
       end
 
     end
-    
+
+    describe "#get_dpla_config" do
+      context "when the dpla config file does not exist" do
+        it "it raises an error" do
+          File.stub(:expand_path) { '/wrong path' }
+          File.should_receive(:exists?).with('/wrong path') { false }
+          expect do
+            Config.get_dpla_config
+          end.to raise_error /No DPLA config file found at.*/i
+        end
+      end
+
+      context "when the dpla config file exists but is mal-formed" do
+        it "should raise an error" do
+          File.stub(:expand_path) { '/dpla.yml' }
+          File.should_receive(:exists?).with('/dpla.yml') { true }
+          YAML.stub(:load_file) { {'no_ES' => 'abc', 'no_cdb' => 'abc'} }
+          expect do
+            Config.get_dpla_config
+          end.to raise_error /The DPLA config file found at .* is lacking needed values/i
+        end
+      end
+
+      context "when the dpla config file includes all valid section headers" do
+        it "returns the hash of config values" do
+          File.stub(:expand_path) { '/dpla.yml' }
+          File.should_receive(:exists?).with('/dpla.yml') { true }
+          YAML.stub(:load_file) { {'elasticsearch' => 'abc', 'couch_db' => 'abc'} }
+          expect(Config.get_dpla_config).to have_key("elasticsearch") && have_key("couch_db")
+        end
+
+      end
+    end
+
+    describe "set of functions depending on the DPLA config file" do
+      before :each do
+        Config.stub(:get_dpla_config) {{
+          "elasticsearch" => { "username" => "u", "password" => "pw" },
+          "couch_db" => { "admin" => "admin", "password" => "apass" }
+        }}
+        Config.stub(:get_repository_host) { "abc.com" }
+      end
+      describe "#get_repository_read_only_endpoint" do
+        context "when a repository has been defined" do
+          it "returns an endpoint with read-only credentials" do
+            expect(Config.get_repository_read_only_endpoint).to eq("http://u:pw@abc.com")
+          end
+        end
+      end
+
+      describe "#get_repository_read_only_username" do
+        context "when a dpla config file is present" do
+          it "returns read only user name" do
+            expect(Config.get_repository_read_only_username).to eq("u")
+          end
+        end
+      end
+
+      describe "#get_repository_read_only_password" do
+        context "when a dpla config file is present" do
+          it "returns read only user password" do
+            expect(Config.get_repository_read_only_password).to eq("pw")
+          end
+        end
+      end
+
+      describe "#get_repository_admin_endpoint" do
+        context "when a repository has been defined" do
+          it "returns an endpoint with admin credentials" do
+            expect(Config.get_repository_admin_endpoint).to eq("http://admin:apass@abc.com")
+          end
+        end
+      end
+
+      describe "#get_repository_admin" do
+        context "when a repository admin has been defined" do
+          it "returns the admin username and password" do
+            expect(Config.get_repository_admin).to eq("admin:apass")
+          end
+        end
+      end
+    end
+
+
     describe "#get_search_config" do
 
       context "when the custom elasticsearch config files are set up correctly" do
@@ -64,18 +146,18 @@ module V1
             Config.get_search_config
           end.to raise_error /invalid path/i
         end
-        
+
       end
 
     end
-    
+
 
     context "#get_search_endpoint" do
 
       it "constructs the correct elasticsearch URL based on explicit values in elasticsearch.yml" do
         config_values = {
           'network.host' => 'testhost',
-          'http.port' => '9999'          
+          'http.port' => '9999'
         }
         Config.stub(:get_search_config)
         YAML.stub(:load_file) { config_values }
@@ -90,7 +172,7 @@ module V1
       end
 
     end
-    
+
   end
 
 end

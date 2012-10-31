@@ -1,5 +1,5 @@
 require 'v1/repository'
-
+require 'rest_client'
 module V1
 
   describe Repository do
@@ -16,7 +16,7 @@ module V1
         @endpoint_stub = stub 'endpoint'
         @db_mock = mock('db')
         @couch_doc = stub 'couch_doc'
-        V1::Repository.stub(:endpoint) { @endpoint_stub }
+        V1::Repository.stub(:read_only_endpoint) { @endpoint_stub }
       end
 
       it "invokes CouchRest database on valid endpoint" do
@@ -47,12 +47,56 @@ module V1
 
     end
 
-    describe "#endpoint" do
+    describe "#read_only_endpoint" do
 
       it "returns the repository endpoint and the repo database in URL form" do
         stub_const("V1::Config::REPOSITORY_DATABASE", "some_db")
-        V1::Config.should_receive(:get_repository_endpoint) { 'http://foo.api:9200'} 
-        expect(V1::Repository.endpoint).to eq('http://foo.api:9200' + '/' + "some_db")
+        V1::Config.should_receive(:get_repository_read_only_endpoint) { 'http://user:pw@foo.api:9200' }
+        expect(V1::Repository.read_only_endpoint).to eq('http://user:pw@foo.api:9200' + '/' + "some_db")
+      end
+
+    end
+
+    describe "#create_read_only_user" do
+      
+      before :each do
+        V1::Config.stub(:get_repository_read_only_username) { "user" }
+        V1::Config.stub(:get_repository_read_only_password) { "password" }
+        @db_mock = mock('db')
+        @read_only_user = mock("ro_user")
+        V1::Repository.stub(:repository_admin_endpoint) { "http://www.example.com/repository" }
+      end
+
+      it "should delete any existing read-only users" do
+        CouchRest.should_receive(:database).with("#{V1::Repository.repository_admin_endpoint}/_users") { @db_mock }
+        @db_mock.should_receive(:get).with("org.couchdb.user:user") { @read_only_user }
+        @read_only_user.should_receive(:is_a?) { true }
+        @db_mock.should_receive(:delete_doc) { 200 }
+        RestClient.should_receive(:put) { 200 }
+        V1::Repository.create_read_only_user
+      end
+
+      it "creates a user" do
+        CouchRest.should_receive(:database).with("#{V1::Repository.repository_admin_endpoint}/_users") { @db_mock }
+        @db_mock.should_receive(:get).with("org.couchdb.user:user") { @read_only_user }
+        @read_only_user.should_receive(:is_a?) { false }
+        RestClient.should_receive(:put) { 200 }
+        V1::Repository.create_read_only_user
+      end
+    end
+
+    describe "#lock_down_repository_roles" do
+
+      it "should lock down database roles and create design doc for validation" do
+        RestClient.should_receive(:put).with(
+          "#{V1::Repository.repository_admin_endpoint}/#{V1::Repository.repository_database}/_security",
+          anything()
+        )
+        RestClient.should_receive(:put).with(
+          "#{V1::Repository.repository_admin_endpoint}/#{V1::Repository.repository_database}/_design/auth",
+          anything()
+        )
+        V1::Repository.lock_down_repository_roles
       end
 
     end

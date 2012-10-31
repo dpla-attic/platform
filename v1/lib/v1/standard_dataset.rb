@@ -98,6 +98,8 @@ module V1
           host: repository_uri.host,
           port: repository_uri.port,
           db: V1::Config::REPOSITORY_DATABASE,
+          user: V1::Config.get_repository_read_only_username,
+          password: V1::Config.get_repository_read_only_password,
           filter: nil
         },
         index: {

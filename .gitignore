@@ -1,4 +1,5 @@
 v1/config/elasticsearch/*.yml
+v1/config/dpla.yml
 v1/config/couchdb.ini
 config/database.yml
 tmp/
