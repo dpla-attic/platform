@@ -5,6 +5,10 @@ module CukeApiHelper
     JSON.parse(page.source)
   end
 
+  def load_dataset
+    File.read(File.dirname(__FILE__) + "/../../v1/lib/v1/standard_dataset/items.json")
+  end
+  
 end
 
 World(CukeApiHelper)
