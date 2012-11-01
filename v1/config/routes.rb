@@ -5,5 +5,6 @@ V1::Engine.routes.draw do
 
   get "/items" => "search#items"
   get "/items/links" => "search#links"
+  get "/items/*ids" => "search#fetch"
 
 end

@@ -5,10 +5,12 @@ require 'couchrest'
 module V1
 
   module Repository
-
-    def self.fetch(id)
+    # Accepts an array of id strings ["A,"1","item1"], a single string id "1"
+    # Or a comma separated string of ids "1,2,3"
+    def self.fetch(id_list)
       db = CouchRest.database(endpoint)
-      db.get(id.to_s)
+      id_list = id_list.split(',') if id_list.is_a?(String)
+      db.get_bulk(id_list)["rows"] 
     end
 
     def self.endpoint

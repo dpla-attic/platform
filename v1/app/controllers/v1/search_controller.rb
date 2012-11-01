@@ -8,7 +8,13 @@ module V1
       results = V1::Item.search( params )
       render :json => results.to_json
     end
-    
+
+    def fetch
+      ids = params[:ids].split(',')
+      results = V1::Item.fetch( ids )
+      render :json => results.to_json
+    end
+
     def links
     end
   end

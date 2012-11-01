@@ -12,15 +12,37 @@ module V1
     end
 
     describe "#fetch" do
+      before(:each) do
+        @endpoint_stub = stub 'endpoint'
+        @db_mock = mock('db')
+        @couch_doc = stub 'couch_doc'
+        V1::Repository.stub(:endpoint) { @endpoint_stub }
+      end
 
-      it "delegates to CouchRest get() method on correct endpoint" do
-        endpoint_stub = stub 'endpoint'
-        db_mock = mock('db')
-        couch_doc = stub 'couch_doc'
-        V1::Repository.stub(:endpoint) { endpoint_stub }
-        CouchRest.should_receive(:database).with(endpoint_stub) { db_mock }
-        db_mock.should_receive(:get).with("2") { couch_doc }
-        expect(subject.fetch(2)).to eq couch_doc
+      it "invokes CouchRest database on valid endpoint" do
+        CouchRest.should_receive(:database).with(@endpoint_stub) { @db_mock }
+        @db_mock.stub(:get_bulk) { { "rows" => [@couch_doc] } }
+        subject.fetch("1")
+      end
+
+      it "delegates to CouchRest get_bulk() on comma separated string parameters" do
+        CouchRest.should_receive(:database).with(@endpoint_stub) { @db_mock }
+        @couch_doc_a = stub "couch_doc_z"
+        @db_mock.should_receive(:get_bulk).with(["2", "Z"]) { { "rows" => [@couch_doc, @couch_doc_z] } }
+        expect(subject.fetch("2,Z")).to eq [@couch_doc, @couch_doc_z]
+      end
+
+      it "delegates to CouchRest get_bulk() on single string parameter" do
+        CouchRest.should_receive(:database).with(@endpoint_stub) { @db_mock }
+        @db_mock.should_receive(:get_bulk).with(["2"]) { { "rows" => [@couch_doc] } }
+        expect(subject.fetch("2")).to eq [@couch_doc]
+      end
+
+      it "delegates to CouchRest get_bulk() method on array of strings parameter" do
+        CouchRest.should_receive(:database).with(@endpoint_stub) { @db_mock }
+        @couch_doc_a = stub "couch_doc_a"
+        @db_mock.should_receive(:get_bulk).with(["2", "a"]) { { "rows" => [@couch_doc, @couch_doc_a] } }
+        expect(subject.fetch(["2", "a"])).to eq [@couch_doc, @couch_doc_a]
       end
 
     end

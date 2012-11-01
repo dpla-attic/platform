@@ -24,7 +24,7 @@ module V1
           expect(V1::Item::DEFAULT_PAGE_SIZE).to eq 10
         end
       end
-      
+
       describe V1::Item::SEARCH_OPTION_FIELDS do
         it "has the correct values" do
           expect(V1::Item::SEARCH_OPTION_FIELDS).to match_array %w( fields page_size offset )
@@ -60,6 +60,13 @@ module V1
         repo_item_stub = stub
         V1::Repository.should_receive(:fetch).with(2) { repo_item_stub }
         expect(subject.fetch(2)).to eq repo_item_stub
+      end
+
+      it "can accept more than one item" do
+        repo_item_stub_1 = stub
+        repo_item_stub_2 = stub
+        V1::Repository.should_receive(:fetch).with(["2","3"]) { [repo_item_stub_1, repo_item_stub_1] }
+        expect(subject.fetch(["2","3"])).to eq [repo_item_stub_1, repo_item_stub_1]
       end
     end
 
