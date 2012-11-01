@@ -1,5 +1,5 @@
 require 'v1/repository'
-require 'rest_client'
+
 module V1
 
   describe Repository do

@@ -10,6 +10,7 @@ gem 'dpla_search_api_v1', :path => 'v1'
 gem 'tire'
 gem 'couchrest'
 gem 'inifile'
+gem 'turnout'
 
 group :assets do
   gem 'sass-rails',   '~> 3.2.3'
