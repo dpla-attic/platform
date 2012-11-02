@@ -9,6 +9,7 @@ script: bundle exec rspec spec v1/spec && bundle exec rake cucumber
 notifications:
   email:
     - bgadoury@endpoint.com
+    - barrett@endpoint.com
 services:
   - elasticsearch
 branches:

@@ -7,18 +7,40 @@ puts "TRAVIS: Creating dpla_test database"
 puts %x( psql -c 'create database dpla_test;' -U postgres )
 
 ####
-yaml_file = "config/database.yml"
 
-if File.exist? yaml_file
-  raise "Refusing to overwrite pre-existing yaml file #{yaml_file}"
+# Create the database config for the application
+db_yaml_file = "config/database.yml"
+
+if File.exist? db_yaml_file
+  raise "Refusing to overwrite pre-existing database yaml file #{db_yaml_file}"
 end
 
-puts "TRAVIS: Creating #{yaml_file}"
+puts "TRAVIS: Creating #{db_yaml_file}"
 
-File.open(yaml_file, 'w') do |f|
+File.open(db_yaml_file, 'w') do |f|
   f.write({'test' =>
             {'adapter' => 'postgresql', 'database' => 'dpla_test', 'username' => 'postgres' }
           }.to_yaml)
 end
 
 puts "TRAVIS: Done."
+
+# Create the DPLA config file for securing couchDB and with read-only user for elastic search
+dpla_yaml_file =  "v1/config/dpla.yml"
+
+if File.exist? dpla_yaml_file
+  raise "Refusing to overwrite pre-existing dpla config yaml file #{dpla_yaml_file}"
+end
+
+puts "TRAVIS: Creating #{dpla_yaml_file}"
+
+File.open(dpla_yaml_file, 'w') do |f|
+  f.write({
+           'elasticsearch' =>
+           { 'username' => 'es_user', 'password' => 'es_password' },
+           'couch_db' =>
+           { 'admin' => 'admin', 'password' => 'chonta' }
+          }.to_yaml)
+end
+
+puts "TRAVIS: Done"

@@ -14,7 +14,23 @@ module V1
       end
 
     end
-
+    
+    describe "#get_repository_host" do
+      context "there is a couchdb config file present" do
+        it "returns the repository host defined in the config file" do
+          Config.stub(:get_repository_config) { {
+            "httpd" => {"bind_address" => "example.com", "port" => "4242" } 
+          } }
+          expect(Config.get_repository_host).to eq "example.com:4242"  
+        end
+      end
+      context "there is no couchdb config file present" do
+        it "returns default host values" do
+          Config.stub(:get_repository_config) { nil }
+          expect(Config.get_repository_host).to eq "127.0.0.1:5984"
+        end
+      end
+    end
     describe "#get_dpla_config" do
       context "when the dpla config file does not exist" do
         it "it raises an error" do
@@ -174,5 +190,7 @@ module V1
     end
 
   end
+  
+  
 
 end

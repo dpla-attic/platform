@@ -44,7 +44,7 @@ module V1
       if config.nil?
         Rails.logger.warn "No custom CouchDB config file found at #{couchdb_ini}. Using default values for address:port"
       end
-      config || {}
+      config
     end
 
     def self.get_repository_admin
@@ -86,8 +86,13 @@ module V1
     def self.get_repository_host
       #TODO: test
       config = get_repository_config
-      host = config['httpd']['bind_address'] || '127.0.0.1'
-      port = config['httpd']['port'] || '5984'
+      if config.nil?
+        host = '127.0.0.1'
+        port = '5984'
+      else
+        host = config['httpd']['bind_address']
+        port = config['httpd']['port']
+      end
       "#{host}:#{port}"
     end
 
