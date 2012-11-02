@@ -1,0 +1,7 @@
+elasticsearch:
+  username: someusername 
+  password: somepassword
+couch_db:
+  admin: admin-username-matching-your-couchdb.ini 
+  password: password-from-couchdb.ini
+
