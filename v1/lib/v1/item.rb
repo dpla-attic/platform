@@ -86,11 +86,11 @@ module V1
       #   puts "* Running a completely empty query. Probably not what you intended. *"
       #   puts "*************************** "
       # end
-      puts "CURL: #{searcher.to_curl}"
+      #puts "CURL: #{searcher.to_curl}"
 
-#      searcher.results.each do |result|
-#        puts "### HIT (#{result['_id']}): #{result['_source']}"
-#      end
+      # searcher.results.each do |result|
+      #   puts "### HIT (#{result['_id']}): #{result['_source']}"
+      # end
 
       searcher.results
     end
