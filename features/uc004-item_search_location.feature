@@ -10,7 +10,7 @@ Feature: Search for items by location (UC004)
   Background:
     Given that I have have a valid API key
       And the default test dataset is loaded
-      And the default search radius for location search is 10 miles
+      And the default search radius for location search is 20 miles
 
   Scenario: Location search by text string
     When I search for "Cambridge" in the "spatial.city" field 
@@ -21,6 +21,6 @@ Feature: Search for items by location (UC004)
     Then the API should return record M
 
   Scenario: Location search with expanded search radius
-    When I search for records with location near coordinates "41, -71" with a range of 100 miles
+    When I search for records with location near coordinates "41,-71" with a range of 100 miles
     Then the API should return record M
   
