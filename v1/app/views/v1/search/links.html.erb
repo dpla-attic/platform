@@ -15,4 +15,6 @@
   <li><%= link_to nil, v1_api.items_path('q' => 'coco', 'per' => '3', 'page' => '3') %> </li> 
   <li>UC008: <%= link_to nil, "#{v1_api.items_path}/A,B,C" %> A, B, C </li>
   <li>UC008: <%= link_to nil, "#{v1_api.items_path}/A" %> A</li>
+  <li><%= link_to nil, v1_api.items_path('sort_by' => 'created') %></li>
+  <li><%= link_to nil, v1_api.items_path('sort_by' => 'created', 'sort_order' => 'desc') %></li>
 </ul>

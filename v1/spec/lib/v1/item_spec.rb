@@ -19,6 +19,12 @@ module V1
         end
       end
 
+      describe V1::Item::DEFAULT_SORT_ORDER do
+        it "has the correct value" do
+          expect(V1::Item::DEFAULT_SORT_ORDER).to eq "asc"
+        end
+      end
+
       describe V1::Item::DEFAULT_PAGE_SIZE do
         it "has the correct value" do
           expect(V1::Item::DEFAULT_PAGE_SIZE).to eq 10
@@ -148,6 +154,34 @@ module V1
 
     end
 
+    describe "build_sort_attributes" do
+      it "returns nil when sort params are not present" do
+        params = {'q' => 'banana'}
+        expect(subject.build_sort_attributes(params)).to eq nil
+      end
+
+      it "returns a valid sort order if an invalid sort order param present" do
+        params = {'q' => 'banana', 'sort_by' => 'title', 'sort_order' => 'apple'}
+        expect(
+          subject.build_sort_attributes(params)
+        ).to eq ({ 'field' => 'title', 'order' => V1::Item::DEFAULT_SORT_ORDER })
+      end
+
+      it "returns the valid sort order if a valid sort order is param present" do
+        params = {'q' => 'banana', 'sort_by' => 'title', 'sort_order' => 'desc'}
+        expect(
+          subject.build_sort_attributes(params)
+        ).to eq({ 'field' => 'title', 'order' => 'desc' })
+      end
+
+      it "returns a valid sort order param if no sort order param present" do
+        params = {'q' => 'banana', 'sort_by' => 'title'}
+        expect(
+          subject.build_sort_attributes(params)
+        ).to eq({ 'field' => 'title', 'order' => V1::Item::DEFAULT_SORT_ORDER})
+      end
+    end
+
     describe "#build_all_queries" do
 
       it "returns field, temporal, created(range) queries as flattened array" do
@@ -215,7 +249,7 @@ module V1
         Tire.should_receive(:search).with(V1::Config::SEARCH_INDEX).and_yield(mock_search)
         subject.stub(:build_spatial_coordinates_query) { [:test1, :test2] }
         mock_search.should_receive(:filter).with( *[:test1, :test2] )
-        subject.search(params)        
+        subject.search(params) 
       end
 
       it "does not filter on a spatial query if it is not present" do
@@ -223,7 +257,27 @@ module V1
         Tire.should_receive(:search).with(V1::Config::SEARCH_INDEX).and_yield(mock_search)
 
         mock_search.should_not_receive(:filter)
-        subject.search(params)        
+        subject.search(params)
+      end
+
+      context "sorting" do
+        it "sorts by field name if present" do
+          params = {'q' => 'banana',  'sort_by' => 'title' }
+          Tire.should_receive(:search).with(V1::Config::SEARCH_INDEX).and_yield(mock_search)
+          subject.should_receive(:build_sort_attributes).with(params) { 
+            {"field" => "title", "order" => V1::Item::DEFAULT_SORT_ORDER} 
+          }
+          mock_search.should_receive(:sort)
+          subject.search(params)
+        end
+
+        it "does not implement custom sorting when no sort params present" do
+          params = {'q' => 'banana'}
+          Tire.should_receive(:search).with(V1::Config::SEARCH_INDEX).and_yield(mock_search)
+          subject.should_receive(:build_sort_attributes).with(params) { nil }
+          mock_search.should_not_receive(:sort)
+          subject.search(params)
+        end
       end
 
       context "when there are no search params" do

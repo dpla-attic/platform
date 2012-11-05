@@ -16,10 +16,13 @@ module V1
     # Exclusion list
     SEARCH_OPTION_FIELDS = %w( fields page_size offset ).freeze
 
+    # Default sort order for search results
+    DEFAULT_SORT_ORDER = 'asc'.freeze
+
     def self.build_spatial_coordinates_query(params)
       #TODO: validate spatial.distance units?
       return nil unless params['spatial.coordinates'].present?
-      
+ 
       coordinates = params['spatial.coordinates']
       distance = params['spatial.distance'].presence || DEFAULT_SPATIAL_DISTANCE
 
@@ -59,6 +62,11 @@ module V1
         spatial_query = build_spatial_coordinates_query(params)
         search.filter(*spatial_query) if spatial_query
 
+        sort_attrs = build_sort_attributes(params)
+        search.sort { 
+          by sort_attrs['field'], sort_attrs['order'] 
+        } if sort_attrs
+        
         #sort_attrs = [:title, 'desc']
         #sort { by *sort_attrs }
         #canned example to sort by geo_point, unverified
@@ -76,6 +84,23 @@ module V1
 
       #verbose_debug(searcher)
       searcher.results
+    end
+
+    def self.build_sort_attributes(params)
+      return nil if !params['sort_by'].present?
+ 
+      order = params['sort_order']
+      if order.present? && %w(asc desc).include?(order.downcase) 
+        order = order.downcase
+      else
+        order = DEFAULT_SORT_ORDER 
+      end
+
+      #handle sort field
+      #TODO big picture check on field being available 
+      field = params['sort_by'].downcase
+
+      { 'field' => field, 'order' => order }
     end
 
     def self.verbose_debug(search)
