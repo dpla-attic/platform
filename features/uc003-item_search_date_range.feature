@@ -3,10 +3,8 @@ Feature: Search for items by date range (UC003)
   In order to find items through the DPLA
   API users should be able to perform searches based on date ranges
             
-  # The way dates are described in these tests is not meant to be an prescriptive representation of how
-  # they will be represented in the repository, nor the format that will be used to query them. Also, this 
-  # assumes that any 'fuzzy' dates ranges (e.g. 'circa 16th Century') will have been converted to explicit date
-  # ranges (e.g. '1500 - 1599') during the ingestion process.
+  # Also, this assumes that any 'fuzzy' dates ranges (e.g. 'circa 16th Century') will have been
+  # converted to explicit date ranges (e.g. '1500 - 1599') during the ingestion process.
 
   Background:
     Given that I have have a valid API key
@@ -61,6 +59,10 @@ Feature: Search for items by date range (UC003)
   Scenario: Date range search overlapping beginning of a date range
     When I search the "temporal" field for records with a date between "1965" and "1975"
     Then the API should return record C
+
+  Scenario: Date range search overlapping beginning of a date range
+    When I search the "temporal" field for records with a date before "1100"
+    Then the API should return no records
 
   Scenario: Date range search in the "created" field
     When I search the "created" field for records with a date between "1973-01-01" and "1973-12-31"

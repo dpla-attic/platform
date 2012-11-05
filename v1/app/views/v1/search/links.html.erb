@@ -7,4 +7,9 @@
   <li>UC003: <%= link_to nil, v1_api.items_path('temporal.after' => '1950-01-01') %> (A, B, C)</li>
   <li>UC003: <%= link_to nil, v1_api.items_path('temporal.before' => '1955-07-15', 'callback' => 'jsPhunktion') %> (A, B, D as JSONP)</li>
   <li>UC003: <%= link_to nil, v1_api.items_path('temporal.after' => '1800-01-01', 'temporal.before' => '1850-12-31') %> (zero results)</li>
+  <li>UC004: <%= link_to nil, v1_api.items_path('spatial' => 'Cambridge') %> M (recursive spatial)</li>
+  <li>UC004: <%= link_to nil, v1_api.items_path('spatial.city' => 'Cambridge') %> M </li>
+  <li>UC004: <%= link_to nil, v1_api.items_path('spatial.coordinates' => '42.3,-71') %> M (default distance)</li>
+  <li>UC004: <%= link_to nil, v1_api.items_path('spatial.coordinates' => '41,-71', 'spatial.distance' => '100mi') %> M (bigger range)</li>
+  
 </ul>

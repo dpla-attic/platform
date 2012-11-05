@@ -9,6 +9,7 @@ module V1
     before(:each) do
       stub_const("V1::Config::SEARCH_INDEX", "some_index")
       Rails.stub_chain(:logger, :debug) { stub }
+      subject.stub(:verbose_debug)
     end
 
     context "Module constants" do

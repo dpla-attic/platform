@@ -8,16 +8,27 @@ module V1
         :item => {
           :properties => {
             #NOTE: No longer needed now that the source data uses _id, I think. -phunk
-            #:id => { :type => 'string' },  
+            #:id => { :type => 'string' },
+            '@id' => { :type => 'string' },
             :title => { :type => 'string' },
-            :dplaContributor => { :type => 'string' },
+            :dplaContributor => {
+              :properties => {
+                '@id' => { :type => 'string' },
+                'name' => { :type => 'string' }
+              }
+            },
             :collection => { :type => 'string' },
             :creator => { :type => 'string' },
             :publisher => { :type => 'string' },
             :created => { :type => 'date' }, #"format" : "YYYY-MM-dd"
             :type => { :type => 'string' }, #image, text, etc
             :format => { :type => 'string' }, #mime-type
-            :language => { :type => 'string' }, 
+            :language => {
+              :properties => {
+                'name' => { :type => 'string' },
+                'iso639' => { :type => 'string' }
+              }
+            },
             :subject => {
               :properties => {
                 '@id' => { :type => 'string' },
@@ -44,8 +55,13 @@ module V1
             },
             :relation => { :type => 'string' },
             :source => { :type => 'string' },
-            :contributor => { :type => 'string' },
-            :sourceRecord => { :type => 'string' }
+            :isPartOf => {
+              :properties => {
+                '@id' => { :type => 'string' },
+                'name' => { :type => 'string' }
+              }
+            },
+            :contributor => { :type => 'string' }
           }
         }
       }

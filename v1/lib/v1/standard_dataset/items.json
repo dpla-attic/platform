@@ -3,68 +3,68 @@
     "_id": "1",
     "title": "banana one",
     "description": "description one",
-    "dplaContributor": "",
+    "dplaContributor": null,
     "collection": "",
     "creator": "",
     "publisher": "",
     "created": "1950-01-01",
     "type": "",
     "format": "",
-    "language": "", 
     "rights": "",
     "relation": "",
     "source": "",
-    "contributor": "",
-    "sourceRecord": ""
+    "contributor": ""
   },
   {
     "_id": "2",
     "title": "title two",
     "description": "perplexed two",
-    "dplaContributor": "",
+    "dplaContributor": null,
     "collection": "",
     "creator": "",
     "publisher": "",
     "created": "1975-06-15",
     "type": "",
     "format": "",
-    "language": "", 
     "rights": "",
     "relation": "",
     "source": "",
-    "contributor": "",
-    "sourceRecord": ""
+    "contributor": ""
   },
   {
     "_id": "3",
     "title": "title three",
     "description": "perplexed three",
-    "dplaContributor": "",
+    "dplaContributor": null,
     "collection": "",
     "creator": "",
     "publisher": "",
     "created": "2000-12-31",
     "type": "",
     "format": "",
-    "language": "", 
     "rights": "",
     "relation": "",
     "source": "",
-    "contributor": "",
-    "sourceRecord": ""
+    "contributor": ""
   },
   {
     "_id": "P",
     "title": ["title phunk1", "title phunk2"],
-    "description": "P1 desc",
-    "dplaContributor": "",
+    "description": "",
+    "dplaContributor": {
+      "@id": "http://dp.la/repository/contributor/42",
+      "name": "South Carolina Digital Library"
+    },
     "collection": "",
     "creator": "",
     "publisher": "",
     "created": "2000-12-31",
     "type": "",
     "format": ["image/jpeg", "Manuscripts"],
-    "language": "", 
+    "language": {
+      "name": "English",
+      "iso639": "eng"
+    },
     "subject": {
       "@id": "http://lccn.loc.gov/sh85140205",
       "@type": "LCSH",
@@ -74,135 +74,121 @@
     "relation": "",
     "source": "",
     "contributor": "",
-    "sourceRecord": ""
+    "isPartOf": {
+      "@id": "http://dp.la/repository/collections/A_UNIQUE_DPLA_ID",
+      "name": "Civil War-Era Letters of the Neves Family of Greenville County" 
+    }
   },
   {
     "_id": "A",
     "title": "title A",
     "description": "",
-    "dplaContributor": "",
+    "dplaContributor": null,
     "collection": "",
     "creator": "",
     "publisher": "",
     "type": "",
     "format": "",
-    "language": "", 
     "rights": "",
     "temporal": {
-      "name": "temporal name A",
       "start": "1950-06-01",
       "end": "1950-06-01"
     },
     "relation": "",
     "source": "",
-    "contributor": "",
-    "sourceRecord": ""
+    "contributor": ""
   },
   {
     "_id": "B",
     "title": "title B",
     "description": "",
-    "dplaContributor": "",
+    "dplaContributor": null,
     "collection": "",
     "creator": "",
     "publisher": "",
     "type": "",
     "format": "",
-    "language": "", 
     "rights": "",
     "temporal": {
-      "name": "temporal name B",
       "start": "1955-07-01",
       "end": "1955-07-30"
     },
     "relation": "",
     "source": "",
-    "contributor": "",
-    "sourceRecord": ""
+    "contributor": ""
   },
   {
     "_id": "C",
     "title": "title C",
     "description": "",
-    "dplaContributor": "",
+    "dplaContributor": null,
     "collection": "",
     "creator": "",
     "publisher": "",
     "type": "",
     "format": "",
-    "language": "", 
     "rights": "",
     "temporal": {
-      "name": "temporal name C",
       "start": "1970",
       "end": "1979"
     },
     "relation": "",
     "source": "",
-    "contributor": "",
-    "sourceRecord": ""
+    "contributor": ""
   },
   {
     "_id": "D",
     "title": "title D",
     "description": "",
-    "dplaContributor": "",
+    "dplaContributor": null,
     "collection": "",
     "creator": "",
     "publisher": "",
     "type": "",
     "format": "",
-    "language": "", 
     "rights": "",
     "temporal": [
       {
-        "name": "temporal name D",
         "start": "1200",
         "end": "1250"
       },
       {
-        "name": "temporal name D",
         "start": "1270",
         "end": "1300"
       }
     ],
     "relation": "",
     "source": "",
-    "contributor": "",
-    "sourceRecord": ""
+    "contributor": ""
   },
   {
     "_id": "F",
     "title": "title F",
     "description": "",
-    "dplaContributor": "",
+    "dplaContributor": null,
     "collection": "",
     "creator": "",
     "publisher": "",
     "created": "1973-04-19",
     "type": "",
     "format": "",
-    "language": "", 
     "rights": "",
     "spatial": null,
-    "temporal": {},
     "relation": "",
     "source": "",
-    "contributor": "",
-    "sourceRecord": ""
+    "contributor": ""
   },
   {
     "_id": "M",
     "title": "title M",
     "description": "",
-    "dplaContributor": "",
+    "dplaContributor": null,
     "collection": "",
     "creator": "",
     "publisher": "",
     "created": "2012-01-26",
     "type": "",
     "format": "",
-    "language": "", 
     "rights": "",
     "spatial": [
       {
@@ -218,7 +204,6 @@
     ],
     "relation": "",
     "source": "",
-    "contributor": "",
-    "sourceRecord": ""
+    "contributor": ""
   }
 ]

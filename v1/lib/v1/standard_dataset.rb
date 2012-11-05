@@ -42,7 +42,7 @@ module V1
       items_file = File.expand_path(json_file, __FILE__)
       items = JSON.load( File.read(items_file) )
       puts "Loaded #{items.size} items from source JSON file"
-      #TODO: Should not need the below if we are posting to the item type within ES
+
       items.each {|item| item['_type'] = "item"}
     end
 
