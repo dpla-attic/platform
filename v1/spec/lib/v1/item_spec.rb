@@ -12,7 +12,6 @@ module V1
     end
 
     context "Module constants" do
-
       describe V1::Item::DEFAULT_SPATIAL_DISTANCE do
         it "has the correct value" do
           expect(V1::Item::DEFAULT_SPATIAL_DISTANCE).to eq '20mi'
@@ -29,29 +28,6 @@ module V1
         it "has the correct values" do
           expect(V1::Item::SEARCH_OPTION_FIELDS).to match_array %w( fields page_size offset )
         end
-      end
-
-    end
-
-    describe "#searchable_field?" do
-      before(:each) do
-        stub_const("V1::Item::SEARCHABLE_FIELDS", %w( title description ))
-      end
-
-      it "detects regular searchable fields as searchable" do
-        V1::Item::SEARCHABLE_FIELDS.each do |option|
-          expect(subject.searchable_field?(option)).to be_true
-        end
-      end
-
-      it "does not treat search option fields as searchable" do
-        Item::SEARCH_OPTION_FIELDS.each do |option|
-          expect(subject.searchable_field?(option)).to be_false
-        end
-      end
-
-      it "considers unknown fields as not searchable" do
-        expect(subject.searchable_field?('action')).to be_false
       end
     end
 
@@ -114,12 +90,12 @@ module V1
       end
 
       it "handles 'created' as a normal field search" do
-        params = {'created' => '1999-08-08'}
-        expect(subject.build_field_query_strings(params)).to match_array ['created:1999-08-08']
+        params = {'created' => '1999-08-07'}
+        expect(subject.build_field_query_strings(params)).to match_array ['created:1999-08-07']
       end
 
       it "delegates 'created.after' search to build_date_range_queries instead of normal field search" do
-        params = {'created.after' => '1999-08-08'}
+        params = {'created.after' => '1999-08-07'}
         subject.should_receive(:build_date_range_queries) { 'delegated' }
         expect(subject.build_field_query_strings(params)).to match_array ['delegated']
       end

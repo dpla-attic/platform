@@ -11,7 +11,6 @@
     "type": "",
     "format": "",
     "language": "", 
-    "subject": "",
     "rights": "",
     "relation": "",
     "source": "",
@@ -30,7 +29,6 @@
     "type": "",
     "format": "",
     "language": "", 
-    "subject": "",
     "rights": "",
     "relation": "",
     "source": "",
@@ -49,7 +47,29 @@
     "type": "",
     "format": "",
     "language": "", 
-    "subject": "",
+    "rights": "",
+    "relation": "",
+    "source": "",
+    "contributor": "",
+    "sourceRecord": ""
+  },
+  {
+    "_id": "P",
+    "title": ["title phunk1", "title phunk2"],
+    "description": "P1 desc",
+    "dplaContributor": "",
+    "collection": "",
+    "creator": "",
+    "publisher": "",
+    "created": "2000-12-31",
+    "type": "",
+    "format": ["image/jpeg", "Manuscripts"],
+    "language": "", 
+    "subject": {
+      "@id": "http://lccn.loc.gov/sh85140205",
+      "@type": "LCSH",
+      "name": "Noodle Bar"
+    },
     "rights": "",
     "relation": "",
     "source": "",
@@ -67,7 +87,6 @@
     "type": "",
     "format": "",
     "language": "", 
-    "subject": "",
     "rights": "",
     "temporal": {
       "name": "temporal name A",
@@ -90,7 +109,6 @@
     "type": "",
     "format": "",
     "language": "", 
-    "subject": "",
     "rights": "",
     "temporal": {
       "name": "temporal name B",
@@ -113,7 +131,6 @@
     "type": "",
     "format": "",
     "language": "", 
-    "subject": "",
     "rights": "",
     "temporal": {
       "name": "temporal name C",
@@ -136,7 +153,6 @@
     "type": "",
     "format": "",
     "language": "", 
-    "subject": "",
     "rights": "",
     "temporal": [
       {
@@ -167,7 +183,6 @@
     "type": "",
     "format": "",
     "language": "", 
-    "subject": "",
     "rights": "",
     "spatial": null,
     "temporal": {},
@@ -188,7 +203,6 @@
     "type": "",
     "format": "",
     "language": "", 
-    "subject": "",
     "rights": "",
     "spatial": [
       {

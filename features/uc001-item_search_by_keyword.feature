@@ -7,16 +7,10 @@ Feature: Search for items by keyword (UC001)
     Given that I have have a valid API key
       And the default test dataset is loaded
   
-  Scenario: Free text search with hits on title
+  Scenario: Free text search with hits on the title
     When I search for "banana"
     Then the API should return 1 items with "banana"
     
   Scenario: Free text search with hits on the description
     When I search for "perplexed"
     Then the API should return 2 items with "perplexed"
-
-  @wip
-  Scenario: Keyword search matching text in 'spatial' field
-    When I search for "Cambridge" without specifying a specific field to search in
-    Then the API should return record "M"
-  

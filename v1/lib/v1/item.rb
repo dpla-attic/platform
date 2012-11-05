@@ -1,5 +1,6 @@
-require 'tire'
+require 'v1/schema'
 require 'v1/repository'
+require 'tire'
 require 'active_support/core_ext'
 
 module V1
@@ -15,35 +16,8 @@ module V1
     # Exclusion list
     SEARCH_OPTION_FIELDS = %w( fields page_size offset ).freeze
 
-    # Specific fields that can be searched directly
-    #TODO: Support collection-specific fields
-    SEARCHABLE_FIELDS = %w( 
-      q
-      title
-      description
-      dplaContributor
-      collection
-      creator
-      publisher
-      created
-      type
-      format
-      language
-      subject
-      rights
-      spatial
-      spatial.name
-      spatial.state
-      spatial.city
-      spatial.iso3166-2
-      relation
-      source
-      contributor
-    ).freeze
-
     def self.build_spatial_coordinates_query(params)
       #TODO: validate spatial.distance units?
-      #TODO: add default distance
       return nil unless params['spatial.coordinates'].present?
       
       coordinates = params['spatial.coordinates']
@@ -53,10 +27,22 @@ module V1
     end
 
     def self.build_all_queries(params)
-      queries = []
-      queries << build_field_queries(params)
-      queries << build_temporal_query(params)
-      queries.flatten
+      [
+        build_field_queries(params),
+        build_temporal_query(params)
+      ].flatten
+    end
+
+    def self.direct(params={})
+      s = Tire.search(V1::Config::SEARCH_INDEX) do
+        query do
+          boolean do
+            must { string 'description:perplexed' }
+          end
+        end
+      end
+      verbose_debug(s)
+      s.results
     end
 
     def self.search(params={})
@@ -70,52 +56,70 @@ module V1
           end
         end
 
-        spatial_query_params = build_spatial_coordinates_query(params)
-        search.filter(*spatial_query_params) if spatial_query_params
+        spatial_query = build_spatial_coordinates_query(params)
+        search.filter(*spatial_query) if spatial_query
 
         #sort_attrs = [:title, 'desc']
         #sort { by *sort_attrs }
+        #canned example to sort by geo_point, unverified
+        # sort do
+        #   by :_geo_distance, 'addresses.location' => [lng, lat], :unit => 'mi'
+        # end
         #paginate
 
         # for testability, this block should always return its search object
         search
       end
 
-      # if searcher.to_json == '{}'
-      #   puts "********* WARNING ********* "
-      #   puts "* Running a completely empty query. Probably not what you intended. *"
-      #   puts "*************************** "
-      # end
-      #puts "CURL: #{searcher.to_curl}"
-
-      # searcher.results.each do |result|
-      #   puts "### HIT (#{result['_id']}): #{result['_source']}"
-      # end
-
+      #verbose_debug(searcher)
       searcher.results
     end
 
+    def self.verbose_debug(search)
+      if search.to_json == '{}'
+        puts "********* WARNING ********* "
+        puts "* Running a completely empty query. Probably not what you intended. *"
+        puts "*************************** "
+      end
+      puts "CURL: #{search.to_curl}"
+
+      search.results.each do |result|
+        puts "### HIT (#{result['_id']}): #{result.inspect}"
+      end
+    end
+
     def self.build_field_query_strings(params)
-      query_strings = []
       seen_date_ranges = []
+      query_strings = []
       params.each do |field, value|
         next if value.blank?
 
         if field == 'q'
           query_strings << value
-        elsif searchable_field?(field)
-          query_strings << "#{field}:#{value}"
         elsif field =~ /^(created)\.(before|after)$/
           if !seen_date_ranges.include? $1
             query_strings << build_date_range_queries($1, params)
-            # remember field so we don't doubledip it
+            # remember field so we don't doubledip it with the other end of the range
             seen_date_ranges << $1
+          end
+        else
+          mapping = V1::Schema.item_mapping(field)
+          next if mapping.nil? #skip unrecognized fields, including spatial.distance
+          # temporal.after and created.after won't have a mapping, and are handled elsewhere
+          
+          if field =~ /(.+)\.(.+)/
+            next if mapping[:type] == 'geo_point'  #build geo search elsewhere
+            next if $2 =~ /^(before|after)$/  #build range elsewhere
+            query_strings << "#{field}:#{value}"
+          else
+            query_strings << (mapping[:properties] ? "#{field}.\\*:#{value}" : "#{field}:#{value}")
           end
         end
       end
+
       query_strings
     end
-
+    
     def self.build_date_range_queries(field, params)
       if params.keys.include?("#{field}.before") || params.keys.include?("#{field}.after")
         after = params["#{field}.after"].presence || '*'
@@ -164,41 +168,6 @@ module V1
         end
         memo
       end
-    end
-
-    def self.direct_range(hash={})
-      #TODO: Remove (DEV only)
-      search = Tire::Search::Search.new(V1::Config::SEARCH_INDEX)
-      rangeq = ['temporal.end', { :gte => '1960' }]
-      search.query do
-        boolean do
-          must { range(*rangeq) }
-        end
-      end
-      puts "CURL: #{search.to_curl}"
-      puts "Got: #{search.results.size}"
-
-      search.results.each do |result|
-        puts result.inspect
-      end
-    end
-
-    def self.direct(str)
-      #TODO: Remove (DEV only)
-      search = Tire::Search::Search.new(V1::Config::SEARCH_INDEX)
-      search.query do
-          must { string "#{str}" }
-      end
-      puts "CURL: #{search.to_curl}"
-
-      "Got: #{search.results.size}"
-      search.results.each do |result|
-        puts result.inspect
-      end
-    end
-
-    def self.searchable_field?(field)
-      SEARCHABLE_FIELDS.include?(field)
     end
 
     def self.fetch(id)

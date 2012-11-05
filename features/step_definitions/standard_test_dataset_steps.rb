@@ -15,8 +15,8 @@ end
 Given /^there are (\d+) items that contain the word "(.*?)" in the "(.*?)"$/ do |arg1, arg2, arg3|
   @json = load_dataset
   dataset = JSON.parse(@json)
-  matched_key_value_count = dataset.inject(0) {|count, el| count +=1 if el[arg3].scan(/#{arg2}/i).any?; count}
-  expect(matched_key_value_count.to_s).to eq(arg1)
+  count = dataset.count {|el| el[arg3].to_s.scan(/#{arg2}/).any? }
+  expect(count.to_s).to eq(arg1)
 end
 
 Given /^there is a metadata record "(.*?)" with "(.*?)" in the "(.*?)" field$/ do |arg1, arg2, arg3|

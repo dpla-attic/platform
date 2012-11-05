@@ -13,12 +13,20 @@ Feature: Search for items by location (UC004)
       And the default search radius for location search is 20 miles
 
   Scenario: Location search by text string
-    When I search for "Cambridge" in the "spatial.city" field 
+    When I search for "Noodle Bar" in the "subject" field 
+    Then the API should return record P
+
+  Scenario: Location search by text string
+    When I search for "Cambridge" in the "spatial" field 
     Then the API should return record M
 
   Scenario: Location search 
     When I search for records with location near coordinates "42.3,-71"
     Then the API should return record M
+
+  Scenario: Location search 
+    When I search for records with location near coordinates "43.3,-71.1"
+    Then the API should not return record M    
 
   Scenario: Location search with expanded search radius
     When I search for records with location near coordinates "41,-71" with a range of 100 miles

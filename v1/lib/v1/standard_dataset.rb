@@ -14,50 +14,7 @@ module V1
       import_result = nil
       Tire.index(V1::Config::SEARCH_INDEX) do
         delete
-
-        #"enabled" => false  turns off indexing for that doc
-        create :mappings => {
-          :item => {
-            :properties => {
-              #NOTE: No longer needed now that the source data uses _id, I think. -phunk
-              #:id       => { :type => 'string' },  
-              :title    => { :type => 'string' },
-              :dplaContributor    => { :type => 'string' },
-              :collection    => { :type => 'string' },
-              :creator    => { :type => 'string' },
-              :publisher   => { :type => 'string' },
-              :created => { :type => 'date' }, #"format" : "YYYY-MM-dd"
-              :type    => { :type => 'string' }, #image, text, etc
-              :format    => { :type => 'string' }, #mime-type
-              :language    => { :type => 'string' }, 
-              :subject    => { :type => 'string' },
-              :description    => { :type => 'string' },
-              :rights    => { :type => 'string' },
-              :spatial   => {
-                :properties => {
-                  :name => { :type => 'string' },
-                  :state => { :type => 'string' },
-                  :city => { :type => 'string' },
-                  'iso3166-2' => { :type => 'string' },
-                  :coordinates => { :type => "geo_point", :lat_lon => true }
-                 }
-              },
-              :temporal => {
-                :properties => {
-                  #:type => 'nested',
-                  :name => { :type => 'string' },
-                  :start => { :type => 'date', :null_value => "-9999" }, #requiredevenifnull #, :format=>"YYYY G"}
-                  :end => { :type => 'date', :null_value => "9999" } #requiredevenifnull
-                 }
-              },
-              :relation    => { :type => 'string' },
-              :source    => { :type => 'string' },
-              :contributor    => { :type => 'string' },
-              :sourceRecord    => { :type => 'string' }
-            }
-          }
-        }
-
+        create V1::Schema::ELASTICSEARCH_MAPPING
         import_result = import items
         refresh
       end
