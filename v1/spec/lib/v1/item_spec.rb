@@ -157,6 +157,40 @@ module V1
       end
     end
 
+    describe "#get_search_starting_point" do
+      it "returns starting point based on 'page size' and the start page" do
+        params = { "page" => "2", 'page_size' => "5" }
+        expect(subject.get_search_starting_point(params)).to eq (5)
+      end
+
+      it "returns the starting point of 0 when called with non-integer param" do
+        params = { "page" => "a" }
+        expect(subject.get_search_starting_point(params)).to eq (0)
+      end
+
+      it "returns the starting point of zero when called with no  page param" do 
+        params = {}
+        expect(subject.get_search_starting_point(params)).to eq (0)
+      end
+    end
+
+    describe "#get_search_size" do
+      it "returns the default page size when a non-integer param is passed" do
+        params = { "page_size" => "a" }
+        expect(subject.get_search_size(params)).to eq(V1::Item::DEFAULT_PAGE_SIZE)
+      end
+
+      it "returns the desired page size when a valid integer param is passed" do
+        params = { "page_size" => "20" }
+        expect(subject.get_search_size(params)).to eq (20)
+      end
+
+      it "returns the default page size when no search size param is passed" do
+        params = {}
+        expect(subject.get_search_size(params)).to eq (V1::Item::DEFAULT_PAGE_SIZE)
+      end
+    end
+
     describe "#search" do
       let(:mock_search) { mock('mock_search').as_null_object }
 

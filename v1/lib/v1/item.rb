@@ -65,8 +65,11 @@ module V1
         # sort do
         #   by :_geo_distance, 'addresses.location' => [lng, lat], :unit => 'mi'
         # end
-        #paginate
-
+        
+        # handle pagination
+        search.from get_search_starting_point(params)
+        search.size get_search_size(params)
+        
         # for testability, this block should always return its search object
         search
       end
@@ -168,6 +171,18 @@ module V1
         end
         memo
       end
+    end
+
+    def self.get_search_starting_point(params)
+      page = params["page"]
+      return 0 if page.nil? || page.to_i == 0
+      get_search_size(params) * (page.to_i - 1)
+    end
+ 
+    def self.get_search_size(params)
+      size = params["page_size"]
+      return DEFAULT_PAGE_SIZE if size.nil? || size.to_i == 0
+      size.to_i
     end
 
     def self.fetch(id)

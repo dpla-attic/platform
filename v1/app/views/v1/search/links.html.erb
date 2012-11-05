@@ -11,5 +11,6 @@
   <li>UC004: <%= link_to nil, v1_api.items_path('spatial.city' => 'Cambridge') %> M </li>
   <li>UC004: <%= link_to nil, v1_api.items_path('spatial.coordinates' => '42.3,-71') %> M (default distance)</li>
   <li>UC004: <%= link_to nil, v1_api.items_path('spatial.coordinates' => '41,-71', 'spatial.distance' => '100mi') %> M (bigger range)</li>
-  
+  <li><%= link_to nil, v1_api.items_path('q' => 'coco', 'per' => '2') %> </li> 
+  <li><%= link_to nil, v1_api.items_path('q' => 'coco', 'per' => '3', 'page' => '3') %> </li> 
 </ul>
