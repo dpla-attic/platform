@@ -63,12 +63,8 @@ module V1
         search.filter(*spatial_query) if spatial_query
 
         sort_attrs = build_sort_attributes(params)
-        search.sort { 
-          by sort_attrs['field'], sort_attrs['order'] 
-        } if sort_attrs
+        search.sort { by(*sort_attrs) } if sort_attrs
         
-        #sort_attrs = [:title, 'desc']
-        #sort { by *sort_attrs }
         #canned example to sort by geo_point, unverified
         # sort do
         #   by :_geo_distance, 'addresses.location' => [lng, lat], :unit => 'mi'
@@ -87,20 +83,15 @@ module V1
     end
 
     def self.build_sort_attributes(params)
-      return nil if !params['sort_by'].present?
+      #TODO big picture check on field being available 
+      return nil unless params['sort_by'].present?
  
       order = params['sort_order']
-      if order.present? && %w(asc desc).include?(order.downcase) 
-        order = order.downcase
-      else
+      if !( order.present? && %w(asc desc).include?(order.downcase) )
         order = DEFAULT_SORT_ORDER 
       end
 
-      #handle sort field
-      #TODO big picture check on field being available 
-      field = params['sort_by'].downcase
-
-      { 'field' => field, 'order' => order }
+      [params['sort_by'].downcase, order]
     end
 
     def self.verbose_debug(search)

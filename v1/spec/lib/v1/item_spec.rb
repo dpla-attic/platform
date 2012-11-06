@@ -164,21 +164,21 @@ module V1
         params = {'q' => 'banana', 'sort_by' => 'title', 'sort_order' => 'apple'}
         expect(
           subject.build_sort_attributes(params)
-        ).to eq ({ 'field' => 'title', 'order' => V1::Item::DEFAULT_SORT_ORDER })
+        ).to eq ['title', V1::Item::DEFAULT_SORT_ORDER]
       end
 
       it "returns the valid sort order if a valid sort order is param present" do
         params = {'q' => 'banana', 'sort_by' => 'title', 'sort_order' => 'desc'}
         expect(
           subject.build_sort_attributes(params)
-        ).to eq({ 'field' => 'title', 'order' => 'desc' })
+        ).to eq ['title', 'desc']
       end
 
       it "returns a valid sort order param if no sort order param present" do
         params = {'q' => 'banana', 'sort_by' => 'title'}
         expect(
           subject.build_sort_attributes(params)
-        ).to eq({ 'field' => 'title', 'order' => V1::Item::DEFAULT_SORT_ORDER})
+        ).to eq ['title', V1::Item::DEFAULT_SORT_ORDER]
       end
     end
 
@@ -264,9 +264,6 @@ module V1
         it "sorts by field name if present" do
           params = {'q' => 'banana',  'sort_by' => 'title' }
           Tire.should_receive(:search).with(V1::Config::SEARCH_INDEX).and_yield(mock_search)
-          subject.should_receive(:build_sort_attributes).with(params) { 
-            {"field" => "title", "order" => V1::Item::DEFAULT_SORT_ORDER} 
-          }
           mock_search.should_receive(:sort)
           subject.search(params)
         end
@@ -274,7 +271,6 @@ module V1
         it "does not implement custom sorting when no sort params present" do
           params = {'q' => 'banana'}
           Tire.should_receive(:search).with(V1::Config::SEARCH_INDEX).and_yield(mock_search)
-          subject.should_receive(:build_sort_attributes).with(params) { nil }
           mock_search.should_not_receive(:sort)
           subject.search(params)
         end
