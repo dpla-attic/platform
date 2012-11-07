@@ -1,15 +1,31 @@
 require 'v1/config'
+require 'v1/schema'
 require 'json'
+require 'tire'
 
 module V1
 
   module StandardDataset
 
+    INPUT_FILE = "../standard_dataset/items.json".freeze
+
+    def self.source_item_count
+      items_file = File.expand_path(INPUT_FILE, __FILE__)
+      items = JSON.load( File.read(items_file) )
+      items.size
+    end
+
+    def self.indexed_item_count(results)
+      result = JSON.load(results.body)
+      failures = result['items'].select {|item| !item['index']['error'].nil? }
+      result['items'].size - failures.size
+    end
+
     def self.recreate_index!
       # Delete and create the index
       #TODO: add production env check
 
-      items = process_input_file("../standard_dataset/items.json")
+      items = process_input_file(INPUT_FILE)
 
       import_result = nil
       Tire.index(V1::Config::SEARCH_INDEX) do
@@ -19,11 +35,15 @@ module V1
         refresh
       end
 
+      if source_item_count != indexed_item_count(import_result)
+        raise "FAILED to import all items"
+      end
+
       return display_import_result(import_result)
     end
 
     def self.display_import_result(import_result)
-      result = JSON.load(import_result.body.as_json)
+      result = JSON.load(import_result.body)
       failures = result['items'].select {|item| !item['index']['error'].nil? }
       result_count = result['items'].size
       puts "Imported #{result_count - failures.size}/#{result_count} items OK"
