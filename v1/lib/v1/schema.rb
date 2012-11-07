@@ -61,7 +61,18 @@ module V1
                 'name' => { :type => 'string' }
               }
             },
-            :contributor => { :type => 'string' }
+            :contributor => { :type => 'string' },
+            :dplaSourceRecord => {
+              # completely omit dplaSourceRecord from the index for now
+              :type  => 'object',
+              :enabled => false
+              # ideally, no dplaSourceRecord subfield should ever get a date mapping (dynamically).
+              # If you want to try to include dplaSourceRecord in the index, you can try the below mapping
+              # instead of the above :enabled => false technique
+              #  :properties => {
+              #  :date => { :type => 'string' },
+              #  :datestamp => { :type => 'string' }
+            }
           }
         }
       }
