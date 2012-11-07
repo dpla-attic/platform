@@ -25,5 +25,6 @@ echo ""
 
 rake v1:recreate_search_index
 rake v1:recreate_repo_database
+rake v1:recreate_repo_river
 
 echo "Done $0"
