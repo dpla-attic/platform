@@ -225,29 +225,90 @@ module V1
       end
     end
 
+#    describe "#build_dictionary_wrapper" do
+#      it "returns a wrapper around documents" do
+#        searcher = stub "searcher"
+#        searcher_response = stub "response"
+#        searcher.stub(:options) { {:from => 0, :size => 10} }
+#        searcher.stub_chain(:response, :body, :as_json) { "{'hits': { 'total': 10, 'hits': [{'id': 1}, {'id': 2}] }}" }
+#        
+#        expect(subject.build_dictionary_wrapper(searcher)).to eq(
+#          {
+#            'count' => 10,
+#            'limit' => 10,
+#            'start' => 0,
+#            'docs' => [{'id' => 1}, {'id' => 2}]
+#          } 
+#        )
+#      end
+#    end
+
+    describe "#reformat_result_documents" do
+      it "remaps elasticsearch item wrapper to collapse items to first level with score" do
+        docs = [{"_score" => 1, "_source" => {
+          "_id" => "1",
+          "title" => "banana one",
+          "description" => "description one",
+          "dplaContributor" => nil,
+          "collection" => "",
+          "creator" => "",
+          "publisher" => "",
+          "created" => "1950-01-01",
+          "type" => "", 
+          "format" => "",
+          "rights" => "",
+          "relation" => "",
+          "source" => "",
+          "contributor" => "",
+          "_type" => "item"}}]
+        expect(subject.reformat_result_documents(docs)).to eq(
+          [{
+          "_id" => "1",
+          "title" => "banana one",
+          "description" => "description one",
+          "dplaContributor" => nil,
+          "collection" => "",
+          "creator" => "",
+          "publisher" => "",
+          "created" => "1950-01-01",
+          "type" => "",
+          "format" => "",
+          "rights" => "",
+          "relation" => "",
+          "source" => "",
+          "contributor" => "",
+          "_type" => "item",
+          "score" => 1 }]
+        )
+      end
+    end
+
     describe "#search" do
       let(:mock_search) { mock('mock_search').as_null_object }
 
       it "uses V1::Config::SEARCH_INDEX for its search index" do
         params = {'q' => 'banana'}
         Tire.should_receive(:search).with(V1::Config::SEARCH_INDEX).and_yield(mock_search)
+        subject.should_receive(:build_dictionary_wrapper)
         subject.search(params)
       end
 
-      it "returns search.results()" do
+      it "returns search.results() with dictionary wrapper" do
         params = {'q' => 'banana'}
         Tire.should_receive(:search).with(V1::Config::SEARCH_INDEX).and_yield(mock_search)
 
         results = stub("results")
+        dictionary_results = stub("dictionary_wrapped")
         mock_search.stub(:results) { results }
-
-        expect(subject.search(params)).to eq results
+        subject.stub(:build_dictionary_wrapper).with(mock_search) { dictionary_results }
+        expect(subject.search(params)).to eq dictionary_results
       end
 
       it "filters on a spatial query if present" do
         params = {'spatial.coordinates' => "42.1,-71"}
         Tire.should_receive(:search).with(V1::Config::SEARCH_INDEX).and_yield(mock_search)
         subject.stub(:build_spatial_coordinates_query) { [:test1, :test2] }
+        subject.should_receive(:build_dictionary_wrapper)
         mock_search.should_receive(:filter).with( *[:test1, :test2] )
         subject.search(params) 
       end
@@ -257,6 +318,7 @@ module V1
         Tire.should_receive(:search).with(V1::Config::SEARCH_INDEX).and_yield(mock_search)
 
         mock_search.should_not_receive(:filter)
+        subject.should_receive(:build_dictionary_wrapper)
         subject.search(params)
       end
 
@@ -265,6 +327,7 @@ module V1
           params = {'q' => 'banana',  'sort_by' => 'title' }
           Tire.should_receive(:search).with(V1::Config::SEARCH_INDEX).and_yield(mock_search)
           mock_search.should_receive(:sort)
+          subject.should_receive(:build_dictionary_wrapper)
           subject.search(params)
         end
 
@@ -272,6 +335,7 @@ module V1
           params = {'q' => 'banana'}
           Tire.should_receive(:search).with(V1::Config::SEARCH_INDEX).and_yield(mock_search)
           mock_search.should_not_receive(:sort)
+          subject.should_receive(:build_dictionary_wrapper)
           subject.search(params)
         end
       end

@@ -18,7 +18,7 @@ module V1
     def render_json(results, params)
       # Handles optional JSONP callback param
       if params['callback'].present?
-        params['callback'] + '({ "docs": ' + results.to_json + ' })'
+        params['callback'] + '(' + results.to_json + ')'
       else
         results.to_json
       end

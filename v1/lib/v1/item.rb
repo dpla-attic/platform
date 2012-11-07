@@ -79,7 +79,26 @@ module V1
       end
 
       #verbose_debug(searcher)
-      searcher.results
+      build_dictionary_wrapper(searcher)
+      
+    end
+
+    def self.build_dictionary_wrapper(search)
+      response = JSON.parse(search.response.body.as_json)
+      Rails.logger.info search.response.body.as_json      
+      docs = reformat_result_documents(response["hits"]["hits"]) 
+
+      dictionary = { 
+        'count' => response["hits"]["total"],
+        'start' => search.options[:from],
+        'limit' => search.options[:size],
+        'docs' => docs
+      }
+
+    end
+
+    def self.reformat_result_documents(docs)
+      docs.map { |doc| doc['_source'].merge!({'score'=>doc['_score']}) } 
     end
 
     def self.build_sort_attributes(params)

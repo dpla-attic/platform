@@ -2,7 +2,7 @@ module CukeApiHelper
 
   def item_query_to_json(params={})
     item_query(params)
-    JSON.parse(page.source)
+    JSON.parse(page.source)['docs']
   end
   
   def item_query(params={})
