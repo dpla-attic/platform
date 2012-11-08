@@ -17,8 +17,5 @@
   <li>UC008: <%= link_to nil, "#{v1_api.items_path}/A" %> A</li>
   <li><%= link_to nil, v1_api.items_path('sort_by' => 'created') %></li>
   <li><%= link_to nil, v1_api.items_path('sort_by' => 'created', 'sort_order' => 'desc') %></li>
-  <li>Facets: <%= link_to nil, v1_api.items_path('facets' => 'title') %> terms facet on title</li>
-  <li>Facets: <%= link_to nil, v1_api.items_path('facets' => 'created,spatial.state') %> date facet on created, terms facet on spatial.state</li>
-  <li>Facets: <%= link_to nil, v1_api.items_path('q' => 'war', 'facets' => 'created,language.name') %> date facet on created, terms facet on language.name, constrained by query</li>
 
 </ul>

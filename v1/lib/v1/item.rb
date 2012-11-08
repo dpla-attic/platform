@@ -67,7 +67,8 @@ module V1
 
         if params['facets'].present?
           # if there were no queries, return global facets. else; not global
-          V1::Search.build_facets(search, :facets => params['facets'], :global => queries.empty?)
+          # facets turned off for the Appfest
+          #V1::Search.build_facets(search, :facets => params['facets'], :global => queries.empty?)
         end
           
         spatial_query = build_spatial_coordinates_query(params)
