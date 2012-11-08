@@ -7,7 +7,7 @@ module V1
 
   module StandardDataset
 
-    INPUT_FILE = "../standard_dataset/items.json".freeze
+    INPUT_FILE = "../standard_dataset/items.json"
 
     def self.source_item_count
       items_file = File.expand_path(INPUT_FILE, __FILE__)

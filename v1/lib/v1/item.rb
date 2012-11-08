@@ -1,3 +1,4 @@
+require 'v1/search'
 require 'v1/schema'
 require 'v1/repository'
 require 'tire'
@@ -8,16 +9,19 @@ module V1
   module Item
 
     # Default spatial.distance "range" value
-    DEFAULT_SPATIAL_DISTANCE = '20mi'.freeze
+    DEFAULT_SPATIAL_DISTANCE = '20mi'
 
     # Default pagination size for search results
-    DEFAULT_PAGE_SIZE = 10.freeze
+    DEFAULT_PAGE_SIZE = 10
 
     # Exclusion list
-    SEARCH_OPTION_FIELDS = %w( fields page_size offset ).freeze
+    SEARCH_OPTION_FIELDS = %w( fields page_size offset )
+
+    # Maximum facets to return. See use case details
+    MAXIMUM_FACETS_COUNT = 'not implemented'
 
     # Default sort order for search results
-    DEFAULT_SORT_ORDER = 'asc'.freeze
+    DEFAULT_SORT_ORDER = 'asc'
 
     def self.build_spatial_coordinates_query(params)
       #TODO: validate spatial.distance units?
@@ -52,13 +56,20 @@ module V1
       queries = build_all_queries(params)
 
       searcher = Tire.search(V1::Config::SEARCH_INDEX) do |search|
-
+        #TODO: stop defaulting to type:_item
+        #intentional empty search: query { all }
+        #V1::Search.build_queries(search), params)  #returns !!(were there any queries?)
         if queries.any?
           search.query do |query|
             queries.each {|q| query.boolean &q }
           end
         end
 
+        if params['facets'].present?
+          # if there were no queries, return global facets. else; not global
+          V1::Search.build_facets(search, :facets => params['facets'], :global => queries.empty?)
+        end
+          
         spatial_query = build_spatial_coordinates_query(params)
         search.filter(*spatial_query) if spatial_query
 
@@ -80,25 +91,25 @@ module V1
 
       #verbose_debug(searcher)
       build_dictionary_wrapper(searcher)
-      
     end
 
     def self.build_dictionary_wrapper(search)
-      response = JSON.parse(search.response.body.as_json)
-      Rails.logger.info search.response.body.as_json      
-      docs = reformat_result_documents(response["hits"]["hits"]) 
+      response = JSON.parse(search.response.body) #.to_json
+      #Rails.logger.info search.response.body.as_json      
 
-      dictionary = { 
+      docs = reformat_result_documents(response["hits"]["hits"])
+
+      { 
         'count' => response["hits"]["total"],
         'start' => search.options[:from],
         'limit' => search.options[:size],
-        'docs' => docs
+        'docs' => docs,
+        'facets' => response['facets']
       }
-
     end
 
     def self.reformat_result_documents(docs)
-      docs.map { |doc| doc['_source'].merge!({'score'=>doc['_score']}) } 
+      docs.map { |doc| doc['_source'].merge!({'score' => doc['_score']}) } 
     end
 
     def self.build_sort_attributes(params)
@@ -110,10 +121,11 @@ module V1
         order = DEFAULT_SORT_ORDER 
       end
 
-      [params['sort_by'].downcase, order]
+      [params['sort_by'], order]
     end
 
     def self.verbose_debug(search)
+      puts "CURL: #{search.to_curl}"
       if search.to_json == '{}'
         puts "********* WARNING ********* "
         puts "* Running a completely empty query. Probably not what you intended. *"
@@ -150,7 +162,7 @@ module V1
             next if $2 =~ /^(before|after)$/  #build range elsewhere
             query_strings << "#{field}:#{value}"
           else
-            query_strings << (mapping[:properties] ? "#{field}.\\*:#{value}" : "#{field}:#{value}")
+            query_strings << (mapping['properties'] ? "#{field}.\\*:#{value}" : "#{field}:#{value}")
           end
         end
       end

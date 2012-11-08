@@ -2,69 +2,68 @@ module V1
 
   module Schema
 
-    #"enabled" => false  turns off indexing for that doc
+    #TODO: finish refactor by using strings for all mapping declarations (:type, etc)
     ELASTICSEARCH_MAPPING = {
-      :mappings => {
-        :item => {
-          :properties => {
+      'mappings' => {
+        'item' => {
+          'properties' => {
             #NOTE: No longer needed now that the source data uses _id, I think. -phunk
             #:id => { :type => 'string' },
             '@id' => { :type => 'string' },
-            :title => { :type => 'string' },
-            :dplaContributor => {
-              :properties => {
+            'title' => { :type => 'string' },
+            'dplaContributor' => {
+              'properties' => {
                 '@id' => { :type => 'string' },
                 'name' => { :type => 'string' }
               }
             },
-            :collection => { :type => 'string' },
-            :creator => { :type => 'string' },
-            :publisher => { :type => 'string' },
-            :created => { :type => 'date' }, #"format" : "YYYY-MM-dd"
-            :type => { :type => 'string' }, #image, text, etc
-            :format => { :type => 'string' }, #mime-type
-            :language => {
-              :properties => {
+            'collection' => { :type => 'string' },
+            'creator' => { :type => 'string' },
+            'publisher' => { :type => 'string' },
+            'created' => { :type => 'date' }, #"format" : "YYYY-MM-dd"
+            'type' => { :type => 'string' }, #image, text, etc
+            'format' => { :type => 'string' }, #mime-type
+            'language' => {
+              'properties' => {
                 'name' => { :type => 'string' },
                 'iso639' => { :type => 'string' }
               }
             },
-            :subject => {
-              :properties => {
+            'subject' => {
+              'properties' => {
                 '@id' => { :type => 'string' },
                 '@type' => { :type => 'string' },
                 'name' => { :type => 'string' }
               }
             },
-            :description => { :type => 'string' },
-            :rights => { :type => 'string' },
-            :spatial => {
-              :properties => {
-                :name => { :type => 'string' },
-                :state => { :type => 'string' },
-                :city => { :type => 'string' },
-                :'iso3166-2' => { :type => 'string' },
-                :coordinates => { :type => "geo_point"}  #, :lat_lon => true, that breaks recursive search
+            'description' => { :type => 'string' },
+            'rights' => { :type => 'string' },
+            'spatial' => {
+              'properties' => {
+                'name' => { :type => 'string' },
+                'state' => { :type => 'string' },
+                'city' => { :type => 'string' },
+                'iso3166-2' => { :type => 'string' },
+                'coordinates' => { :type => "geo_point"}  #, :lat_lon => true, that breaks recursive search
               }
             },
-            :temporal => {
-              :properties => {
-                :start => { :type => 'date', :null_value => "-9999" }, #requiredevenifnull #, :format=>"YYYY G"}
-                :end   => { :type => 'date', :null_value => "9999" } #requiredevenifnull
+            'temporal' => {
+              'properties' => {
+                'start' => { :type => 'date', :null_value => "-9999" }, #requiredevenifnull #, :format=>"YYYY G"}
+                'end'   => { :type => 'date', :null_value => "9999" } #requiredevenifnull
               }
             },
-            :relation => { :type => 'string' },
-            :source => { :type => 'string' },
-            :isPartOf => {
-              :properties => {
+            'relation' => { :type => 'string' },
+            'source' => { :type => 'string' },
+            'isPartOf' => {
+              'properties' => {
                 '@id' => { :type => 'string' },
                 'name' => { :type => 'string' }
               }
             },
-            :contributor => { :type => 'string' },
-            :dplaSourceRecord => {
+            'contributor' => { :type => 'string' },
+            'dplaSourceRecord' => {
               # completely omit dplaSourceRecord from the index for now
-              :type  => 'object',
               :enabled => false
               # ideally, no dplaSourceRecord subfield should ever get a date mapping (dynamically).
               # If you want to try to include dplaSourceRecord in the index, you can try the below mapping
@@ -79,25 +78,29 @@ module V1
     }.freeze
 
     def self.item_mapping(field=nil)
-      mapping(:item, field)
+      mapping('item', field)
     end
 
     def self.mapping(type=nil, field=nil)
-      # A "type" is a top level DPLA type: :item, :collection, :creator
-      base = ELASTICSEARCH_MAPPING[:mappings]
+      # A "type" is a top level DPLA type: 'item', 'collection', 'creator'
+      base = ELASTICSEARCH_MAPPING['mappings']
+
+      # Standardize on strings
+      type = type.to_s if type
+      field = field.to_s if field
 
       if type.nil?
         # mapping for all types
         base
       elsif field.nil?
         # mapping for a single type
-        base[type][:properties] rescue nil
+        base[type]['properties'] rescue nil
       elsif field =~ /(.+)\.(.+)/
         # mapping for a dotted field name: e.g. "spatial.city"
-        base[type][:properties][$1.to_sym][:properties][$2.to_sym] rescue nil
+        base[type]['properties'][$1]['properties'][$2] rescue nil
       else
         # mapping for a single field within a single type
-        base[type][:properties][field.to_sym] rescue nil
+        base[type]['properties'][field] rescue nil
       end
     end
 
