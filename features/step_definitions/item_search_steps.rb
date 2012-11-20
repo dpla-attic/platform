@@ -38,7 +38,7 @@ Then /^the API should return no records$/ do
 end
 
 Given /^the default search radius for location search is (\d+) miles$/ do |arg1|
-  expect(V1::Item::DEFAULT_SPATIAL_DISTANCE).to eq "#{arg1}mi"
+  expect(V1::Searchable::Filter::DEFAULT_SPATIAL_DISTANCE).to eq "#{arg1}mi"
 end
 
 When /^I search for records with location near coordinates "(.*?)"( with a range of (\d+) miles)?$/ do |lat_long, junk, distance|

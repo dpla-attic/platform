@@ -10,3 +10,4 @@ pgsql/
 .sass-cache/
 apache2/
 erl_crash.dump
+*.hprof

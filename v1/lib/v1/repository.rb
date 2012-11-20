@@ -31,8 +31,10 @@ module V1
     end
 
     def self.recreate_database!
-      # Delete and create the database
+      # Delete, recreate and repopulate the database
       #TODO: add production env check
+
+      items = process_input_file("../../../spec/items.json")
 
       # delete it if it exists
       CouchRest.database(admin_endpoint).delete! rescue RestClient::ResourceNotFound
@@ -46,7 +48,6 @@ module V1
 
       V1::StandardDataset.recreate_river!
 
-      items = process_input_file("../standard_dataset/items.json")
       db.bulk_save items
     end
 

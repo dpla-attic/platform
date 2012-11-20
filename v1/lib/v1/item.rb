@@ -1,8 +1,5 @@
-require 'v1/search'
-require 'v1/schema'
-require 'v1/repository'
-require 'tire'
-require 'active_support/core_ext'
+require 'v1/searchable'
+include V1::Searchable
 
 module V1
 
@@ -24,7 +21,7 @@ module V1
     DEFAULT_SORT_ORDER = 'asc'
 
     def self.build_spatial_coordinates_query(params)
-      #TODO: validate spatial.distance units?
+      #TODO: validate spatial.distance units
       return nil unless params['spatial.coordinates'].present?
  
       coordinates = params['spatial.coordinates']
@@ -44,7 +41,7 @@ module V1
       s = Tire.search(V1::Config::SEARCH_INDEX) do
         query do
           boolean do
-            must { string 'description:perplexed' }
+            must { string 'perplexed' }
           end
         end
       end
@@ -56,7 +53,6 @@ module V1
       queries = build_all_queries(params)
 
       searcher = Tire.search(V1::Config::SEARCH_INDEX) do |search|
-        #TODO: stop defaulting to type:_item
         #intentional empty search: query { all }
         #V1::Search.build_queries(search), params)  #returns !!(were there any queries?)
         if queries.any?
@@ -85,16 +81,19 @@ module V1
         # handle pagination
         search.from get_search_starting_point(params)
         search.size get_search_size(params)
+
+        # fields(['title', 'description'])
         
         # for testability, this block should always return its search object
         search
       end
 
       #verbose_debug(searcher)
-      build_dictionary_wrapper(searcher)
+      return build_dictionary_wrapper(searcher)
     end
 
     def self.build_dictionary_wrapper(search)
+      #BARRETT: should just use search.results instead of json parsing, etc.
       response = JSON.parse(search.response.body) #.to_json
       #Rails.logger.info search.response.body.as_json      
 
@@ -126,13 +125,13 @@ module V1
     end
 
     def self.verbose_debug(search)
-      puts "CURL: #{search.to_curl}"
       if search.to_json == '{}'
         puts "********* WARNING ********* "
         puts "* Running a completely empty query. Probably not what you intended. *"
         puts "*************************** "
       end
       puts "CURL: #{search.to_curl}"
+      puts "JSON: #{search.to_json}"
 
       search.results.each do |result|
         puts "### HIT (#{result['_id']}): #{result.inspect}"
@@ -241,12 +240,3 @@ module V1
   end
 
 end
-
-#NOTE: should we post process all results with result.to_hash.except(:_type, :_index, :_version, etc) ?
-#puts V1::Item.search({'title' => 'banana'}).first
-#puts V1::Item.search({'created.start' => '2012-01-07'}).first
-#puts V1::Item.search({'created.start' => '1950', 'created.end' => '1980'}).first
-#puts V1::Item.search({'created.end' => '1980'}).first
-#puts V1::Item.direct_coordinates().first
-
-#V1::Item.search({ 'spatial.distance' => '100mi', 'spatial.coordinates' => '42.1,-71' })

@@ -89,6 +89,49 @@
     }
   },
   {
+    "_id": "P2-A",
+    "title": "title P2-A",
+    "description": "mouse",
+    "spatial": [
+      {
+        "city": "SLC",
+        "state": "UT"
+      },
+      {
+        "city": "Some City",
+        "state": "WY"
+      }
+    ]
+  },
+  {
+    "_id": "P2-B",
+    "title": "title P2-B",
+    "description": "",
+    "spatial": [
+      {
+        "state": "UT"
+      },
+      {
+        "city": "SLC"
+      }
+    ]
+  },
+  {
+    "_id": "P3-temporal-1",
+    "title": "P3-temporal-1",
+    "description": "bookend temporal ranges",
+    "temporal": [
+    {
+      "start-OFF": "2150",
+      "end-OFF": "2151"
+    },
+    {
+      "start-OFF": "2160",
+      "end-OFF": "2161"
+    }
+    ]
+  },
+  {
     "_id": "A",
     "title": "title A",
     "description": "",

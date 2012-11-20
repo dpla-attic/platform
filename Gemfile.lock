@@ -2,8 +2,12 @@ PATH
   remote: v1
   specs:
     dpla_search_api_v1 (0.0.1)
+      couchrest
+      inifile
+      json
       pg
       rails (~> 3.2.8)
+      tire
 
 GEM
   remote: https://rubygems.org/
@@ -80,11 +84,6 @@ GEM
     erubis (2.7.0)
     execjs (1.4.0)
       multi_json (~> 1.0)
-    factory_girl (4.1.0)
-      activesupport (>= 3.0.0)
-    factory_girl_rails (4.1.0)
-      factory_girl (~> 4.1.0)
-      railties (>= 3.0.0)
     ffi (1.1.5)
     gherkin (2.11.2)
       json (>= 1.4.6)
@@ -210,15 +209,11 @@ PLATFORMS
 
 DEPENDENCIES
   coffee-rails (~> 3.2.1)
-  couchrest
   cucumber-rails
   database_cleaner
   devise (= 2.1.2)
   dpla_search_api_v1!
-  factory_girl_rails
-  inifile
   jquery-rails
-  json
   less
   pg
   pry
@@ -227,7 +222,6 @@ DEPENDENCIES
   rspec-rails
   sass-rails (~> 3.2.3)
   therubyracer
-  tire
   turnout
   twitter-bootstrap-rails
   uglifier (>= 1.0.3)

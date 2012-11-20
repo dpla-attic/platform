@@ -7,15 +7,16 @@ module V1
 
   module StandardDataset
 
-    INPUT_FILE = "../standard_dataset/items.json"
+    #BARRETT: Refactor codebase to convert direct references to items.json to use this constant
+    ITEMS_JSON_FILE = File.expand_path("../../../spec/items.json", __FILE__)
 
     def self.source_item_count
-      items_file = File.expand_path(INPUT_FILE, __FILE__)
-      items = JSON.load( File.read(items_file) )
+      items = JSON.load( File.read(ITEMS_JSON_FILE) )
       items.size
     end
 
     def self.indexed_item_count(results)
+      #BARRETT: Eliminate copy/pasted code between this method and display_import_result
       result = JSON.load(results.body)
       failures = result['items'].select {|item| !item['index']['error'].nil? }
       result['items'].size - failures.size
@@ -25,7 +26,7 @@ module V1
       # Delete and create the index
       #TODO: add production env check
 
-      items = process_input_file(INPUT_FILE)
+      items = process_input_file(ITEMS_JSON_FILE)
 
       import_result = nil
       Tire.index(V1::Config::SEARCH_INDEX) do
@@ -36,7 +37,7 @@ module V1
       end
 
       if source_item_count != indexed_item_count(import_result)
-        raise "FAILED to import all items"
+        raise "Failed to import all items."
       end
 
       return display_import_result(import_result)
@@ -59,11 +60,14 @@ module V1
 
     def self.process_input_file(json_file)
       # Load and pre-process items from the json file
-      items_file = File.expand_path(json_file, __FILE__)
-      items = JSON.load( File.read(items_file) )
-      puts "Loaded #{items.size} items from source JSON file"
-
-      items.each {|item| item['_type'] = "item"}
+      begin        
+        items = JSON.load( File.read(json_file) )
+        puts "Loaded #{items.size} items from source JSON file"
+        return items.each {|item| item['_type'] = "item"}
+      rescue JSON::ParserError => e
+        # Try to output roughly 1 test doc so they can see the error.
+        raise "JSON parse error: #{e.to_s.split(/\n/).first(25).join("\n")} \n[SNIP]..."
+      end      
     end
 
     def self.recreate_river!

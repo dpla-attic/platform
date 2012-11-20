@@ -44,10 +44,11 @@ module V1
                 'state' => { :type => 'string' },
                 'city' => { :type => 'string' },
                 'iso3166-2' => { :type => 'string' },
-                'coordinates' => { :type => "geo_point"}  #, :lat_lon => true, that breaks recursive search
+                'coordinates' => { :type => "geo_point"}  #, :lat_lon => true, breaks recursive search
               }
             },
             'temporal' => {
+              #'type' => 'nested',
               'properties' => {
                 'start' => { :type => 'date', :null_value => "-9999" }, #requiredevenifnull #, :format=>"YYYY G"}
                 'end'   => { :type => 'date', :null_value => "9999" } #requiredevenifnull
@@ -65,9 +66,10 @@ module V1
             'dplaSourceRecord' => {
               # completely omit dplaSourceRecord from the index for now
               :enabled => false
-              # ideally, no dplaSourceRecord subfield should ever get a date mapping (dynamically).
-              # If you want to try to include dplaSourceRecord in the index, you can try the below mapping
-              # instead of the above :enabled => false technique
+              # No dplaSourceRecord subfield should ever get a date mapping (dynamically).
+              # If you want to nclude dplaSourceRecord in the index, you can map date
+              # fields as strings so it can handle invalid date formats) instead of the
+              # (above :enabled => false technique)
               #  :properties => {
               #  :date => { :type => 'string' },
               #  :datestamp => { :type => 'string' }

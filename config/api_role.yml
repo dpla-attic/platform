@@ -1,2 +1,0 @@
-# Allowed values are "sandbox" or "production". See lib/dpla.rb
-api_role: "sandbox"

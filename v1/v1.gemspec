@@ -8,16 +8,19 @@ Gem::Specification.new do |s|
   s.version     = V1::VERSION
   s.authors     = ["Brian 'Phunk' Gadoury"]
   s.email       = ["bgadoury@endpoint.com"]
-  s.homepage    = "TODO: DPLA"
+  s.homepage    = "http://dp.la"
   s.summary     = "DPLA Search API V1"
   s.description = "DPLA Search API V1"
+  s.requirements << "The host DPLA API rails application"
 
-  s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.md"]
-  #  s.test_files = Dir["test/**/*"]
+  s.files = Dir["{app,config,db,lib}/**/*"] + ["Rakefile", "README.md"]
 
   s.add_dependency "rails", "~> 3.2.8"
   s.add_dependency "pg"
+  s.add_dependency "json"
+  s.add_dependency "tire"
+  s.add_dependency "couchrest"
+  s.add_dependency "inifile"
+
   s.add_development_dependency "rspec-rails"
-#  s.add_development_dependency "sqlite3"
-  # s.add_dependency "jquery-rails"
 end
