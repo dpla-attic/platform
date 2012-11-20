@@ -15,7 +15,10 @@ module V1
 
     # Maximum facets to return. See use case details
     MAXIMUM_FACETS_COUNT = 'not implemented'
-
+    
+    # Default max page size
+    DEFAULT_MAX_PAGE_SIZE = 100
+    
     # Default sort order for search results
     DEFAULT_SORT_ORDER = 'asc'
 
@@ -88,15 +91,15 @@ module V1
     end
 
     def get_search_starting_point(params)
-      page = params["page"]
-      return 0 if page.nil? || page.to_i == 0
-      get_search_size(params) * (page.to_i - 1)
+      page = params["page"].to_i
+      page == 0 ? 0 : get_search_size(params) * (page - 1)
     end
- 
+
     def get_search_size(params)
-      size = params["page_size"]
-      return DEFAULT_PAGE_SIZE if size.nil? || size.to_i == 0
-      size.to_i
+      size = params["page_size"].to_i
+      return DEFAULT_PAGE_SIZE if size == 0
+      return DEFAULT_MAX_PAGE_SIZE if size > DEFAULT_MAX_PAGE_SIZE 
+      size
     end
 
     def fetch(id)

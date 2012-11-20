@@ -31,6 +31,12 @@ module V1
             expect(DEFAULT_PAGE_SIZE).to eq 10
           end
         end
+        
+        describe DEFAULT_MAX_PAGE_SIZE do
+          it "has the correct value" do
+            expect(DEFAULT_MAX_PAGE_SIZE).to eq 100
+          end
+        end
 
       end
     end
@@ -114,6 +120,12 @@ module V1
       it "returns the default page size when no search size param is passed" do
         params = {}
         expect(subject.get_search_size(params)).to eq (Searchable::DEFAULT_PAGE_SIZE)
+      end
+
+      it "returns the default max page size when the search size is greater than the max" do
+        huge_size = Searchable::DEFAULT_MAX_PAGE_SIZE + 1
+        params = { "page_size" => huge_size }
+        expect(subject.get_search_size(params)).to eq (Searchable::DEFAULT_MAX_PAGE_SIZE)
       end
     end
 
