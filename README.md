@@ -1,8 +1,9 @@
 The DPLA Platform
 --------
 
-Build Status [![Build Status](https://secure.travis-ci.org/dpla/platform.png?branch=develop)](http://travis-ci.org/dpla/platform)
+Build Status
 --------
+[![Build Status](https://secure.travis-ci.org/dpla/platform.png?branch=develop)](http://travis-ci.org/dpla/platform)
 
 Documentation
 -------------
