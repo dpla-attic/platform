@@ -20,29 +20,60 @@ module V1
       end
 
       context "Module constants" do
-        describe DEFAULT_SORT_ORDER do
-          it "has the correct value" do
-            expect(DEFAULT_SORT_ORDER).to eq "asc"
-          end
-        end
-
         describe "DEFAULT_PAGE_SIZE" do
           it "has the correct value" do
             expect(DEFAULT_PAGE_SIZE).to eq 10
           end
         end
         
-        describe DEFAULT_MAX_PAGE_SIZE do
+        describe "DEFAULT_MAX_PAGE_SIZE" do
           it "has the correct value" do
             expect(DEFAULT_MAX_PAGE_SIZE).to eq 100
           end
         end
 
+        describe DEFAULT_SORT_ORDER do
+          it "has the correct value" do
+            expect(DEFAULT_SORT_ORDER).to eq "asc"
+          end
+        end
+
+        describe "MAXIMUM_FACETS_COUNT" do
+          it "has the correct value" do
+            expect(MAXIMUM_FACETS_COUNT).to eq 'not implemented'
+          end
+        end
+
+        describe "BASE_QUERY_PARAMS" do
+          it "has the correct value" do
+            expect(BASE_QUERY_PARAMS).to match_array %w( 
+              q controller action sort_by sort_order page page_size facets fields callback
+            )
+          end
+        end
       end
     end
   end
 
   describe SearchableItem do
+
+    describe "#validate_params" do
+      before(:each) do
+        stub_const("V1::Searchable::BASE_QUERY_PARAMS", %w( q controller action ) )
+      end
+      it "compares against both BASE_QUERY_PARAMS and mapped_fields" do
+        Schema.stub(:mapped_fields) { %w( title description ) }
+
+        expect {
+          SearchableItem.validate_params({'q' => 'banana'})
+          SearchableItem.validate_params({'title' => 'curious george'})
+        }.not_to raise_error BadRequestSearchError
+
+        expect {
+          SearchableItem.validate_params({'invalid_field' => 'banana'})
+        }.to raise_error BadRequestSearchError, /invalid field/i
+      end
+    end
 
     describe "#fetch" do
       it "delegates to V1::Repository.fetch" do
@@ -52,7 +83,6 @@ module V1
       end
 
       it "can accept more than one item" do
-        #BARRETT: This test is a little confused and verbose
         repo_item_stub_1 = stub
         repo_item_stub_2 = stub
         V1::Repository.should_receive(:fetch).with(["2","3"]) { [repo_item_stub_1, repo_item_stub_1] }
@@ -189,23 +219,29 @@ module V1
 
     describe "#search" do
       let(:mock_search) { mock('mock_search').as_null_object }
-
+#TODO: why is build_dictionary_wrapper stubbed all over the place?
       before(:each) do
         Tire.stub(:search).and_yield(mock_search)
       end
 
+      it "calls validates_params" do
+        params = {}
+        subject.should_receive(:validate_params).with(params)
+        subject.stub(:build_dictionary_wrapper)
+        subject.search(params)
+      end
+
       it "uses V1::Config::SEARCH_INDEX for its search index" do
         params = {'q' => 'banana'}
-        Tire.should_receive(:search).with(V1::Config::SEARCH_INDEX).and_yield(mock_search)
-        subject.should_receive(:build_dictionary_wrapper)
+        Tire.should_receive(:search).with(V1::Config::SEARCH_INDEX) #.and_yield(mock_search)
+        subject.stub(:build_dictionary_wrapper)
         subject.search(params)
       end
 
       it "builds facets if it receives a facets param" do
-        params = {'q' => 'banana', 'facets' => 'title'}
-
+        params = {'facets' => 'title'}
         subject.stub(:build_dictionary_wrapper)
-        V1::Searchable::Facet.should_receive(:build_all).with(mock_search, anything)
+        V1::Searchable::Facet.should_receive(:build_all).with(mock_search, 'title', anything)
         subject.search(params)
       end
 
@@ -233,11 +269,6 @@ module V1
           subject.search(params)
         end
       end
-
-      context "when there are no search params" do
-        it "should not call search.query?"
-        it "should return global facets?"
-      end        
 
     end
 

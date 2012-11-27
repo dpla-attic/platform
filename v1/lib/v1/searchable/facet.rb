@@ -7,14 +7,13 @@ module V1
 
     module Facet
 
-      def self.build_all(search, options={})
+      def self.build_all(search, requested='', global=false)
+        # Returns boolean for "did we run any filters?"
         # Run facets for options[:facets], against the search object
         #TODO: support wildcard facet
-        requested = options[:facets]
         return false if requested.blank?
 
         field_list = requested == '*' ? [] : requested.split(',')
-        global = options.has_key?(:global) ? options[:global] : false
 
         field_list.each do |field|
           search.facet(field, :global => global) do |faceter|

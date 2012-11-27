@@ -9,8 +9,17 @@ module V1
       # Default spatial.distance "range" value
       DEFAULT_SPATIAL_DISTANCE = '20mi'
 
+      def self.build_all(search, params)
+        # Returns boolean for "did we run any filters?"
+        spatial_filter = spatial_coordinates_filter(params)
+        if spatial_filter
+          search.filter(*spatial_filter)
+          return true
+        end
+        false
+      end
+      
       def self.spatial_coordinates_filter(params)
-        #TODO: validate spatial.distance units
         return nil unless params['spatial.coordinates'].present?
         
         coordinates = params['spatial.coordinates']

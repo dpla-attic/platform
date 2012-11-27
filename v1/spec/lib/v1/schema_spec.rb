@@ -26,12 +26,21 @@ module V1
           'mappings' => {
             'item' => {
               'properties' => {
+                'title' => { :type => 'string' },
                 'created' => { :type => 'date' },
+                'temporal' => {
+                  'properties' => {
+                    'start' => { :type => 'date' },
+                    'end' => { :type => 'date' }
+                  }
+                },
                 'spatial' => {
                   'properties' => {
-                    'city' => { :type => 'string', :index => 'not_analyzed' }
+                    'city' => { :type => 'string', :index => 'not_analyzed' },
+                    'coordinates' => { :type => "geo_point" }
                   }
-                }
+                },
+                'someBlob' => { 'enabled' => false },
               }
             },
             'collection' => {
@@ -55,14 +64,7 @@ module V1
         it "returns entire mapping for a single type" do
           expect(
                  subject.mapping('item')
-                 ).to eq({
-                           'created' => { :type => 'date' },
-                           'spatial' => {
-                             'properties' => {
-                               'city' => { :type => 'string', :index => 'not_analyzed' }
-                             }
-                           }
-                         })
+                 ).to eq(full_mapping['mappings']['item']['properties'])
         end
 
         it "returns the mapping for a single field as requested" do
@@ -96,7 +98,30 @@ module V1
         end
       end
 
+      describe "#mapped_fields" do
+        let(:mapped_fields) { V1::Schema.mapped_fields }
+
+        it "includes an expected basic string field" do
+          expect(mapped_fields).to include 'title'
+        end
+        it "includes $field.before and $field.after for top-level date field" do
+          expect(mapped_fields).to include 'created.before'
+          expect(mapped_fields).to include 'created.after'
+        end
+        it "handles the TODO: special case of temporal.before and temporal.after" do
+          expect(mapped_fields).to include 'temporal.before'
+          expect(mapped_fields).to include 'temporal.after'
+        end
+        it "includes $field.distance for a geo_point field" do
+          expect(mapped_fields).to include 'spatial.distance'
+        end
+        it "excludes $field where 'enabled' is false" do
+          expect(mapped_fields).not_to include 'someBlob'
+        end
+      end
+
     end
+
   end
 
 end

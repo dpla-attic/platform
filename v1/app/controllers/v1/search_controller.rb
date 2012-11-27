@@ -5,8 +5,12 @@ module V1
   class SearchController < ApplicationController
 
     def items
-      results = V1::Item.search(params)
-      render :json => render_json(results, params)
+      begin
+        results = V1::Item.search(params)
+        render :json => render_json(results, params)
+      rescue SearchError => error
+        render :json => {:message => error.message}, :status => error.http_code
+      end        
     end
 
     def fetch

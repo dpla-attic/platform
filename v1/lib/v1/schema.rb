@@ -65,7 +65,7 @@ module V1
             'contributor' => { :type => 'string' },
             'dplaSourceRecord' => {
               # completely omit dplaSourceRecord from the index for now
-              :enabled => false
+              'enabled' => false
               # No dplaSourceRecord subfield should ever get a date mapping (dynamically).
               # If you want to nclude dplaSourceRecord in the index, you can map date
               # fields as strings so it can handle invalid date formats) instead of the
@@ -84,7 +84,7 @@ module V1
     end
 
     def self.mapping(type=nil, field=nil)
-      # A "type" is a top level DPLA type: 'item', 'collection', 'creator'
+      # A "type" is a top-level DPLA resource: 'item', 'collection', 'creator'
       base = ELASTICSEARCH_MAPPING['mappings']
 
       # Standardize on strings
@@ -104,6 +104,37 @@ module V1
         # mapping for a single field within a single type
         base[type]['properties'][field] rescue nil
       end
+    end
+
+    def self.mapped_fields
+      #TODO: memoize
+      #TODO: leverage other module methods more
+      fields = []
+      mapping.each do |type, type_mapping|
+        type_mapping['properties'].each do |field, field_mapping|
+          next if field_mapping.has_key?('enabled') && field_mapping['enabled'] == false
+
+          fields << field
+
+          #top level date fields
+          #TODO: use mapping metadata to handle temporal special case
+          if field_mapping[:type] == 'date' || field == 'temporal'
+            fields << "#{field}.before" << "#{field}.after"
+          end
+
+          if field_mapping.has_key? 'properties'
+            field_mapping['properties'].each do |subfield, subfield_mapping|
+              fields << "#{field}.#{subfield}"
+
+              # support our custom $field.distance query param for all geo_point fields
+              if subfield_mapping[:type] == 'geo_point'
+                fields << "#{field}.distance"
+              end
+            end
+          end
+        end
+      end
+      fields
     end
 
   end

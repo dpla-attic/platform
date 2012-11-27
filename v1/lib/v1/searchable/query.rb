@@ -8,6 +8,7 @@ module V1
     module Query
 
       def self.build_all(search, params)
+        # Returns boolean for "did we run any queries?"
         field_queries = field_queries(params)
         temporal_queries = temporal_queries(params)
 

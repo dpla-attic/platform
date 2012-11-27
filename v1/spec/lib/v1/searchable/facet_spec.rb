@@ -9,13 +9,13 @@ module V1
       describe "#build_all" do
         it "gracefully degrades when the '*' wildcard facet is requested" do
           expect {
-            subject.build_all(stub, {:facets => '*'})
+            subject.build_all(stub, '*', false)
           }.to_not raise_error
         end
         
         it "returns true if it created any facets"
         it "returns false if it created zero facets" do
-          expect(subject.build_all(stub, {})).to be_false
+          expect(subject.build_all(stub, {}, false)).to be_false
         end        
         
         it "handles a comma separated list of specific facets to build"

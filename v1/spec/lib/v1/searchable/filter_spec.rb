@@ -18,6 +18,23 @@ module V1
 
         end
 
+        describe "#build_all" do
+          it "does apply the spatial_coordinates filter if one was generated from the params" do
+            subject.stub(:spatial_coordinates_filter) { ['fake', 'filter'] }
+            search = mock(:filter => nil)
+            search.should_receive(:filter).with(*['fake', 'filter'])
+            subject.build_all(search, stub)
+          end
+
+          it "does not apply the spatial_coordinates filter if one was not generated from the params" do
+            subject.stub(:spatial_coordinates_filter) { nil }
+            search = mock(:filter => nil)
+            search.should_not_receive(:filter)
+            subject.build_all(search, stub)
+          end
+          
+        end
+
         describe "#spatial_coordinates_filter" do
 
           it "handles coordinate queries without a range" do
@@ -40,6 +57,8 @@ module V1
                    subject.spatial_coordinates_filter(params)
                    ).to eq nil
           end
+
+          it "raises an API-specific exception if spatial.distance is supplied but lacks units"
 
         end
 

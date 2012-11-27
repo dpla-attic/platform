@@ -1,10 +1,11 @@
+require 'v1/search_error'
 require 'v1/repository'
 require 'v1/schema'
 require 'v1/searchable/query'
 require 'v1/searchable/filter'
 require 'v1/searchable/facet'
 require 'tire'
-#require 'active_support/core_ext'
+require 'active_support/core_ext'
 
 module V1
 
@@ -13,28 +14,37 @@ module V1
     # Default pagination size for search results
     DEFAULT_PAGE_SIZE = 10
 
-    # Maximum facets to return. See use case details
-    MAXIMUM_FACETS_COUNT = 'not implemented'
-    
     # Default max page size
     DEFAULT_MAX_PAGE_SIZE = 100
     
     # Default sort order for search results
     DEFAULT_SORT_ORDER = 'asc'
 
+    # Maximum facets to return. See use case details
+    MAXIMUM_FACETS_COUNT = 'not implemented'
+
+    # General query params that are not type-specific
+    BASE_QUERY_PARAMS = %w( q controller action sort_by sort_order page page_size facets fields callback ).freeze
+    
+    def validate_params(params)
+      # Raises exception if any unrecognized search params are present. Extensions made
+      # to the mapping for query reasons (e.g: spatial.distance) are added here as well.
+      #TODO: Make the mapped_fields call type-specific to avoid overlaps between fields/subfields
+      # with the same name across multiple types
+      invalid_fields = params.keys - (BASE_QUERY_PARAMS + V1::Schema.mapped_fields)
+      if invalid_fields.any?
+        raise BadRequestSearchError, "Invalid field(s) specified in query: #{invalid_fields.join(',')}"
+      end
+    end
+
     def search(params={})
+      validate_params(params)
       searcher = Tire.search(V1::Config::SEARCH_INDEX) do |search|
-        got_queries = V1::Searchable::Query.build_all(search, params)
-
         #intentional empty search: search.query { all }
-
-        if params['facets'].present?
-          # if there were no queries, return global facets. else; not global
-          V1::Searchable::Facet.build_all(search, :facets => params['facets'], :global => got_queries)
-        end
-          
-        spatial_query = V1::Searchable::Filter.spatial_coordinates_filter(params)
-        search.filter(*spatial_query) if spatial_query
+        got_queries = true if V1::Searchable::Query.build_all(search, params)
+        got_queries = true if V1::Searchable::Filter.build_all(search, params)
+        got_queries = true if V1::Searchable::Facet.build_all(search, params['facets'], !got_queries)
+        #TODO: for symmetry's sake, make Facet.build_all take params like the others
 
         sort_attrs = build_sort_attributes(params)
         search.sort { by(*sort_attrs) } if sort_attrs
@@ -97,9 +107,13 @@ module V1
 
     def get_search_size(params)
       size = params["page_size"].to_i
-      return DEFAULT_PAGE_SIZE if size == 0
-      return DEFAULT_MAX_PAGE_SIZE if size > DEFAULT_MAX_PAGE_SIZE 
-      size
+      if size == 0
+        DEFAULT_PAGE_SIZE
+      elsif size > DEFAULT_MAX_PAGE_SIZE
+        DEFAULT_MAX_PAGE_SIZE
+      else
+        size
+      end
     end
 
     def fetch(id)
