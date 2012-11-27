@@ -71,16 +71,16 @@ module V1
     end
 
     def self.recreate_river!
-      repository_uri = URI.parse(V1::Config.get_repository_endpoint)
-
+      repository_uri = URI.parse(V1::Repository.endpoint)
+      
       river_payload = {
         type: "couchdb",
         couchdb: {
           host: repository_uri.host,
           port: repository_uri.port,
           db: V1::Config::REPOSITORY_DATABASE,
-          user: V1::Config.get_repository_read_only_username,
-          password: V1::Config.get_repository_read_only_password,
+          user: V1::Config.dpla['couch_read_only']['username'],
+          password: V1::Config.dpla['couch_read_only']['password'],
           filter: nil
         },
         index: {

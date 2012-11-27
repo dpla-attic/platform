@@ -15,29 +15,13 @@ module V1
 
     end
     
-    describe "#get_repository_host" do
-      context "there is a couchdb config file present" do
-        it "returns the repository host defined in the config file" do
-          Config.stub(:get_repository_config) { {
-            "httpd" => {"bind_address" => "example.com", "port" => "4242" } 
-          } }
-          expect(Config.get_repository_host).to eq "example.com:4242"  
-        end
-      end
-      context "there is no couchdb config file present" do
-        it "returns default host values" do
-          Config.stub(:get_repository_config) { nil }
-          expect(Config.get_repository_host).to eq "127.0.0.1:5984"
-        end
-      end
-    end
-    describe "#get_dpla_config" do
+    describe "#dpla" do
       context "when the dpla config file does not exist" do
         it "it raises an error" do
           File.stub(:expand_path) { '/wrong path' }
           File.should_receive(:exists?).with('/wrong path') { false }
           expect do
-            Config.get_dpla_config
+            Config.dpla
           end.to raise_error /No DPLA config file found at.*/i
         end
       end
@@ -48,7 +32,7 @@ module V1
           File.should_receive(:exists?).with('/dpla.yml') { true }
           YAML.stub(:load_file) { {'no_ES' => 'abc', 'no_cdb' => 'abc'} }
           expect do
-            Config.get_dpla_config
+            Config.dpla
           end.to raise_error /The DPLA config file found at .* is lacking needed values/i
         end
       end
@@ -57,61 +41,13 @@ module V1
         it "returns the hash of config values" do
           File.stub(:expand_path) { '/dpla.yml' }
           File.should_receive(:exists?).with('/dpla.yml') { true }
-          YAML.stub(:load_file) { {'elasticsearch' => 'abc', 'couch_db' => 'abc'} }
-          expect(Config.get_dpla_config).to have_key("elasticsearch") && have_key("couch_db")
+          YAML.stub(:load_file) { {'couch_read_only' => 'abc', 'couch_admin' => 'abc'} }
+          expect(Config.dpla).to have_key("couch_read_only") && have_key("couch_admin")
         end
 
       end
     end
 
-    describe "set of functions depending on the DPLA config file" do
-      before :each do
-        Config.stub(:get_dpla_config) {{
-          "elasticsearch" => { "username" => "u", "password" => "pw" },
-          "couch_db" => { "admin" => "admin", "password" => "apass" }
-        }}
-        Config.stub(:get_repository_host) { "abc.com" }
-      end
-      describe "#get_repository_read_only_endpoint" do
-        context "when a repository has been defined" do
-          it "returns an endpoint with read-only credentials" do
-            expect(Config.get_repository_read_only_endpoint).to eq("http://u:pw@abc.com")
-          end
-        end
-      end
-
-      describe "#get_repository_read_only_username" do
-        context "when a dpla config file is present" do
-          it "returns read only user name" do
-            expect(Config.get_repository_read_only_username).to eq("u")
-          end
-        end
-      end
-
-      describe "#get_repository_read_only_password" do
-        context "when a dpla config file is present" do
-          it "returns read only user password" do
-            expect(Config.get_repository_read_only_password).to eq("pw")
-          end
-        end
-      end
-
-      describe "#get_repository_admin_endpoint" do
-        context "when a repository has been defined" do
-          it "returns an endpoint with admin credentials" do
-            expect(Config.get_repository_admin_endpoint).to eq("http://admin:apass@abc.com")
-          end
-        end
-      end
-
-      describe "#get_repository_admin" do
-        context "when a repository admin has been defined" do
-          it "returns the admin username and password" do
-            expect(Config.get_repository_admin).to eq("admin:apass")
-          end
-        end
-      end
-    end
 
 
     describe "#get_search_config" do

@@ -10,7 +10,7 @@ module CukeApiHelper
   end
 
   def load_dataset
-    File.read(File.dirname(__FILE__) + "/../../v1/spec/items.json")
+    File.read(V1::StandardDataset::ITEMS_JSON_FILE)
   end
 
   def get_maintenance_file

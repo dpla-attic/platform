@@ -1,5 +1,5 @@
 Given /^the dataset exists$/ do
-  expect(File.exist?(File.dirname(__FILE__) + "/../../v1/spec/items.json")).to be(true)
+  expect(File.exist?V1::StandardDataset::ITEMS_JSON_FILE).to be(true)
 end
 
 When /^I have valid JSON in the test dataset$/ do

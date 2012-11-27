@@ -14,7 +14,7 @@ module V1
     describe "#fetch" do
       before(:each) do
         @endpoint_stub = stub 'endpoint'
-        @db_mock = mock('db')
+        @db_mock = mock 'db'
         @couch_doc = stub 'couch_doc'
         V1::Repository.stub(:read_only_endpoint) { @endpoint_stub }
       end
@@ -47,28 +47,26 @@ module V1
 
     end
 
-    describe "#read_only_endpoint" do
-
-      it "returns the repository endpoint and the repo database in URL form" do
-        stub_const("V1::Config::REPOSITORY_DATABASE", "some_db")
-        V1::Config.should_receive(:get_repository_read_only_endpoint) { 'http://user:pw@foo.api:9200' }
-        expect(V1::Repository.read_only_endpoint).to eq('http://user:pw@foo.api:9200' + '/' + "some_db")
-      end
-
-    end
 
     describe "#create_read_only_user" do
       
       before :each do
-        V1::Config.stub(:get_repository_read_only_username) { "user" }
-        V1::Config.stub(:get_repository_read_only_password) { "password" }
+        V1::Config.stub(:dpla) {{
+          'couch_read_only' => {
+            'username' => 'user',
+            'password' => 'pw'
+          },
+          'couch_admin' => {
+            'username' => 'admin',
+            'password' => 'pw'
+          }
+        }}
         @db_mock = mock('db')
         @read_only_user = mock("ro_user")
-        V1::Repository.stub(:repository_admin_endpoint) { "http://www.example.com/repository" }
       end
 
       it "should delete any existing read-only users" do
-        CouchRest.should_receive(:database).with("#{V1::Repository.repository_admin_endpoint}/_users") { @db_mock }
+        CouchRest.should_receive(:database).with("#{V1::Repository.admin_endpoint}/_users") { @db_mock }
         @db_mock.should_receive(:get).with("org.couchdb.user:user") { @read_only_user }
         @read_only_user.should_receive(:is_a?) { true }
         @db_mock.should_receive(:delete_doc) { 200 }
@@ -77,7 +75,7 @@ module V1
       end
 
       it "creates a user" do
-        CouchRest.should_receive(:database).with("#{V1::Repository.repository_admin_endpoint}/_users") { @db_mock }
+        CouchRest.should_receive(:database).with("#{V1::Repository.admin_endpoint}/_users") { @db_mock }
         @db_mock.should_receive(:get).with("org.couchdb.user:user") { @read_only_user }
         @read_only_user.should_receive(:is_a?) { false }
         RestClient.should_receive(:put) { 200 }
@@ -89,11 +87,11 @@ module V1
 
       it "should lock down database roles and create design doc for validation" do
         RestClient.should_receive(:put).with(
-          "#{V1::Repository.repository_admin_endpoint}/#{V1::Repository.repository_database}/_security",
+          "#{V1::Repository.admin_endpoint}/#{V1::Repository.repository_database}/_security",
           anything()
         )
         RestClient.should_receive(:put).with(
-          "#{V1::Repository.repository_admin_endpoint}/#{V1::Repository.repository_database}/_design/auth",
+          "#{V1::Repository.admin_endpoint}/#{V1::Repository.repository_database}/_design/auth",
           anything()
         )
         V1::Repository.lock_down_repository_roles
@@ -112,6 +110,51 @@ module V1
         File.should_receive(:read).with(json_file) { json_text }
         JSON.should_receive(:load).with( json_text ) { json_object}
         expect(V1::Repository.process_input_file(filename)).to eq json_object
+      end
+
+    end
+    
+    describe "#get_repository_host" do
+      context "there is a couchdb config file present" do
+        it "returns the repository host defined in the config file" do
+          V1::Config.stub(:get_repository_config) { {
+            "httpd" => {"bind_address" => "example.com", "port" => "4242" } 
+          } }
+          expect(subject.host).to eq "example.com:4242"  
+        end
+      end
+      context "there is no couchdb config file present" do
+        it "returns default host values" do
+          V1::Config.stub(:get_repository_config) { nil }
+          expect(subject.host).to eq "127.0.0.1:5984"
+        end
+      end
+    end
+    
+    describe "set of functions depending on the DPLA config file" do
+      before :each do
+        V1::Config.stub(:dpla) {{
+          "couch_read_only" => { "username" => "u", "password" => "pw" },
+          "couch_admin" => { "username" => "admin", "password" => "apass" }
+        }}
+        subject.stub(:host) { "abc.com" }
+      end
+      
+      describe "#read_only_endpoint" do
+  
+        it "returns the repository endpoint and the repo database in URL form" do
+          stub_const("V1::Config::REPOSITORY_DATABASE", "some_db")
+          expect(V1::Repository.read_only_endpoint).to eq('http://u:pw@abc.com/some_db')
+        end
+  
+      end
+
+      describe "#admin_endpoint" do
+        context "when a repository has been defined" do
+          it "returns an endpoint with admin credentials" do
+            expect(subject.admin_endpoint).to eq("http://admin:apass@abc.com")
+          end
+        end
       end
 
     end

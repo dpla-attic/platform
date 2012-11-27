@@ -15,32 +15,32 @@ module V1
     end
 
     def self.read_only_endpoint
-      @endpoint_uri ||= V1::Config.get_repository_read_only_endpoint + '/' + repository_database
-    end
-
-    def self.admin_endpoint
-      @endpoint_uri ||= V1::Config.get_repository_admin_endpoint + '/' + repository_database
+      config = V1::Config.dpla['couch_read_only']
+      read_only_login = "#{config['username']}:#{config['password']}"
+      "http://#{read_only_login}@#{host}/#{repository_database}" 
     end
 
     def self.repository_database
       V1::Config::REPOSITORY_DATABASE
     end
 
-    def self.repository_admin_endpoint
-      V1::Config.get_repository_admin_endpoint
+    def self.admin_endpoint
+      config = V1::Config.dpla['couch_admin']
+      admin_login = "#{config['username']}:#{config['password']}"
+      "http://#{admin_login}@#{host}" 
     end
 
     def self.recreate_database!
       # Delete, recreate and repopulate the database
       #TODO: add production env check
 
-      items = process_input_file("../../../spec/items.json")
-
+      items = process_input_file(V1::StandardDataset::ITEMS_JSON_FILE)
+      repo_database = admin_endpoint + "/#{repository_database}"
       # delete it if it exists
-      CouchRest.database(admin_endpoint).delete! rescue RestClient::ResourceNotFound
+      CouchRest.database(repo_database).delete! rescue RestClient::ResourceNotFound
 
       # create a new one
-      db = CouchRest.database!(admin_endpoint)
+      db = CouchRest.database!(repo_database)
 
       # create read only user and lock down security
       create_read_only_user
@@ -52,11 +52,11 @@ module V1
     end
 
     def self.create_read_only_user
-      username = V1::Config.get_repository_read_only_username
-      password = V1::Config.get_repository_read_only_password
+      username = V1::Config.dpla['couch_read_only']['username']
+      password = V1::Config.dpla['couch_read_only']['password'] 
 
       # delete read only user if it exists
-      users_db = CouchRest.database("#{repository_admin_endpoint}/_users")
+      users_db = CouchRest.database("#{admin_endpoint}/_users")
       read_only_user = users_db.get("org.couchdb.user:#{username}") rescue RestClient::ResourceNotFound
       users_db.delete_doc(read_only_user) if read_only_user.is_a? CouchRest::Document
 
@@ -68,7 +68,7 @@ module V1
       }
 
       RestClient.put(
-        "#{repository_admin_endpoint}/_users/org.couchdb.user:#{username}",
+        "#{admin_endpoint}/_users/org.couchdb.user:#{username}",
         user_hash.to_json,
         {:content_type => :json, :accept => :json}
       )
@@ -80,7 +80,7 @@ module V1
         :readers => {"roles"  => ["admin","reader"]}
       }
       RestClient.put(
-        "#{repository_admin_endpoint}/#{repository_database}/_security",
+        "#{admin_endpoint}/#{repository_database}/_security",
         security_hash.to_json
       )
 
@@ -91,7 +91,7 @@ module V1
         :validate_doc_update => "function(newDoc, oldDoc, userCtx) { if (userCtx.roles.indexOf('_admin') !== -1) { return; } else { throw({forbidden: 'Only admins may edit the database'}); } }"
       }
       RestClient.put(
-        "#{repository_admin_endpoint}/#{repository_database}/_design/auth",
+        "#{admin_endpoint}/#{repository_database}/_design/auth",
         design_doc_hash.to_json
       )
     end
@@ -100,6 +100,24 @@ module V1
       items_file = File.expand_path(json_file, __FILE__)
       JSON.load( File.read(items_file) )
     end
+    
+    def self.host
+      #TODO: test
+      config = V1::Config.get_repository_config
+      if config.nil?
+        host = '127.0.0.1'
+        port = '5984'
+      else
+        host = config['httpd']['bind_address']
+        port = config['httpd']['port']
+      end
+      "#{host}:#{port}"
+    end
+
+    def self.endpoint
+      "http://#{host}"
+    end
+
 
   end
 

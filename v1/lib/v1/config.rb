@@ -47,31 +47,13 @@ module V1
       config
     end
 
-    def self.get_repository_admin
-      #TODO test
-      dpla_config = get_dpla_config
-      admin = dpla_config['couch_db']['admin']
-      password = dpla_config['couch_db']['password']
-      return "#{admin}:#{password}"
-    end
-
-    def self.get_repository_read_only_password
-      dpla_config = get_dpla_config
-      dpla_config['elasticsearch']['password']
-    end
-
-    def self.get_repository_read_only_username
-      dpla_config = get_dpla_config
-      dpla_config['elasticsearch']['username']
-    end
-
-    def self.get_dpla_config
+    def self.dpla
       #TODO: test
       begin
         dpla_config_path = File.expand_path("../../../config/dpla.yml", __FILE__)
         if File.exists? dpla_config_path
           dpla_config = YAML.load_file(dpla_config_path)
-          required_config_params = ["couch_db", "elasticsearch"]
+          required_config_params = ["couch_admin", "couch_read_only"]
           if (dpla_config.keys - required_config_params).empty?
             return dpla_config
           else
@@ -81,32 +63,6 @@ module V1
          raise "No DPLA config file found at #{dpla_config_path}"
         end
       end
-    end
-
-    def self.get_repository_host
-      #TODO: test
-      config = get_repository_config
-      if config.nil?
-        host = '127.0.0.1'
-        port = '5984'
-      else
-        host = config['httpd']['bind_address']
-        port = config['httpd']['port']
-      end
-      "#{host}:#{port}"
-    end
-
-    def self.get_repository_endpoint
-      #TODO do we need this method?
-      "http://#{get_repository_host}"
-    end
-
-    def self.get_repository_read_only_endpoint
-      "http://#{get_repository_read_only_username}:#{get_repository_read_only_password}@#{get_repository_host}"
-    end
-
-    def self.get_repository_admin_endpoint
-      "http://#{get_repository_admin}@#{get_repository_host}"
     end
 
     def self.initialize_tire
