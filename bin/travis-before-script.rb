@@ -36,10 +36,10 @@ puts "TRAVIS: Creating #{dpla_yaml_file}"
 
 File.open(dpla_yaml_file, 'w') do |f|
   f.write({
-           'elasticsearch' =>
-           { 'username' => 'es_user', 'password' => 'es_password' },
-           'couch_db' =>
-           { 'admin' => 'admin', 'password' => 'chonta' }
+           'couch_read_only' =>
+           { 'username' => 'dpla', 'password' => 'es_password' },
+           'couch_admin' =>
+           { 'username' => 'admin', 'password' => 'chonta' }
           }.to_yaml)
 end
 
