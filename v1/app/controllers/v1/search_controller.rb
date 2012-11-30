@@ -15,8 +15,14 @@ module V1
 
     def fetch
       ids = params[:ids].split(',')
-      results = V1::Item.fetch(ids)
-      render :json => render_json(results, params)
+      results = []
+      begin 
+        results = V1::Item.fetch(ids)
+        status = 200
+      rescue
+        status = 404
+      end
+      render :json => render_json(results, params), :status => status
     end
 
     def render_json(results, params)

@@ -76,18 +76,64 @@ module V1
     end
 
     describe "#fetch" do
-      it "delegates to V1::Repository.fetch" do
+      let(:mock_result) {
+        {
+          "count" => 1,
+          "docs" => [
+            {"_id" => "1"}
+          ]
+        }
+      }
+      let(:mock_result_b) {
+        {
+          "count" => 1,
+          "docs" => [
+            {"_id" => "2"}
+          ]
+        }
+      }
+      let(:error_stub){
+        {
+          "id" => "ccc",
+          "error" => "404"
+        }
+      }
+      
+      it "passes off 'id' lookup to #search" do
+        subject.should_receive(:search).with({"id" => "aaa" }) { mock_result } 
+        subject.fetch(["aaa"])
+      end
+      
+      it "delegates transformed ids to V1::Repository.fetch" do
         repo_item_stub = stub
-        V1::Repository.should_receive(:fetch).with(2) { repo_item_stub }
-        expect(subject.fetch(2)).to eq repo_item_stub
+        subject.should_receive(:search).with({"id" => "aaa" }) { mock_result }
+        V1::Repository.should_receive(:fetch).with(["1"]) { repo_item_stub }
+        expect(subject.fetch(["aaa"])).to eq repo_item_stub
       end
 
-      it "can accept more than one item" do
+      it "accepts more than one item" do
         repo_item_stub_1 = stub
         repo_item_stub_2 = stub
-        V1::Repository.should_receive(:fetch).with(["2","3"]) { [repo_item_stub_1, repo_item_stub_1] }
-        expect(subject.fetch(["2","3"])).to eq [repo_item_stub_1, repo_item_stub_1]
+      
+        subject.stub(:search).twice.and_return(mock_result, mock_result_b)
+        V1::Repository.should_receive(:fetch).with(["1", "2"]) {
+          [repo_item_stub_1, repo_item_stub_2]
+        }
+        expect(subject.fetch(["aaa", "bbb"])).to eq [repo_item_stub_1, repo_item_stub_2]
       end
+
+      it "can handle an item that does not exist" do
+        repo_item_stub_1 = stub
+        subject.stub(:search).twice.and_return(mock_result, {'count' => 0})
+        V1::Repository.should_receive(:fetch).with(["1"]) { [repo_item_stub_1] }
+        expect(subject.fetch(["aaa", "ccc"])).to eq [repo_item_stub_1, error_stub]
+      end
+
+      it "raises error when single item not found" do
+        subject.stub(:search) { {'count' => 0} }
+        expect { subject.fetch(["ccc"]) }.to raise_error(NotFoundSearchError)
+      end
+
     end
 
 

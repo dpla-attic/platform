@@ -8,7 +8,10 @@ module V1
         'item' => {
           'properties' => {
             #NOTE: No longer needed now that the source data uses _id, I think. -phunk
-            #:id => { :type => 'string' },
+            'id' => { 
+              :type => 'string',
+              :index => 'not_analyzed'
+            },
             '@id' => { :type => 'string' },
             'title' => { :type => 'string' },
             'dplaContributor' => {

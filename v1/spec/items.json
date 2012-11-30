@@ -133,6 +133,7 @@
   },
   {
     "_id": "A",
+    "id": "aaa",
     "title": "title A",
     "description": "",
     "dplaContributor": null,
@@ -152,6 +153,7 @@
   },
   {
     "_id": "B",
+    "id": "bbb",
     "title": "title B",
     "description": "",
     "dplaContributor": null,

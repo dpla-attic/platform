@@ -15,8 +15,10 @@
   <li>#2890: <%= link_to nil, v1_api.items_path('some_invalid_field' => 'banana') %> Invalid field in query </li> 
   <li><%= link_to nil, v1_api.items_path('q' => 'banana', 'page_size' => '2') %> </li> 
   <li><%= link_to nil, v1_api.items_path('q' => 'banana', 'page_size' => '3', 'page' => '3') %> </li> 
-  <li>UC008: <%= link_to nil, "#{v1_api.items_path}/A,B,C" %> A, B, C </li>
-  <li>UC008: <%= link_to nil, "#{v1_api.items_path}/A" %> A</li>
+  <li>UC008: <%= link_to nil, "#{v1_api.items_path}/aaa,bbb" %> A, B</li>
+  <li>UC008: <%= link_to nil, "#{v1_api.items_path}/aaa,bbb,ccc" %> A, B, C(Error Stub)</li>
+  <li>UC008: <%= link_to nil, "#{v1_api.items_path}/aaa" %> A</li>
+  <li>UC008: <%= link_to nil, "#{v1_api.items_path}/ccc" %> 404</li>
   <li><%= link_to nil, v1_api.items_path('sort_by' => 'created') %></li>
   <li><%= link_to nil, v1_api.items_path('sort_by' => 'created', 'sort_order' => 'desc') %></li>
   <li><%= link_to nil, v1_api.items_path('fields' => 'title,description') %></li>

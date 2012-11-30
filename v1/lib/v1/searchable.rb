@@ -135,8 +135,29 @@ module V1
       end
     end
 
-    def fetch(id)
-      V1::Repository.fetch(id)
+    def fetch(ids)
+      doc_ids = []
+      missing_ids = []
+      ids.each do |id|
+        result = search({'id' => "#{id}"})
+        #Save the doc's '_id' if search returned a single 'id' match
+        doc_ids << result["docs"].first["_id"] if result["count"] == 1
+        #Save the 'id' as missing if search did not find the doc 
+        missing_ids << id if result["count"] == 0
+      end
+
+      if doc_ids.empty? && ids.count == 1
+        raise NotFoundSearchError, "Document not found"
+      end
+
+      results = V1::Repository.fetch(doc_ids)
+ 
+      if missing_ids.any?
+        error_records = missing_ids.map { |id| { 'id' => id, 'error' => '404'} }
+        return results.concat(error_records)
+      end
+
+      results
     end
 
     def verbose_debug(search)
