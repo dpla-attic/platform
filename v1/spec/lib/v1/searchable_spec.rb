@@ -119,6 +119,26 @@ module V1
       end
     end
 
+    describe "#parse_field_params" do
+      it "raises SearchError if invalid field was sent" do
+        params = {'q' => 'banana', 'fields' => 'invalid'}
+        expect  { 
+          subject.parse_field_params(params) 
+        }.to raise_error BadRequestSearchError
+      end
+      it "returns an array from CSV params" do
+        params = {'q' => 'banana', 'fields' => 'title,description'}
+        expect(
+          subject.parse_field_params(params)
+        ).to eq ['title', 'description']
+      end
+      
+      it "returns nil when no fields param present" do
+        params = {'q' => 'banana'}
+        expect(subject.parse_field_params(params)).to eq nil
+      end
+    end
+   
     describe "#get_search_starting_point" do
       it "returns starting point based on 'page size' and the start page" do
         params = { "page" => "2", 'page_size' => "5" }
@@ -215,6 +235,20 @@ module V1
           "score" => 1 }]
         )
       end
+
+      it "remaps on fields key when no _source key present" do
+        docs = [{
+          "_index" => "dpla",
+          "_type" => "item",
+          "_id" => "1",
+          "_score" => 1.0,
+          "fields" => {"title" => "banana one"}
+        }]
+        expect(subject.reformat_result_documents(docs)).to eq(
+          [{"title" => "banana one"}]
+        )
+      end
+
     end
 
     describe "#search" do
@@ -254,6 +288,22 @@ module V1
         expect(subject.search(params)).to eq dictionary_results
       end
 
+      context "fields" do
+        it "limits result fields returned" do
+          params = {'q' => 'banana',  'fields' => 'title, description' }
+          subject.stub(:parse_field_params) { ["title", "description"] }
+          mock_search.should_receive(:fields)
+          subject.search(params)
+        end
+        
+        it "does not set field restrictions if not present" do
+          params = {'q' => 'banana' }
+          subject.stub(:parse_field_params) { nil }
+          mock_search.should_not_receive(:fields)
+          subject.search(params) 
+        end
+      end
+      
       context "sorting" do
         it "sorts by field name if present" do
           params = {'q' => 'banana',  'sort_by' => 'title' }

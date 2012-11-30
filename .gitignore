@@ -11,3 +11,4 @@ pgsql/
 apache2/
 erl_crash.dump
 *.hprof
+*.swo

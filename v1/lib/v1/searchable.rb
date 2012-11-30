@@ -57,8 +57,10 @@ module V1
         # handle pagination
         search.from get_search_starting_point(params)
         search.size get_search_size(params)
-
-        # fields(['title', 'description'])
+    
+        # limit fields in results
+        field_params = parse_field_params(params)
+        search.fields field_params if field_params
         
         # for testability, this block should always return its search object
         search
@@ -81,25 +83,42 @@ module V1
     end
 
     def build_dictionary_wrapper(search)
-      #BARRETT: should just use search.results instead of json parsing, etc.
-      response = JSON.parse(search.response.body) #.to_json
-      Rails.logger.info search.response.body.as_json      
-
-      docs = reformat_result_documents(response["hits"]["hits"])
+      results = search.results #response
+      docs = reformat_result_documents(results)
 
       { 
-        'count' => response["hits"]["total"],
+        'count' => results.total,
         'start' => search.options[:from],
         'limit' => search.options[:size],
         'docs' => docs,
-        'facets' => response['facets']
+        'facets' => results.facets
       }
     end
 
     def reformat_result_documents(docs)
-      docs.map { |doc| doc['_source'].merge!({'score' => doc['_score']}) } 
+      docs.map do  |doc|
+        if doc['_source'].present?
+          doc['_source'].merge!({'score' => doc['_score']})
+        else
+          doc['fields']
+        end
+      end
     end
 
+    def parse_field_params(params)
+      return nil unless params['fields'].present?
+      fields = params['fields'].split(',')
+      
+      #Check if all fields are valid
+      invalid_fields = fields - V1::Schema.mapped_fields
+      if invalid_fields.any?  
+        invalids = invalid_fields.join(',')
+        raise BadRequestSearchError, "Invalid field(s) specified for 'fields' parameter: #{invalids}" 
+      end
+      
+      fields
+    end
+    
     def get_search_starting_point(params)
       page = params["page"].to_i
       page == 0 ? 0 : get_search_size(params) * (page - 1)
