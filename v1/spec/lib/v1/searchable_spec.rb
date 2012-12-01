@@ -98,12 +98,7 @@ module V1
           "error" => "404"
         }
       }
-      
-      it "passes off 'id' lookup to #search" do
-        subject.should_receive(:search).with({"id" => "aaa" }) { mock_result } 
-        subject.fetch(["aaa"])
-      end
-      
+ 
       it "delegates transformed ids to V1::Repository.fetch" do
         repo_item_stub = stub
         subject.should_receive(:search).with({"id" => "aaa" }) { mock_result }

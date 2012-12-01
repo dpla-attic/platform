@@ -135,7 +135,11 @@ module V1
       before :each do
         V1::Config.stub(:dpla) {{
           "couch_read_only" => { "username" => "u", "password" => "pw" },
-          "couch_admin" => { "username" => "admin", "password" => "apass" }
+          "couch_admin" => { 
+            "username" => "admin", 
+            "password" => "apass", 
+            "endpoint" => "http://admin:apass@abc.com"
+          }
         }}
         subject.stub(:host) { "abc.com" }
       end

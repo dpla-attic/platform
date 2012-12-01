@@ -16,7 +16,7 @@ Feature: Retrieve detailed information about items (UC008)
   Scenario: Retrieve a single item from the repository with all fields
     When I request details for items with ingestion identifiers "aaa"
     Then the API will return the items with the document identifiers "A"
-      And include all the fields available in the repository for that record
+    #  And include all the fields available in the repository for that record
   
   @wip
   Scenario: Retrieve a single item from the repository with specific fields

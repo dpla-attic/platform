@@ -5,6 +5,8 @@ rvm:
 before_script:
   - ./bin/travis-before-script.rb
   - RAILS_ENV=test bundle exec rake --trace db:migrate
+  - RAILS_ENV=test bundle exec rake --trace v1:recreate_repo_database
+  - RAILS_ENV=test bundle exec rake --trace v1:recreate_search_index
 script: bin/test-full-app.sh
 notifications:
   email:
@@ -12,6 +14,7 @@ notifications:
     - barrett@endpoint.com
 services:
   - elasticsearch
+  - couchdb
 branches:
   only:
     - develop

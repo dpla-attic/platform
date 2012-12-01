@@ -39,7 +39,7 @@ File.open(dpla_yaml_file, 'w') do |f|
            'couch_read_only' =>
            { 'username' => 'dpla', 'password' => 'es_password' },
            'couch_admin' =>
-           { 'username' => 'admin', 'password' => 'chonta' }
+           { 'username' => 'admin', 'password' => 'chonta', 'endpoint' => 'http://127.0.0.1:5984'}
           }.to_yaml)
 end
 

@@ -26,8 +26,7 @@ module V1
 
     def self.admin_endpoint
       config = V1::Config.dpla['couch_admin']
-      admin_login = "#{config['username']}:#{config['password']}"
-      "http://#{admin_login}@#{host}" 
+      config['endpoint'] 
     end
 
     def self.recreate_database!
