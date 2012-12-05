@@ -16,17 +16,24 @@ module V1
           expect(V1::Schema::ELASTICSEARCH_MAPPING['mappings']).to have_key 'item'
           expect(V1::Schema::ELASTICSEARCH_MAPPING['mappings']['item']).to have_key 'properties'
         end
+        it "has the correct number of items" do
+          expect(
+                 V1::Schema::ELASTICSEARCH_MAPPING['mappings']['item']['properties']
+                 ).to have(20).items
+        end
       end
 
     end
 
     context "mapping methods" do
-      let(:full_mapping) {
+      let(:mock_mapping) {
         {
           'mappings' => {
             'item' => {
               'properties' => {
+                'id' => { :type => 'string', 'facet' => true },
                 'title' => { :type => 'string' },
+                'description' => { :type => 'string' },
                 'created' => { :type => 'date' },
                 'temporal' => {
                   'properties' => {
@@ -36,8 +43,43 @@ module V1
                 },
                 'spatial' => {
                   'properties' => {
-                    'city' => { :type => 'string', :index => 'not_analyzed' },
+                    'city' => { :type => 'string', 'index' => "not_analyzed" },
+                    'iso3166-2' => { :type => 'string', :index => 'not_analyzed', 'facet' => true },
                     'coordinates' => { :type => "geo_point" }
+                  }
+                },
+                'isPartOf' => {
+                  'properties' => {
+                    '@id' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
+                    'name' => {
+                      :type => 'multi_field',
+                      'fields' => {
+                        'name' => {:type => 'string' },
+                        'raw' => {:type => 'string', 'index' => 'not_analyzed', 'facet' => true }
+                      }
+                    }
+                  }
+                },
+                'field1' => {
+                  'properties' => {
+                    'name' => {
+                      :type => 'multi_field',
+                      'fields' => {
+                        'name' => {:type => 'string', 'index' => 'analyzed' }
+                      }
+                    }
+                  }
+                },
+                'field2' => {
+                  'properties' => {
+                    'sub2a' => {:type => 'string', 'index' => 'not_analyzed', 'facet' => true },
+                    'sub2b' => {:type => 'string', 'index' => 'not_analyzed'}
+                  }
+                },
+                'field3' => {
+                  'properties' => {
+                    'sub3a' => {:type => 'string' },
+                    'sub3b' => {:type => 'string' }
                   }
                 },
                 'someBlob' => { 'enabled' => false },
@@ -53,18 +95,18 @@ module V1
       }
       
       before(:each) do
-        stub_const("V1::Schema::ELASTICSEARCH_MAPPING", full_mapping)
+        stub_const("V1::Schema::ELASTICSEARCH_MAPPING", mock_mapping)
       end
 
       describe "#mapping" do
         it "defaults to returning entire item mapping" do
-          expect(subject.mapping()).to eq full_mapping['mappings']
+          expect(subject.mapping()).to eq mock_mapping['mappings']
         end
 
         it "returns entire mapping for a single type" do
           expect(
                  subject.mapping('item')
-                 ).to eq(full_mapping['mappings']['item']['properties'])
+                 ).to eq(mock_mapping['mappings']['item']['properties'])
         end
 
         it "returns the mapping for a single field as requested" do
@@ -75,7 +117,7 @@ module V1
         it "maps dotted names to nested hashes" do
           expect(
                  subject.mapping('item', 'spatial.city')
-                 ).to eq( {:type => "string", :index => "not_analyzed"} )
+                 ).to eq( {:type => "string", 'index' => "not_analyzed"} )
         end
 
         it "returns nil for non-existent types" do
@@ -98,26 +140,96 @@ module V1
         end
       end
 
-      describe "#mapped_fields" do
-        let(:mapped_fields) { V1::Schema.mapped_fields }
+      describe "#queryable_fields" do
+        let(:queryable_fields) { V1::Schema.queryable_fields }
 
         it "includes an expected basic string field" do
-          expect(mapped_fields).to include 'title'
+          expect(queryable_fields).to include 'title'
         end
         it "includes $field.before and $field.after for top-level date field" do
-          expect(mapped_fields).to include 'created.before'
-          expect(mapped_fields).to include 'created.after'
+          expect(queryable_fields).to include 'created.before'
+          expect(queryable_fields).to include 'created.after'
         end
-        it "handles the TODO: special case of temporal.before and temporal.after" do
-          expect(mapped_fields).to include 'temporal.before'
-          expect(mapped_fields).to include 'temporal.after'
+        it "handles the special case of temporal.before and temporal.after" do
+          expect(queryable_fields).to include 'temporal.before'
+          expect(queryable_fields).to include 'temporal.after'
         end
         it "includes $field.distance for a geo_point field" do
-          expect(mapped_fields).to include 'spatial.distance'
+          expect(queryable_fields).to include 'spatial.distance'
         end
         it "excludes $field where 'enabled' is false" do
-          expect(mapped_fields).not_to include 'someBlob'
+          expect(queryable_fields).not_to include 'someBlob'
         end
+      end
+      
+      describe "#expand_facet_fields" do
+        it "returns all facetable subfields for a non-facetable field" do
+          expect(
+                 V1::Schema.expand_facet_fields('item', %w( field2 ) )
+                 ).to match_array %w( field2.sub2a )
+        end
+        it "returns a facetable field with no subfields" do
+          expect(
+                 V1::Schema.expand_facet_fields('item', %w( id ) )
+                 ).to match_array %w( id )
+        end
+        it "includes a non-facetable field with no facetable subfields for validation to flag later" do
+          expect(
+                 V1::Schema.expand_facet_fields('item', %w( description ) )
+                 ).to match_array %w( description )
+        end
+        it "supports multi_field types correctly" do
+          expect(
+                 V1::Schema.expand_facet_fields('item', %w( isPartOf ) )
+                 ).to match_array %w( isPartOf.@id isPartOf.name )
+        end
+        it "returns the correct values when called with a mix of fields" do
+          # Make this the sum of all the above tests
+          expect(
+                 V1::Schema.expand_facet_fields('item', %w( field2 spatial id description isPartOf ) )
+                 ).to match_array %w( field2.sub2a id spatial.iso3166-2 description isPartOf.@id isPartOf.name )
+        end
+
+      end
+
+      describe "#facet_field" do
+        it "translates a top level field" do
+          expect(V1::Schema.facet_field('title')).to eq 'title'
+        end
+        it "translates a multi_field field with no .raw subfields" do
+          expect(V1::Schema.facet_field('field1.name')).to eq 'field1.name'
+        end
+        it "translates a multi_field field with a .raw subfield" do
+          expect(V1::Schema.facet_field('isPartOf.name')).to eq 'isPartOf.name.raw'
+        end
+      end
+
+      describe "#facetable?" do
+        context "facetable fields" do
+          it "detects a top level simple field" do
+            expect(V1::Schema.facetable?('item', 'id')).to be_true
+          end
+          it "detects a subfield" do
+            expect(V1::Schema.facetable?('item', 'spatial.iso3166-2')).to be_true
+          end
+          it "detects a multi_field types with a 'raw' subfield" do
+            expect(V1::Schema.facetable?('item', 'isPartOf.name')).to be_true
+          end
+
+        end
+
+        context "non-facetable fields" do
+          it "detects a top level simple field" do
+            expect(V1::Schema.facetable?('item', 'description')).to be_false
+          end
+          it "detects a subfield" do
+            expect(V1::Schema.facetable?('item', 'temporal.start')).to be_false
+          end
+          it "detects a multi_field types with a 'raw' subfield" do
+            expect(V1::Schema.facetable?('item', 'field1.export')).to be_false
+          end
+        end
+
       end
 
     end

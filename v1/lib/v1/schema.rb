@@ -7,20 +7,15 @@ module V1
       'mappings' => {
         'item' => {
           'properties' => {
-            #NOTE: No longer needed now that the source data uses _id, I think. -phunk
-            'id' => { 
-              :type => 'string',
-              :index => 'not_analyzed'
-            },
-            '@id' => { :type => 'string' },
+            'id' => { :type => 'string', 'index' => 'not_analyzed' },
+            '@id' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
             'title' => { :type => 'string' },
             'dplaContributor' => {
               'properties' => {
-                '@id' => { :type => 'string' },
-                'name' => { :type => 'string' }
+                '@id' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
+                'name' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true }
               }
             },
-            'collection' => { :type => 'string' },
             'creator' => { :type => 'string' },
             'publisher' => { :type => 'string' },
             'created' => { :type => 'date' }, #"format" : "YYYY-MM-dd"
@@ -28,13 +23,13 @@ module V1
             'format' => { :type => 'string' }, #mime-type
             'language' => {
               'properties' => {
-                'name' => { :type => 'string' },
-                'iso639' => { :type => 'string' }
+                'name' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
+                'iso639' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true }
               }
             },
             'subject' => {
               'properties' => {
-                '@id' => { :type => 'string' },
+                '@id' => { :type => 'string', 'index' => 'not_analyzed' },
                 '@type' => { :type => 'string' },
                 'name' => { :type => 'string' }
               }
@@ -44,9 +39,9 @@ module V1
             'spatial' => {
               'properties' => {
                 'name' => { :type => 'string' },
-                'state' => { :type => 'string' },
+                'state' => { :type => 'string', 'index' => 'not_analyzed' },
                 'city' => { :type => 'string' },
-                'iso3166-2' => { :type => 'string' },
+                'iso3166-2' => { :type => 'string', 'index' => 'not_analyzed' },
                 'coordinates' => { :type => "geo_point"}  #, :lat_lon => true, breaks recursive search
               }
             },
@@ -61,16 +56,22 @@ module V1
             'source' => { :type => 'string' },
             'isPartOf' => {
               'properties' => {
-                '@id' => { :type => 'string' },
-                'name' => { :type => 'string' }
+                '@id' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
+                'name' => {
+                  :type => 'multi_field',
+                  'fields' => {
+                    'name' => {:type => 'string' },
+                    'raw' => {:type => 'string', 'index' => 'not_analyzed', 'facet' => true}
+                  }
+                }
               }
             },
-            'contributor' => { :type => 'string' },
+            'contributor' => { :type => 'string', 'facet' => true },
             'dplaSourceRecord' => {
-              # completely omit dplaSourceRecord from the index for now
+              # completely omit dplaSourceRecord from the index
               'enabled' => false
               # No dplaSourceRecord subfield should ever get a date mapping (dynamically).
-              # If you want to nclude dplaSourceRecord in the index, you can map date
+              # If you want to include dplaSourceRecord in the index, you can map date
               # fields as strings so it can handle invalid date formats) instead of the
               # (above :enabled => false technique)
               #  :properties => {
@@ -88,6 +89,8 @@ module V1
 
     def self.mapping(type=nil, field=nil)
       # A "type" is a top-level DPLA resource: 'item', 'collection', 'creator'
+      #TODO: base = Hash.new { |h, k| h[k] = Hash.new({}) }  # untested
+      #TODO: base.merge! ELASTICSEARCH_MAPPING['mappings']
       base = ELASTICSEARCH_MAPPING['mappings']
 
       # Standardize on strings
@@ -109,9 +112,8 @@ module V1
       end
     end
 
-    def self.mapped_fields
-      #TODO: memoize
-      #TODO: leverage other module methods more
+    def self.queryable_fields
+      # Renders mapping into a list of fields and $field.subfields
       fields = []
       mapping.each do |type, type_mapping|
         type_mapping['properties'].each do |field, field_mapping|
@@ -140,6 +142,59 @@ module V1
       fields
     end
 
+    def self.facetable?(type, field)
+      mapping = mapping(type, field)
+
+      return false unless mapping
+
+      # facetable field or subfield
+      return true if mapping['facet']
+
+      # facetable multi_field subfield
+      if mapping[:type] == 'multi_field' && mapping['fields']
+        return mapping['fields']['raw'] && mapping['fields']['raw']['facet']
+      end
+
+      false
+    end
+
+    def self.expand_facet_fields(type, fields)
+      # Expands a list of fields into all facetables fields and those fields' facetable subfields
+      #TODO: support wildcard facet '*'
+      expanded = []
+      fields.each do |field|
+        new_facets = []
+        mapping = mapping(type, field)
+        next if mapping.nil?
+
+        # top level field is facetable
+        new_facets << field if facetable?(type, field)
+
+        if mapping['properties']
+          mapping['properties'].each do |subfield, subfield_mapping|
+            new_facets << "#{field}.#{subfield}" if facetable?(type, "#{field}.#{subfield}")
+          end
+        end
+
+        # If this field did not have any facetable subfields, so add it to our list such
+        # that it gets flagged during validation 
+        new_facets << field if new_facets.empty?
+
+        expanded << new_facets
+      end
+      expanded.flatten
+    end
+
+    def self.facet_field(field)
+      # Conditionally extend multi_field types to their .raw sub-field.
+      mapping = mapping('item', field)
+      
+      if mapping[:type] == 'multi_field' && mapping['fields']['raw'] && mapping['fields']['raw']['facet']
+        field + '.raw'
+      else
+        field
+      end
+    end
   end
 
 end

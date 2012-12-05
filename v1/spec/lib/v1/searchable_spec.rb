@@ -61,8 +61,8 @@ module V1
       before(:each) do
         stub_const("V1::Searchable::BASE_QUERY_PARAMS", %w( q controller action ) )
       end
-      it "compares against both BASE_QUERY_PARAMS and mapped_fields" do
-        Schema.stub(:mapped_fields) { %w( title description ) }
+      it "compares against both BASE_QUERY_PARAMS and queryable_fields" do
+        Schema.stub(:queryable_fields) { %w( title description ) }
 
         expect {
           SearchableItem.validate_params({'q' => 'banana'})
@@ -313,10 +313,12 @@ module V1
         subject.search(params)
       end
 
-      it "builds facets if it receives a facets param" do
-        params = {'facets' => 'title'}
+      it "calls query, filter and facet build_all methods with correct params" do
+        params = {'q' => 'banana'}
         subject.stub(:build_dictionary_wrapper)
-        V1::Searchable::Facet.should_receive(:build_all).with(mock_search, 'title', anything)
+        V1::Searchable::Query.should_receive(:build_all).with(mock_search, params) { true }
+        V1::Searchable::Filter.should_receive(:build_all).with(mock_search, params) { false }
+        V1::Searchable::Facet.should_receive(:build_all).with(mock_search, params, !true)
         subject.search(params)
       end
 

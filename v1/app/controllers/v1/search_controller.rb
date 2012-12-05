@@ -1,5 +1,4 @@
 require_dependency "v1/application_controller"
-require 'v1/item'
 
 module V1
   class SearchController < ApplicationController
@@ -8,8 +7,8 @@ module V1
       begin
         results = V1::Item.search(params)
         render :json => render_json(results, params)
-      rescue SearchError => error
-        render :json => {:message => error.message}, :status => error.http_code
+      rescue SearchError => e
+        render :json => render_json({:message => e.message}, params), :status => e.http_code
       end        
     end
 

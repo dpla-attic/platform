@@ -27,13 +27,12 @@ module V1
     BASE_QUERY_PARAMS = %w( q controller action sort_by sort_order page page_size facets fields callback ).freeze
     
     def validate_params(params)
-      # Raises exception if any unrecognized search params are present. Extensions made
-      # to the mapping for query reasons (e.g: spatial.distance) are added here as well.
-      #TODO: Make the mapped_fields call type-specific to avoid overlaps between fields/subfields
-      # with the same name across multiple types
-      invalid_fields = params.keys - (BASE_QUERY_PARAMS + V1::Schema.mapped_fields)
-      if invalid_fields.any?
-        raise BadRequestSearchError, "Invalid field(s) specified in query: #{invalid_fields.join(',')}"
+      # Raises exception if any unrecognized search params are present. Query-based 
+      # extensions (e.g: spatial.distance) are added here as well. Does not examine
+      # contents of fields containing field names, such as sorting, facets, etc.
+      invalid = params.keys - (BASE_QUERY_PARAMS + V1::Schema.queryable_fields)
+      if invalid.any?
+        raise BadRequestSearchError, "Invalid field(s) specified in query: #{invalid.join(',')}"
       end
     end
 
@@ -43,8 +42,7 @@ module V1
         #intentional empty search: search.query { all }
         got_queries = true if V1::Searchable::Query.build_all(search, params)
         got_queries = true if V1::Searchable::Filter.build_all(search, params)
-        got_queries = true if V1::Searchable::Facet.build_all(search, params['facets'], !got_queries)
-        #TODO: for symmetry's sake, make Facet.build_all take params like the others
+        got_queries = true if V1::Searchable::Facet.build_all(search, params, !got_queries)
 
         sort_attrs = build_sort_attributes(params)
         search.sort { by(*sort_attrs) } if sort_attrs
@@ -83,20 +81,19 @@ module V1
     end
 
     def build_dictionary_wrapper(search)
-      results = search.results #response
-      docs = reformat_result_documents(results)
+      results = search.results
 
       { 
         'count' => results.total,
         'start' => search.options[:from],
         'limit' => search.options[:size],
-        'docs' => docs,
+        'docs' => reformat_result_documents(results),
         'facets' => results.facets
       }
     end
 
     def reformat_result_documents(docs)
-      docs.map do  |doc|
+      docs.map do |doc|
         if doc['_source'].present?
           doc['_source'].merge!({'score' => doc['_score']})
         else
@@ -109,11 +106,9 @@ module V1
       return nil unless params['fields'].present?
       fields = params['fields'].split(',')
       
-      #Check if all fields are valid
-      invalid_fields = fields - V1::Schema.mapped_fields
-      if invalid_fields.any?  
-        invalids = invalid_fields.join(',')
-        raise BadRequestSearchError, "Invalid field(s) specified for 'fields' parameter: #{invalids}" 
+      invalid = fields - V1::Schema.queryable_fields
+      if invalid.any?  
+        raise BadRequestSearchError, "Invalid field(s) specified for 'fields' parameter: #{invalid.join(',')}" 
       end
       
       fields

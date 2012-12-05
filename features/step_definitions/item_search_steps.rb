@@ -1,7 +1,3 @@
-When /^I search for "(.*?)"$/ do |keyword|
-  @params = { 'q' => keyword }
-end
-
 Then /^the API should return (\d+) items with "(.*?)"$/ do |count, keyword|
   json = item_query_to_json(@params)
   expect(json).to have(count).items
@@ -10,8 +6,10 @@ Then /^the API should return (\d+) items with "(.*?)"$/ do |count, keyword|
   end
 end
 
-When /^I search for "(.*?)" in the "(.*?)" field$/ do |keyword, field|
-  @params = { field => keyword }
+When /^I search for "(.*?)"( in the "(.*?)" field)?$/ do |keyword, junk, query_field|
+  @query_field = query_field || 'q'
+  @query_string = keyword
+  @params = { @query_field => @query_string }
 end
 
 When /^I search the "(.*?)" field for records with a date between "(.*?)" and "(.*?)"$/ do |field, start_date, end_date|

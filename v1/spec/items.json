@@ -4,7 +4,6 @@
     "title": "banana one",
     "description": "description one",
     "dplaContributor": null,
-    "collection": "",
     "creator": "",
     "publisher": "",
     "created": "1950-01-01",
@@ -23,7 +22,6 @@
     "title": "title two",
     "description": "perplexed two",
     "dplaContributor": null,
-    "collection": "",
     "creator": "",
     "publisher": "",
     "created": "1975-06-15",
@@ -42,7 +40,6 @@
     "title": "title three",
     "description": "perplexed three",
     "dplaContributor": null,
-    "collection": "",
     "creator": "",
     "publisher": "",
     "created": "2000-12-31",
@@ -59,16 +56,13 @@
   {
     "_id": "P",
     "title": ["title phunk1", "title phunk2"],
-    "description": "",
+    "description": "facettest, coll-P, contrib 42",
     "dplaContributor": {
-      "@id": "http://dp.la/repository/contributor/42",
+      "@id": "http://dp.la/api/contributor/42",
       "name": "South Carolina Digital Library"
     },
-    "collection": "",
     "creator": "",
-    "publisher": "",
     "created": "2000-12-31",
-    "type": "",
     "format": ["image/jpeg", "Manuscripts"],
     "language": {
       "name": "English",
@@ -79,12 +73,34 @@
       "@type": "LCSH",
       "name": "Noodle Bar"
     },
-    "rights": "",
-    "relation": "",
-    "source": "",
-    "contributor": "",
     "isPartOf": {
-      "@id": "http://dp.la/repository/collections/A_UNIQUE_DPLA_ID",
+      "@id": "http://dp.la/api/collections/coll-P",
+      "name": "Civil War-Era Letters of the Neves Family of Greenville County" 
+    }
+  },
+  {
+    "_id": "P2",
+    "title": "P2 title",
+    "description": "facettest, coll-P, contrib 42",
+    "dplaContributor": {
+      "@id": "http://dp.la/api/contributor/42",
+      "name": "South Carolina Digital Library"
+    },
+    "isPartOf": {
+      "@id": "http://dp.la/api/collections/coll-P",
+      "name": "Civil War-Era Letters of the Neves Family of Greenville County" 
+    }
+  },
+  {
+    "_id": "P3",
+    "title": "P3 title",
+    "description": "facettest, coll-P, contrib 13",
+    "dplaContributor": {
+      "@id": "http://dp.la/api/contributor/13",
+      "name": "South Carolina Digital Library"
+    },
+    "isPartOf": {
+      "@id": "http://dp.la/api/collections/coll-P",
       "name": "Civil War-Era Letters of the Neves Family of Greenville County" 
     }
   },
@@ -137,7 +153,6 @@
     "title": "title A",
     "description": "",
     "dplaContributor": null,
-    "collection": "",
     "creator": "",
     "publisher": "",
     "type": "",
@@ -157,7 +172,6 @@
     "title": "title B",
     "description": "",
     "dplaContributor": null,
-    "collection": "",
     "creator": "",
     "publisher": "",
     "type": "",
@@ -176,7 +190,6 @@
     "title": "title C",
     "description": "",
     "dplaContributor": null,
-    "collection": "",
     "creator": "",
     "publisher": "",
     "type": "",
@@ -195,7 +208,6 @@
     "title": "title D",
     "description": "",
     "dplaContributor": null,
-    "collection": "",
     "creator": "",
     "publisher": "",
     "type": "",
@@ -220,7 +232,6 @@
     "title": "title F",
     "description": "",
     "dplaContributor": null,
-    "collection": "",
     "creator": "",
     "publisher": "",
     "created": "1973-04-19",
@@ -237,7 +248,6 @@
     "title": "title M",
     "description": "",
     "dplaContributor": null,
-    "collection": "",
     "creator": "",
     "publisher": "",
     "created": "2012-01-26",
@@ -259,5 +269,22 @@
     "relation": "",
     "source": "",
     "contributor": ""
+  },
+  {
+    "_id": "Doppel1",
+    "title": "doppelganger title1",
+    "dplaContributor": {
+      "@id": "http://dp.la/api/contributor/101",
+      "name": "ContribName OneOhOne"
+    }
+  },
+  {
+    "_id": "Doppel2",
+    "title": "doppelganger title2",
+    "dplaContributor": {
+      "@id": "http://dp.la/api/contributor/102",
+      "name": "ContribName OneOhTwo"
+    }
   }
+
 ]

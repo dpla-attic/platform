@@ -7,22 +7,40 @@ module V1
     describe Facet do      
       
       describe "#build_all" do
-        it "gracefully degrades when the '*' wildcard facet is requested" do
-          expect {
-            subject.build_all(stub, '*', false)
-          }.to_not raise_error
-        end
-        
         it "returns true if it created any facets"
         it "returns false if it created zero facets" do
           expect(subject.build_all(stub, {}, false)).to be_false
-        end        
+        end
         
         it "handles a comma separated list of specific facets to build"
-        it "passes the global boolean option to the facet method"
+        it "passes the correct global boolean option to the facet method"
         it "defaults to global=false if no option is passed"
         it "calls the search.facet block with the correct params"
-        it "requests the correct type of facet from its search object"
+        it "translates multi_field facets correctly" do
+          
+        end
+      end
+
+      describe "#validate_params" do
+        it "does not raise error when all params are facetable" do
+          V1::Schema.stub(:facetable?) { true }
+          expect {
+            subject.validate_params(['title'])
+          }.not_to raise_error BadRequestSearchError
+        end
+        it "raises an error when any of the params are not facetable" do
+          V1::Schema.stub(:facetable?).with('item', 'title') { true }
+          V1::Schema.stub(:facetable?).with('item', 'description') { false }
+          expect {
+            subject.validate_params(['title', 'description'])
+          }.to raise_error BadRequestSearchError, /invalid field/i
+        end
+        it "does not raise error when params is empty" do
+          expect {
+            subject.validate_params([])
+          }.not_to raise_error BadRequestSearchError
+        end
+
       end
 
       describe "#facet_type" do

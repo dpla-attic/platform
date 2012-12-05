@@ -1,4 +1,5 @@
 require 'v1/schema'
+require 'v1/search_error'
 require 'active_support/core_ext'
 
 module V1
@@ -7,21 +8,31 @@ module V1
 
     module Facet
 
-      def self.build_all(search, requested='', global=false)
+      def self.build_all(search, params, global=false)
         # Returns boolean for "did we run any filters?"
-        # Run facets for options[:facets], against the search object
-        #TODO: support wildcard facet
-        return false if requested.blank?
+        # Run facets for options[:facets] against the search object
+        requested = params['facets'].to_s.split(',')
+        return false if requested.empty?
 
-        field_list = requested == '*' ? [] : requested.split(',')
+        requested = V1::Schema.expand_facet_fields('item', requested)
+        validate_params(requested)
 
-        field_list.each do |field|
+        requested.each do |field|
           search.facet(field, :global => global) do |faceter|
-            faceter.send(facet_type(field), field)
+            faceter.send(facet_type(field), V1::Schema.facet_field(field))
           end
         end
 
-        field_list.any?
+        requested.any?
+      end
+
+      def self.validate_params(fields)
+        # Validates that all requested facet fields are facetable. This assumes that
+        # the fields list has already been expanded where necessary.
+        invalid = fields.select {|field| !V1::Schema.facetable?('item', field)}
+        if invalid.any?
+          raise BadRequestSearchError, "Invalid field(s) specified in facets param: #{invalid.join(',')}"
+        end
       end
 
       def self.facet_type(field)
