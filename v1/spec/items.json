@@ -273,6 +273,7 @@
   {
     "_id": "Doppel1",
     "title": "doppelganger title1",
+    "description": "description ganger",
     "dplaContributor": {
       "@id": "http://dp.la/api/contributor/101",
       "name": "ContribName OneOhOne"
@@ -281,6 +282,7 @@
   {
     "_id": "Doppel2",
     "title": "doppelganger title2",
+    "description": "description ganger",
     "dplaContributor": {
       "@id": "http://dp.la/api/contributor/102",
       "name": "ContribName OneOhTwo"

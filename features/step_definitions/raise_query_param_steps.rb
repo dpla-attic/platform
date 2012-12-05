@@ -1,4 +1,4 @@
-When /^I raise "(.*?)"$/ do |arg1|
+When /^I query with a raise parameter of "(.*?)"$/ do |arg1|
   @params = { 'raise' => arg1 }
 end
 
@@ -13,8 +13,4 @@ end
 
 When /^I bring system back from maintenance$/ do
   remove_maintenance_file
-end
-
-Given /^I request the API$/ do
-  item_query(@params)
 end

@@ -8,7 +8,7 @@ module V1
         'item' => {
           'properties' => {
             'id' => { :type => 'string', 'index' => 'not_analyzed' },
-            '@id' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
+            '@id' => { :type => 'string', 'index' => 'not_analyzed' },
             'title' => { :type => 'string' },
             'dplaContributor' => {
               'properties' => {
@@ -34,7 +34,7 @@ module V1
                 'name' => { :type => 'string' }
               }
             },
-            'description' => { :type => 'string' },
+            'description' => { :type => 'string', :null_value => 'NULLvalue' },
             'rights' => { :type => 'string' },
             'spatial' => {
               'properties' => {

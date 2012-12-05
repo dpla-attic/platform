@@ -37,7 +37,7 @@ module V1
       end
 
       if source_item_count != indexed_item_count(import_result)
-        raise "Failed to import all items."
+        raise "Failed to import some items."
       end
 
       return display_import_result(import_result)

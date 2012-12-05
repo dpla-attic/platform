@@ -104,7 +104,7 @@ module V1
 
     def parse_field_params(params)
       return nil unless params['fields'].present?
-      fields = params['fields'].split(',')
+      fields = params['fields'].split(/,\s*/)
       
       invalid = fields - V1::Schema.queryable_fields
       if invalid.any?  

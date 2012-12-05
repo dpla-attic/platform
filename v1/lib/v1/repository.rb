@@ -10,7 +10,7 @@ module V1
     # Or a comma separated string of ids "1,2,3"
     def self.fetch(id_list)
       db = CouchRest.database(read_only_endpoint)
-      id_list = id_list.split(',') if id_list.is_a?(String)
+      id_list = id_list.split(/,\s*/) if id_list.is_a?(String)
       db.get_bulk(id_list)["rows"] 
     end
 

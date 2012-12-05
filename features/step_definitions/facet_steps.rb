@@ -1,10 +1,5 @@
-When /^I make an empty search$/ do
-  @params = {}
-end
-
 When /^request the "(.*?)" facet$/ do |arg1|
   @params['facets'] = arg1
-  #  @master_facet = arg1
 end
 
 Then /^the API returns the "(.*?)" terms facets$/ do |arg1|
@@ -18,7 +13,6 @@ Then /^the "(.*?)" terms facets contains items for every unique dplaContributor 
   @facets = facet_list.split(/,\s*/)
   @source = compute_facets(@facets, @query_string)
 
-  #puts "SOURCE: #{@source.pretty_inspect}"
   @facets.each do |facet|
     expect(
            @results['facets'][facet]['terms'].map {|f| f['term']}

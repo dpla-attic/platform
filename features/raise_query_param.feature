@@ -1,36 +1,42 @@
 Feature: API Http Status Code Feature
   Scenario: Successful Request
-    When I raise "200"
+    When I query with a raise parameter of "200"
     Then I should get http status code "200"
   
   Scenario: Bad Request Syntax
-    When I raise "400"
+    When I query with a raise parameter of "400"
     Then I should get http status code "400"
 
   Scenario: Empty/Invalid/Disabled Access Key
-    When I raise "401"
+    When I query with a raise parameter of "401"
     Then I should get http status code "401"
 
   Scenario: Resource Not Found
-    When I raise "404"
+    When I query with a raise parameter of "404"
     Then I should get http status code "404"
 
   Scenario: Not Acceptable
-    When I raise "406"
+    When I query with a raise parameter of "406"
     Then I should get http status code "406"
 
   Scenario: Too Many Requests
-    When I raise "429"
+    When I query with a raise parameter of "429"
     Then I should get http status code "429"
 
   Scenario: Internal Server Error
-    When I raise "500"
+    When I query with a raise parameter of "500"
     Then I should get http status code "500"
 
-  Scenario: Service Unavailable 
+  Scenario: Service Unavailable
+    When I query with a raise parameter of "503"
+    Then I should get http status code "503"
+
+  Scenario: API is in maintenance mode
     When I take the API service down for maintenance
-    And I request the API
+    And I make an empty search
     Then I should get http status code "503"
+
+  Scenario: API is not in maintenance mode
     When I bring system back from maintenance
-    When I raise "503"
-    Then I should get http status code "503"
+    And I make an empty search
+    Then I should get http status code "200"

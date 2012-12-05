@@ -9,3 +9,8 @@ end
 Given /^the default test dataset is loaded$/ do
   expect(Tire.index(V1::Config::SEARCH_INDEX).exists?).to be_true
 end
+
+When /^I make an empty search$/ do
+  @params = {}
+end
+
