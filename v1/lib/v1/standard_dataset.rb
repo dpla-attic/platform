@@ -71,7 +71,6 @@ module V1
 
     def self.recreate_river!
       repository_uri = URI.parse(V1::Repository.endpoint)
-      puts repository_uri.inspect 
       river_payload = {
         type: "couchdb",
         couchdb: {
