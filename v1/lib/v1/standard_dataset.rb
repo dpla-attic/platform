@@ -7,7 +7,6 @@ module V1
 
   module StandardDataset
 
-    #BARRETT: Refactor codebase to convert direct references to items.json to use this constant
     ITEMS_JSON_FILE = File.expand_path("../../../spec/items.json", __FILE__)
 
     def self.source_item_count
@@ -72,15 +71,15 @@ module V1
 
     def self.recreate_river!
       repository_uri = URI.parse(V1::Repository.endpoint)
-      
+      puts repository_uri.inspect 
       river_payload = {
         type: "couchdb",
         couchdb: {
           host: repository_uri.host,
           port: repository_uri.port,
           db: V1::Config::REPOSITORY_DATABASE,
-          user: V1::Config.dpla['couch_read_only']['username'],
-          password: V1::Config.dpla['couch_read_only']['password'],
+          user: V1::Config.dpla['read_only_user']['username'],
+          password: V1::Config.dpla['read_only_user']['password'],
           filter: nil
         },
         index: {

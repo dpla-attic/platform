@@ -240,39 +240,19 @@ module V1
 
     describe "#reformat_result_documents" do
       it "remaps elasticsearch item wrapper to collapse items to first level with score" do
-        docs = [{"_score" => 1, "_source" => {
-          "_id" => "1",
-          "title" => "banana one",
-          "description" => "description one",
-          "dplaContributor" => nil,
-          "collection" => "",
-          "creator" => "",
-          "publisher" => "",
-          "created" => "1950-01-01",
-          "type" => "", 
-          "format" => "",
-          "rights" => "",
-          "relation" => "",
-          "source" => "",
-          "contributor" => "",
-          "_type" => "item"}}]
+        docs = [{
+          "_score" => 1, 
+          "_source" => {
+            "_id" => "1",
+            "title" => "banana one",
+            "description" => "description one"
+          }
+        }]
         expect(subject.reformat_result_documents(docs)).to eq(
           [{
           "_id" => "1",
           "title" => "banana one",
           "description" => "description one",
-          "dplaContributor" => nil,
-          "collection" => "",
-          "creator" => "",
-          "publisher" => "",
-          "created" => "1950-01-01",
-          "type" => "",
-          "format" => "",
-          "rights" => "",
-          "relation" => "",
-          "source" => "",
-          "contributor" => "",
-          "_type" => "item",
           "score" => 1 }]
         )
       end

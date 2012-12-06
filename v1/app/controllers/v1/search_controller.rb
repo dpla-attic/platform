@@ -18,8 +18,8 @@ module V1
       begin 
         results = V1::Item.fetch(ids)
         status = 200
-      rescue
-        status = 404
+      rescue NotFoundSearchError => e
+        status = e.http_code
       end
       render :json => render_json(results, params), :status => status
     end

@@ -17,7 +17,7 @@ Then /^the API will return the items with the document identifiers "(.*?)"$/ do 
   expect(body.count).to eq(expected_ids.count)
   docs = body.map { |r| r['doc'] }
   returned_ids = docs.map { |d| d['_id'] } 
-  expect(returned_ids - expected_ids).to eq([])
+  expect(returned_ids).to match_array(expected_ids)
 end
 
 Then /^items that identify errors with ids "(.*?)"$/ do |missing_docs|
@@ -26,5 +26,5 @@ Then /^items that identify errors with ids "(.*?)"$/ do |missing_docs|
   error_docs = []
   body.each { |r| error_docs << r if r['error'].present? }
   error_ids = error_docs.map { |d| d['id'] }
-  expect(error_ids - missing_ids).to eq([])
+  expect(error_ids).to match_array(missing_ids)
 end

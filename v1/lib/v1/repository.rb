@@ -15,7 +15,7 @@ module V1
     end
 
     def self.read_only_endpoint
-      config = V1::Config.dpla['couch_read_only']
+      config = V1::Config.dpla['read_only_user']
       read_only_login = "#{config['username']}:#{config['password']}"
       "http://#{read_only_login}@#{host}/#{repository_database}" 
     end
@@ -25,8 +25,8 @@ module V1
     end
 
     def self.admin_endpoint
-      config = V1::Config.dpla['couch_admin']
-      config['endpoint'] 
+      config = V1::Config.dpla['repository']
+      config['admin_endpoint'] 
     end
 
     def self.recreate_database!
@@ -51,8 +51,8 @@ module V1
     end
 
     def self.create_read_only_user
-      username = V1::Config.dpla['couch_read_only']['username']
-      password = V1::Config.dpla['couch_read_only']['password'] 
+      username = V1::Config.dpla['read_only_user']['username']
+      password = V1::Config.dpla['read_only_user']['password'] 
 
       # delete read only user if it exists
       users_db = CouchRest.database("#{admin_endpoint}/_users")
@@ -99,24 +99,20 @@ module V1
       items_file = File.expand_path(json_file, __FILE__)
       JSON.load( File.read(items_file) )
     end
-    
+  
     def self.host
-      #TODO: test
-      config = V1::Config.get_repository_config
-      if config.nil?
-        host = '127.0.0.1'
-        port = '5984'
+      config = V1::Config.dpla['repository']
+      if config.nil? || config['host'].nil?
+        host = "127.0.0.1:5984" 
       else
-        host = config['httpd']['bind_address']
-        port = config['httpd']['port']
+        host = config['host'] 
       end
-      "#{host}:#{port}"
+      host
     end
-
+    
     def self.endpoint
       "http://#{host}"
     end
-
 
   end
 

@@ -52,12 +52,12 @@ module V1
       
       before :each do
         V1::Config.stub(:dpla) {{
-          'couch_read_only' => {
+          'read_only_user' => {
             'username' => 'user',
             'password' => 'pw'
           },
-          'couch_admin' => {
-            'username' => 'admin',
+          'repository' => {
+            'admin_endpoint' => 'http://a:b@abc.com',
             'password' => 'pw'
           }
         }}
@@ -114,18 +114,22 @@ module V1
 
     end
     
-    describe "#get_repository_host" do
+    describe "#host" do
       context "there is a couchdb config file present" do
         it "returns the repository host defined in the config file" do
-          V1::Config.stub(:get_repository_config) { {
-            "httpd" => {"bind_address" => "example.com", "port" => "4242" } 
-          } }
+          config_values = {
+              'repository' => { 'host' => "example.com:4242" }
+          }
+
+          YAML.stub(:load_file) { config_values }
           expect(subject.host).to eq "example.com:4242"  
         end
       end
       context "there is no couchdb config file present" do
         it "returns default host values" do
-          V1::Config.stub(:get_repository_config) { nil }
+          config_values = {}
+
+          YAML.stub(:load_file) { config_values }
           expect(subject.host).to eq "127.0.0.1:5984"
         end
       end
@@ -134,11 +138,9 @@ module V1
     describe "set of functions depending on the DPLA config file" do
       before :each do
         V1::Config.stub(:dpla) {{
-          "couch_read_only" => { "username" => "u", "password" => "pw" },
-          "couch_admin" => { 
-            "username" => "admin", 
-            "password" => "apass", 
-            "endpoint" => "http://admin:apass@abc.com"
+          "read_only_user" => { "username" => "u", "password" => "pw" },
+          "repository" => { 
+            "admin_endpoint" => "http://admin:apass@abc.com"
           }
         }}
         subject.stub(:host) { "abc.com" }

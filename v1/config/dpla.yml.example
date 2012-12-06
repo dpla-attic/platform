@@ -1,7 +1,10 @@
-elasticsearch:
-  username: someusername 
+repository:
+  host: ip.address.of.couchDB:port-running-couchdb
+  admin_endpoint: http://username:password@ip.address.of.couchdb:port-running-couchdb
+  # The username and password ^^above^^ must match the admin username and password  in your  
+  # couchdb.ini
+read_only_user:
+  username: someusername
   password: somepassword
-couch_db:
-  admin: admin-username-matching-your-couchdb.ini 
-  password: password-from-couchdb.ini
-
+search:
+  endpoint: http://ip.address.of.ElasticSearch:port-running-ElasticSearch

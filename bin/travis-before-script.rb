@@ -36,10 +36,12 @@ puts "TRAVIS: Creating #{dpla_yaml_file}"
 
 File.open(dpla_yaml_file, 'w') do |f|
   f.write({
-           'couch_read_only' =>
+           'repository' => 
+           { 'host' => '127.0.0.1:5984','admin_endpoint' => 'http://127.0.0.1:5984' },
+           'read_only_user' =>
            { 'username' => 'dpla', 'password' => 'es_password' },
-           'couch_admin' =>
-           { 'username' => 'admin', 'password' => 'chonta', 'endpoint' => 'http://127.0.0.1:5984'}
+           'search' =>
+           { 'endpoint' => 'http://127.0.0.1:9200' }
           }.to_yaml)
 end
 
