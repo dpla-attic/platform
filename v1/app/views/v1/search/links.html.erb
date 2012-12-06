@@ -21,5 +21,7 @@
   <li>UC008: <%= link_to nil, "#{v1_api.items_path}/aaa,bbb" %> A, B</li>
   <li>UC008: <%= link_to nil, "#{v1_api.items_path}/aaa,bbb,ccc" %> A, B, C(Error Stub)</li>
   <li>UC008: <%= link_to nil, "#{v1_api.items_path}/aaa" %> A</li>
-  <li>UC008: <%= link_to nil, "#{v1_api.items_path}/ccc" %> 404</li>
+  <li>#2975: <%= link_to nil, "#{v1_api.items_path('facets' => 'dplaContributor')}" %> Facet on dplaContributor</li>
+  <li>#2975: <%= link_to nil, "#{v1_api.items_path('facets' => 'isPartOf')}" %> Facet on isPartOf</li>
+  <li>#2975: <%= link_to nil, "#{v1_api.items_path('facets' => 'dplaContributor,isPartOf')}" %> Facet on dplaContributor, isPartOf</li>
 </ul>
