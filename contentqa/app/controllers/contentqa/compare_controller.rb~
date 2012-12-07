@@ -1,0 +1,16 @@
+require_dependency "contentqa/application_controller"
+require "httparty"
+
+module Contentqa
+  class CompareController < ApplicationController
+#    include HTTParty
+#    baseuri = request.host_with_port() 
+    def index
+ 
+
+      @output = "helllo" #v1_api.items_path()
+      
+
+    end
+  end
+end

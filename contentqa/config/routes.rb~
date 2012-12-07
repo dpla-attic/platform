@@ -1,0 +1,5 @@
+Contentqa::Engine.routes.draw do
+  get "compare/index"
+
+  
+end
