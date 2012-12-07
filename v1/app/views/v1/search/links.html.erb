@@ -2,6 +2,7 @@
   <li>UC001: <%= link_to nil, v1_api.items_path('q' => 'banana') %> </li>
   <li>UC001: <%= link_to nil, v1_api.items_path('q' => 'perplexed', 'callback' => 'jsPhunktion') %> (as JSONP) </li>
   <li>UC002: <%= link_to nil, v1_api.items_path('title' => 'banana') %> </li>
+  <li>UC002: <%= link_to nil, v1_api.items_path('description' => 'notfound OR three', 'subject' => 'doodle') %>
   <li>UC002: <%= link_to nil, v1_api.items_path('description' => 'banana') %> (zero results)</li>
   <li>UC003: <%= link_to nil, v1_api.items_path('temporal.after' => '1950-01-01') %> (A, B, C)</li>
   <li>UC003: <%= link_to nil, v1_api.items_path('temporal.before' => '1955-07-15', 'callback' => 'jsPhunktion') %> (A, B, D as JSONP)</li>

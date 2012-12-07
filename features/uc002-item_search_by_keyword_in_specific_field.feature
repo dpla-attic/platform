@@ -16,3 +16,9 @@ Feature: Search for items by keyword (UC002)
     When I search for "perplexed" in the "description" field
     Then the API should return 2 items with "perplexed"
 
+  Scenario: Complex field-specific search with boolean operators
+    When I search for "notfound OR three" in the "description" field
+    And  I search for "doodle" in the "subject" field
+    Then the API should return record 3
+
+

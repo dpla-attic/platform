@@ -39,14 +39,13 @@ module V1
             'spatial' => {
               'properties' => {
                 'name' => { :type => 'string' },
-                'state' => { :type => 'string', 'index' => 'not_analyzed' },
+                'state' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
                 'city' => { :type => 'string' },
-                'iso3166-2' => { :type => 'string', 'index' => 'not_analyzed' },
+                'iso3166-2' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
                 'coordinates' => { :type => "geo_point"}  #, :lat_lon => true, breaks recursive search
               }
             },
             'temporal' => {
-              #'type' => 'nested',
               'properties' => {
                 'start' => { :type => 'date', :null_value => "-9999" }, #requiredevenifnull #, :format=>"YYYY G"}
                 'end'   => { :type => 'date', :null_value => "9999" } #requiredevenifnull

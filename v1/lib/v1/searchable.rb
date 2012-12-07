@@ -148,8 +148,7 @@ module V1
       results = V1::Repository.fetch(doc_ids)
  
       if missing_ids.any?
-        error_records = missing_ids.map { |id| { 'id' => id, 'error' => '404'} }
-        return results.concat(error_records)
+        results.concat( missing_ids.map { |id| { 'id' => id, 'error' => '404'} } )
       end
 
       results
@@ -162,10 +161,9 @@ module V1
         puts "*************************** "
       end
       puts "CURL: #{search.to_curl}"
-      puts "JSON: #{search.to_json}"
 
       search.results.each do |result|
-        puts "### HIT (#{result['_id']}): #{result.inspect}"
+        puts "### HIT (#{result['_id']}): #{result.pretty_inspect}"
       end
     end
 
