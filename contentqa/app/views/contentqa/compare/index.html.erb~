@@ -1,3 +1,0 @@
-<h1>Compare#index</h1>
-
- <%= @json %>
