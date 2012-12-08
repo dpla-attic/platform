@@ -1,8 +1,11 @@
-<h1>Compare#index</h1>
-
+<h2>Compare enriched records with the original</h2>
+<div class="well">
+    Record #<%= @page %> of #<%= @total %> (<%= link_to @link, @link %>)
+</div>
+    <%= link_to "Random Item", compare_path, :class => 'btn' %>
 <div class="row-fluid">
   <div class="span6">                    
-    <h3>Massaged Record</h3>
+    <h3>Enriched Record</h3>
     <pre><%= @twisted %></pre>           
   </div>
   <div class="span6">                                                   
