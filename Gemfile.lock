@@ -4,6 +4,7 @@ PATH
     dpla_contentqa (0.0.1)
       httparty
       rails (~> 3.2.8)
+      twitter-bootstrap-rails
 
 PATH
   remote: v1
