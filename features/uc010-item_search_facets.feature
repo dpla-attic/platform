@@ -21,4 +21,11 @@ Feature: Search the DPLA using facets (UC010)
       And the "dplaContributor.@id, dplaContributor.name" terms facets contains items for every unique dplaContributor within the results set
       And each item within each facet contains a count of matching items
 
+  Scenario: Requests facet for an invalid field
+    When I make an empty search
+      And request the "most_definitely_invalid" facet
+    Then I should get http status code "400"
+
+
+
 

@@ -18,9 +18,9 @@ module V1
             },
             'creator' => { :type => 'string' },
             'publisher' => { :type => 'string' },
-            'created' => { :type => 'date' }, #"format" : "YYYY-MM-dd"
-            'type' => { :type => 'string' }, #image, text, etc
-            'format' => { :type => 'string' }, #mime-type
+            'created' => { :type => 'date' },
+            'type' => { :type => 'string' },
+            'format' => { :type => 'string' },
             'language' => {
               'properties' => {
                 'name' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
@@ -34,21 +34,21 @@ module V1
                 'name' => { :type => 'string' }
               }
             },
-            'description' => { :type => 'string', :null_value => 'NULLvalue' },
+            'description' => { :type => 'string' },
             'rights' => { :type => 'string' },
             'spatial' => {
               'properties' => {
-                'name' => { :type => 'string' },
+                'name' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
                 'state' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
-                'city' => { :type => 'string' },
+                'city' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
                 'iso3166-2' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
-                'coordinates' => { :type => "geo_point"}  #, :lat_lon => true, breaks recursive search
+                'coordinates' => { :type => "geo_point"}
               }
             },
             'temporal' => {
               'properties' => {
-                'start' => { :type => 'date', :null_value => "-9999" }, #requiredevenifnull #, :format=>"YYYY G"}
-                'end'   => { :type => 'date', :null_value => "9999" } #requiredevenifnull
+                'start' => { :type => 'date', :null_value => "-9999" },
+                'end'   => { :type => 'date', :null_value => "9999" }
               }
             },
             'relation' => { :type => 'string' },
@@ -69,13 +69,6 @@ module V1
             'dplaSourceRecord' => {
               # completely omit dplaSourceRecord from the index
               'enabled' => false
-              # No dplaSourceRecord subfield should ever get a date mapping (dynamically).
-              # If you want to include dplaSourceRecord in the index, you can map date
-              # fields as strings so it can handle invalid date formats) instead of the
-              # (above :enabled => false technique)
-              #  :properties => {
-              #  :date => { :type => 'string' },
-              #  :datestamp => { :type => 'string' }
             }
           }
         }
@@ -164,19 +157,20 @@ module V1
       fields.each do |field|
         new_facets = []
         mapping = mapping(type, field)
-        next if mapping.nil?
+
+        # persist unmapped fields so they will be caught by validation elsewhere
+        new_facets << field if mapping.nil?
 
         # top level field is facetable
         new_facets << field if facetable?(type, field)
 
-        if mapping['properties']
+        if mapping && mapping['properties']
           mapping['properties'].each do |subfield, subfield_mapping|
             new_facets << "#{field}.#{subfield}" if facetable?(type, "#{field}.#{subfield}")
           end
         end
 
-        # If this field did not have any facetable subfields, so add it to our list such
-        # that it gets flagged during validation 
+        # If nothing has shaken out for this field, persist it so it gets flagged by validation elsehwere
         new_facets << field if new_facets.empty?
 
         expanded << new_facets
