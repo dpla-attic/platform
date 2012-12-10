@@ -65,7 +65,7 @@ module V1
       end
 
       #verbose_debug(searcher)
-      return build_dictionary_wrapper(searcher)
+      return wrap_results(searcher)
     end
 
     def build_sort_attributes(params)
@@ -80,20 +80,22 @@ module V1
       [params['sort_by'], order]
     end
 
-    def build_dictionary_wrapper(search)
+    def wrap_results(search)
       results = search.results
 
-      { 
+      wrapped = { 
         'count' => results.total,
         'start' => search.options[:from],
         'limit' => search.options[:size],
-        'docs' => reformat_result_documents(results),
-        'facets' => results.facets
+        'docs' => reformat_results(results)
       }
+
+      wrapped['facets'] = results.facets if results.facets
+      wrapped
     end
 
-    def reformat_result_documents(docs)
-      docs.map do |doc|
+    def reformat_results(results)
+      results.map do |doc|
         if doc['_source'].present?
           doc['_source'].merge!({'score' => doc['_score']})
         else

@@ -220,25 +220,41 @@ module V1
       end
     end
 
-#    describe "#build_dictionary_wrapper" do
-#      it "returns a wrapper around documents" do
-#        searcher = stub "searcher"
-#        searcher_response = stub "response"
-#        searcher.stub(:options) { {:from => 0, :size => 10} }
-#        searcher.stub_chain(:response, :body, :as_json) { "{'hits': { 'total': 10, 'hits': [{'id': 1}, {'id': 2}] }}" }
-#        
-#        expect(subject.build_dictionary_wrapper(searcher)).to eq(
-#          {
-#            'count' => 10,
-#            'limit' => 10,
-#            'start' => 0,
-#            'docs' => [{'id' => 1}, {'id' => 2}]
-#          } 
-#        )
-#      end
-#    end
+    describe "#wrap_results" do
+      let(:results)  { stub("results", :total => 10, :facets => nil) }
+      let(:search) { stub("search", :results => results, :options => {:from => 0, :size => 10}) }
+      let(:formatted_results) { stub }
+      
+      before(:each) do
+        subject.stub(:reformat_results) { formatted_results }
+      end
+      
+      it "wraps results set correctly without facets" do
+        expect(
+               subject.wrap_results(search)
+               ).to eq({
+                         'count' => 10,
+                         'limit' => 10,
+                         'start' => 0,
+                         'docs' => formatted_results
+                       })
+      end
+      it "wraps results set correctly with facets" do
+        facets = stub
+        results.stub(:facets) { facets }
+        expect(
+               subject.wrap_results(search)
+               ).to eq({
+                         'count' => 10,
+                         'limit' => 10,
+                         'start' => 0,
+                         'docs' => formatted_results,
+                         'facets' => facets
+                       })
+      end
+    end
 
-    describe "#reformat_result_documents" do
+    describe "#reformat_results" do
       it "remaps elasticsearch item wrapper to collapse items to first level with score" do
         docs = [{
           "_score" => 1, 
@@ -248,7 +264,7 @@ module V1
             "description" => "description one"
           }
         }]
-        expect(subject.reformat_result_documents(docs)).to eq(
+        expect(subject.reformat_results(docs)).to eq(
           [{
           "_id" => "1",
           "title" => "banana one",
@@ -265,7 +281,7 @@ module V1
           "_score" => 1.0,
           "fields" => {"title" => "banana one"}
         }]
-        expect(subject.reformat_result_documents(docs)).to eq(
+        expect(subject.reformat_results(docs)).to eq(
           [{"title" => "banana one"}]
         )
       end
@@ -274,28 +290,26 @@ module V1
 
     describe "#search" do
       let(:mock_search) { mock('mock_search').as_null_object }
-#TODO: why is build_dictionary_wrapper stubbed all over the place?
+
       before(:each) do
         Tire.stub(:search).and_yield(mock_search)
+        subject.stub(:wrap_results)
       end
 
       it "calls validates_params" do
         params = {}
         subject.should_receive(:validate_params).with(params)
-        subject.stub(:build_dictionary_wrapper)
         subject.search(params)
       end
 
       it "uses V1::Config::SEARCH_INDEX for its search index" do
         params = {'q' => 'banana'}
         Tire.should_receive(:search).with(V1::Config::SEARCH_INDEX) #.and_yield(mock_search)
-        subject.stub(:build_dictionary_wrapper)
         subject.search(params)
       end
 
       it "calls query, filter and facet build_all methods with correct params" do
         params = {'q' => 'banana'}
-        subject.stub(:build_dictionary_wrapper)
         V1::Searchable::Query.should_receive(:build_all).with(mock_search, params) { true }
         V1::Searchable::Filter.should_receive(:build_all).with(mock_search, params) { false }
         V1::Searchable::Facet.should_receive(:build_all).with(mock_search, params, !true)
@@ -307,7 +321,7 @@ module V1
         results = stub("results")
         dictionary_results = stub("dictionary_wrapped")
         mock_search.stub(:results) { results }
-        subject.stub(:build_dictionary_wrapper).with(mock_search) { dictionary_results }
+        subject.stub(:wrap_results).with(mock_search) { dictionary_results }
         expect(subject.search(params)).to eq dictionary_results
       end
 
@@ -331,14 +345,14 @@ module V1
         it "sorts by field name if present" do
           params = {'q' => 'banana',  'sort_by' => 'title' }
           mock_search.should_receive(:sort)
-          subject.should_receive(:build_dictionary_wrapper)
+          subject.should_receive(:wrap_results)
           subject.search(params)
         end
 
         it "does not implement custom sorting when no sort params present" do
           params = {'q' => 'banana'}
           mock_search.should_not_receive(:sort)
-          subject.should_receive(:build_dictionary_wrapper)
+          subject.should_receive(:wrap_results)
           subject.search(params)
         end
       end
