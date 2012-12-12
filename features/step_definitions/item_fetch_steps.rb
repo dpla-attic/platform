@@ -3,7 +3,7 @@ Then /^the API will return a (\d+) http error message$/ do |status|
 end
 
 Then /^include all the fields available in the repository for that record$/ do
-pending # express the regexp above with the code you wish you had
+  pending # express the regexp above with the code you wish you had
 end
 
 When /^I request details for items with ingestion identifiers "(.*?)"$/ do |arg1|
@@ -11,20 +11,19 @@ When /^I request details for items with ingestion identifiers "(.*?)"$/ do |arg1
 end
 
 Then /^the API will return the items with the document identifiers "(.*?)"$/ do |arg1|
+  expected_ids = arg1.split(/,\s*/)
   body = JSON.parse(last_response.body)
-  expected_ids = arg1.split(',')
-  body.delete_if{ |r| r['error'].present? }
-  expect(body.count).to eq(expected_ids.count)
-  docs = body.map { |r| r['doc'] }
-  returned_ids = docs.map { |d| d['_id'] } 
+  body['docs'].delete_if {|r| r['error'].present? }
+  
+  returned_ids = body['docs'].map { |r| r['_id'] }
   expect(returned_ids).to match_array(expected_ids)
 end
 
 Then /^items that identify errors with ids "(.*?)"$/ do |missing_docs|
+  missing_ids = missing_docs.split(/,\s*/)
   body = JSON.parse(last_response.body)
-  missing_ids = missing_docs.split(',')
-  error_docs = []
-  body.each { |r| error_docs << r if r['error'].present? }
+
+  error_docs = body['docs'].select { |r| r['error'].present? }
   error_ids = error_docs.map { |d| d['id'] }
   expect(error_ids).to match_array(missing_ids)
 end

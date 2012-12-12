@@ -95,6 +95,7 @@ module V1
     def reformat_results(results)
       results.map do |doc|
         if doc['_source'].present?
+          doc['_source'].delete_if {|k,v| k =~ /^_type/}
           doc['_source'].merge!({'score' => doc['_score']})
         else
           doc['fields']
@@ -135,11 +136,15 @@ module V1
       missing_ids = []
       #TODO: construct big "a OR b OR c" query to get all items in one trip to ES
       ids.each do |id|
-        result = search({'id' => "#{id}"})
-        #Save the doc's '_id' if search returned a single 'id' match
-        doc_ids << result["docs"].first["_id"] if result["count"] == 1
-        #Save the 'id' as missing if search did not find the doc 
-        missing_ids << id if result["count"] == 0
+        result = search({'id' => id})
+        
+        if result["count"] == 1
+          #Save the doc's '_id' if search returned a single 'id' match
+          doc_ids << result["docs"].first["_id"]
+        elsif result["count"] == 0
+          #Save the 'id' as missing if search did not find the doc 
+          missing_ids << id 
+        end
       end
 
       if doc_ids.empty? && ids.count == 1
@@ -147,11 +152,12 @@ module V1
       end
 
       results = V1::Repository.fetch(doc_ids)
+      #TODO: what if search finds an ID, but the fetch does not find that ID
  
       if missing_ids.any?
-        results.concat( missing_ids.map { |id| { 'id' => id, 'error' => '404'} } )
+        results['docs'].concat( missing_ids.map { |id| { 'id' => id, 'error' => '404'} } )
       end
-
+      #TODO: Make sure we only return public IDs in this results set (for missing or found docs)
       results
     end
 

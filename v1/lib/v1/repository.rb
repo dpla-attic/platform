@@ -11,7 +11,22 @@ module V1
     def self.fetch(id_list)
       db = CouchRest.database(read_only_endpoint)
       id_list = id_list.split(/,\s*/) if id_list.is_a?(String)
-      db.get_bulk(id_list)["rows"] 
+#      db.get_bulk(id_list)["rows"]
+      wrap_results(db.get_bulk(id_list)["rows"])
+    end
+
+    def self.wrap_results(results)
+      #TODO: JSONP link?
+      { 
+        'count' => results.size,
+        'docs' => reformat_results(results)
+      }
+    end
+
+    def self.reformat_results(results)
+      results.map do |result|
+        result['doc'].delete_if {|k,v| k =~ /^(_rev|_type)/}
+      end
     end
 
     def self.read_only_endpoint
@@ -32,7 +47,8 @@ module V1
       # Delete, recreate and repopulate the database
       #TODO: add production env check
 
-      items = process_input_file(V1::StandardDataset::ITEMS_JSON_FILE)
+      items = JSON.load( File.read(V1::StandardDataset::ITEMS_JSON_FILE) )
+
       repo_database = admin_endpoint + "/#{repository_database}"
       # delete it if it exists
       CouchRest.database(repo_database).delete! rescue RestClient::ResourceNotFound
@@ -72,6 +88,7 @@ module V1
     end
 
     def self.lock_down_repository_roles
+      #TODO: why do readers have the admin role here?
       security_hash = {
         :admins => {"roles" => ["admin"]},
         :readers => {"roles"  => ["admin","reader"]}
@@ -93,11 +110,6 @@ module V1
       )
     end
 
-    def self.process_input_file(json_file)
-      items_file = File.expand_path(json_file, __FILE__)
-      JSON.load( File.read(items_file) )
-    end
-  
     def self.host
       config = V1::Config.dpla['repository']
       if config.nil? || config['host'].nil?

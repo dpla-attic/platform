@@ -11,38 +11,75 @@ module V1
       it "bulk saves the items dataset"
     end
 
+    describe "#reformat_results" do
+      it "reformats results properly" do
+        results = [
+                   {
+                     "id"=>"A",
+                     "key"=>"A",
+                     "doc"=>
+                     {
+                       "_id"=>"A",
+                       "_rev"=>"1-A",
+                       "id"=>"aaa",
+                       "title"=>"title A"
+                     }
+                   },
+                   {
+                     "id"=>"B",
+                     "key"=>"B",
+                     "doc"=>
+                     {
+                       "_id"=>"B",
+                       "_rev"=>"1-B",
+                       "id"=>"bbb",
+                       "title"=>"title B"
+                     }
+                   }
+                  ]
+
+        expect(subject.reformat_results(results)).to match_array(
+          [
+           {"_id" => "A", "id"=>"aaa", "title"=>"title A"},
+           {"_id" => "B", "id"=>"bbb", "title"=>"title B"}
+          ]
+        )
+      end
+    end
+
     describe "#fetch" do
+      let(:db_mock) { mock 'db' }
+      let(:couch_doc) { stub 'couch_doc' }
+      let(:couch_doc_z) { stub 'couch_doc_z' }
+      let(:endpoint_stub) { stub 'endpoint' }
+      
       before(:each) do
-        @endpoint_stub = stub 'endpoint'
-        @db_mock = mock 'db'
-        @couch_doc = stub 'couch_doc'
-        V1::Repository.stub(:read_only_endpoint) { @endpoint_stub }
+        subject.stub(:read_only_endpoint) { endpoint_stub }
+        CouchRest.stub(:database).with(endpoint_stub) { db_mock }
       end
 
       it "invokes CouchRest database on valid endpoint" do
-        CouchRest.should_receive(:database).with(@endpoint_stub) { @db_mock }
-        @db_mock.stub(:get_bulk) { { "rows" => [@couch_doc] } }
+        subject.stub(:wrap_results)
+        db_mock.stub(:get_bulk) { { "rows" => [stub] } }
+        CouchRest.should_receive(:database).with(endpoint_stub) { db_mock }
         subject.fetch("1")
       end
 
       it "delegates to CouchRest get_bulk() on comma separated string parameters" do
-        CouchRest.should_receive(:database).with(@endpoint_stub) { @db_mock }
-        @couch_doc_a = stub "couch_doc_z"
-        @db_mock.should_receive(:get_bulk).with(["2", "Z"]) { { "rows" => [@couch_doc, @couch_doc_z] } }
-        expect(subject.fetch("2,Z")).to eq [@couch_doc, @couch_doc_z]
+        couch_docs = [couch_doc, couch_doc_z]
+        subject.stub(:wrap_results) { couch_docs }
+        db_mock.should_receive(:get_bulk).with(["2", "Z"]) { { "rows" => couch_docs } }
+        expect(subject.fetch("2,Z")).to match_array couch_docs
       end
 
       it "delegates to CouchRest get_bulk() on single string parameter" do
-        CouchRest.should_receive(:database).with(@endpoint_stub) { @db_mock }
-        @db_mock.should_receive(:get_bulk).with(["2"]) { { "rows" => [@couch_doc] } }
-        expect(subject.fetch("2")).to eq [@couch_doc]
+        db_mock.should_receive(:get_bulk).with(["2"]) { { "rows" => [] } }
+        subject.fetch("2")
       end
 
       it "delegates to CouchRest get_bulk() method on array of strings parameter" do
-        CouchRest.should_receive(:database).with(@endpoint_stub) { @db_mock }
-        @couch_doc_a = stub "couch_doc_a"
-        @db_mock.should_receive(:get_bulk).with(["2", "a"]) { { "rows" => [@couch_doc, @couch_doc_a] } }
-        expect(subject.fetch(["2", "a"])).to eq [@couch_doc, @couch_doc_a]
+        db_mock.should_receive(:get_bulk).with(["2", "a"]) { { "rows" => [] } }
+        subject.fetch(["2", "a"])
       end
 
     end
@@ -99,21 +136,6 @@ module V1
 
     end
 
-    describe "#process_input_file" do
-
-      it "loads its json file param into a JSON object" do
-        filename = "file.json"
-        json_file = stub
-        json_text = stub 'json text'
-        json_object = stub 'json object'
-        File.should_receive(:expand_path).with(filename, anything) { json_file }
-        File.should_receive(:read).with(json_file) { json_text }
-        JSON.should_receive(:load).with( json_text ) { json_object}
-        expect(V1::Repository.process_input_file(filename)).to eq json_object
-      end
-
-    end
-    
     describe "#host" do
       context "there is a couchdb config file present" do
         it "returns the repository host defined in the config file" do

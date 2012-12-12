@@ -27,7 +27,7 @@ Then /^the API should return records? (.*?)$/ do |id_list|
   json = item_query_to_json(@params)
   expect(
     json.map {|doc| doc['_id'] }
-  ).to match_array id_list.split(/,\s?/)
+  ).to match_array id_list.split(/,\s*/)
 end
 
 Then /^the API should return no records$/ do

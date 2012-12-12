@@ -76,20 +76,16 @@ module V1
     end
 
     describe "#fetch" do
-      let(:mock_result) {
+      let(:result1) {
         {
           "count" => 1,
-          "docs" => [
-            {"_id" => "1"}
-          ]
+          "docs" => [{"_id" => "1"}]
         }
       }
-      let(:mock_result_b) {
+      let(:result2) {
         {
           "count" => 1,
-          "docs" => [
-            {"_id" => "2"}
-          ]
+          "docs" => [{"_id" => "2"}]
         }
       }
       let(:error_stub){
@@ -100,33 +96,27 @@ module V1
       }
  
       it "delegates transformed ids to V1::Repository.fetch" do
-        repo_item_stub = stub
-        subject.should_receive(:search).with({"id" => "aaa" }) { mock_result }
-        V1::Repository.should_receive(:fetch).with(["1"]) { repo_item_stub }
-        expect(subject.fetch(["aaa"])).to eq repo_item_stub
+        subject.should_receive(:search).with({"id" => "aaa" }) { result1 }
+        V1::Repository.should_receive(:fetch).with(["1"]) # { repo_item_stub }
+        subject.fetch(["aaa"])
       end
 
       it "accepts more than one item" do
-        repo_item_stub_1 = stub
-        repo_item_stub_2 = stub
-      
-        subject.stub(:search).twice.and_return(mock_result, mock_result_b)
-        V1::Repository.should_receive(:fetch).with(["1", "2"]) {
-          [repo_item_stub_1, repo_item_stub_2]
-        }
-        expect(subject.fetch(["aaa", "bbb"])).to eq [repo_item_stub_1, repo_item_stub_2]
+        subject.stub(:search).twice.and_return(result1, result2)
+        V1::Repository.should_receive(:fetch).with(["1", "2"])
+        subject.fetch(["aaa", "bbb"])
       end
 
       it "can handle an item that does not exist" do
         repo_item_stub_1 = stub
-        subject.stub(:search).twice.and_return(mock_result, {'count' => 0})
-        V1::Repository.should_receive(:fetch).with(["1"]) { [repo_item_stub_1] }
-        expect(subject.fetch(["aaa", "ccc"])).to eq [repo_item_stub_1, error_stub]
+        subject.stub(:search).twice.and_return(result1, {'count' => 0})
+        V1::Repository.should_receive(:fetch).with(["1"]) { {'docs' => [repo_item_stub_1]} }
+        expect(subject.fetch(["aaa", "ccc"])['docs']).to match_array( [repo_item_stub_1, error_stub] )
       end
 
       it "raises error when single item not found" do
         subject.stub(:search) { {'count' => 0} }
-        expect { subject.fetch(["ccc"]) }.to raise_error(NotFoundSearchError)
+        expect { subject.fetch(["non-existent-ID"]) }.to raise_error(NotFoundSearchError)
       end
 
     end
@@ -260,16 +250,18 @@ module V1
           "_score" => 1, 
           "_source" => {
             "_id" => "1",
-            "title" => "banana one",
-            "description" => "description one"
+            "_type" => "1",
+            "title" => "banana",
+            "description" => "desc"
           }
         }]
         expect(subject.reformat_results(docs)).to eq(
           [{
-          "_id" => "1",
-          "title" => "banana one",
-          "description" => "description one",
-          "score" => 1 }]
+             "_id" => "1",
+             "title" => "banana",
+             "description" => "desc",
+             "score" => 1
+           }]
         )
       end
 
@@ -279,13 +271,12 @@ module V1
           "_type" => "item",
           "_id" => "1",
           "_score" => 1.0,
-          "fields" => {"title" => "banana one"}
+          "fields" => {"title" => "banana"}
         }]
-        expect(subject.reformat_results(docs)).to eq(
-          [{"title" => "banana one"}]
+        expect(subject.reformat_results(docs)).to match_array(
+          [{"title" => "banana"}]
         )
       end
-
     end
 
     describe "#search" do

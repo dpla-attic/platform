@@ -1,6 +1,7 @@
 [
   {
     "_id": "1",
+    "id": "1",
     "title": "banana one",
     "description": "description one",
     "dplaContributor": null,
@@ -19,6 +20,7 @@
   },
   {
     "_id": "2",
+    "id": "2",
     "title": "title two",
     "description": "perplexed two",
     "dplaContributor": null,
@@ -37,6 +39,7 @@
   },
   {
     "_id": "3",
+    "id": "3",
     "title": "title three",
     "description": "perplexed three",
     "dplaContributor": null,
@@ -55,6 +58,7 @@
   },
   {
     "_id": "P",
+    "id": "P",
     "title": ["title phunk1", "title phunk2"],
     "description": "facettest, coll-P, contrib 42",
     "dplaContributor": {
@@ -80,6 +84,7 @@
   },
   {
     "_id": "P2",
+    "id": "P2",
     "title": "P2 title",
     "description": "facettest, coll-P, contrib 42",
     "dplaContributor": {
@@ -93,6 +98,7 @@
   },
   {
     "_id": "P3",
+    "id": "P3",
     "title": "P3 title",
     "description": "facettest, coll-P, contrib 13",
     "dplaContributor": {
@@ -106,6 +112,7 @@
   },
   {
     "_id": "P2-A",
+    "id": "P2-A",
     "title": "title P2-A",
     "description": "mouse",
     "spatial": [
@@ -121,6 +128,7 @@
   },
   {
     "_id": "P2-B",
+    "id":"P2-B",
     "title": "title P2-B",
     "description": "",
     "spatial": [
@@ -134,6 +142,7 @@
   },
   {
     "_id": "P3-temporal-1",
+    "id": "P3-temporal-1",
     "title": "P3-temporal-1",
     "description": "bookend temporal ranges",
     "temporal": [
@@ -187,6 +196,7 @@
   },
   {
     "_id": "C",
+    "id": "C",
     "title": "title C",
     "description": "",
     "dplaContributor": null,
@@ -205,6 +215,7 @@
   },
   {
     "_id": "D",
+    "id": "D",
     "title": "title D",
     "description": "",
     "dplaContributor": null,
@@ -229,6 +240,7 @@
   },
   {
     "_id": "F",
+    "id": "F",
     "title": "title F",
     "description": "",
     "dplaContributor": null,
@@ -249,6 +261,7 @@
   },
   {
     "_id": "M",
+    "id": "M",
     "title": "title M",
     "description": "",
     "dplaContributor": null,
@@ -276,6 +289,7 @@
   },
   {
     "_id": "Doppel1",
+    "id": "Doppel1",
     "title": "doppelganger title1",
     "description": "description ganger",
     "dplaContributor": {
@@ -290,6 +304,7 @@
   },
   {
     "_id": "Doppel2",
+    "id": "Doppel2",
     "title": "doppelganger title2",
     "description": "description ganger",
     "dplaContributor": {

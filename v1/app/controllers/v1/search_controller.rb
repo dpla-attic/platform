@@ -13,7 +13,7 @@ module V1
     end
 
     def fetch
-      ids = params[:ids].split(',')
+      ids = params[:ids].split(/,\s*/)
       results = []
       begin 
         results = V1::Item.fetch(ids)
