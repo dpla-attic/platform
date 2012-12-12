@@ -12,7 +12,7 @@ Feature: Search for items by date range (UC003)
 
   Scenario: Date search after a date
     When I search the "temporal" field for records with a date after "1950-01-01"
-    Then the API should return records A, B, C                     
+    Then the API should return records A, B, C, F, Doppel1, Doppel2
 
   Scenario: Date search before a date
     When I search the "temporal" field for records with a date before "1960-12-31"
@@ -20,7 +20,7 @@ Feature: Search for items by date range (UC003)
 
   Scenario: Date search after a date that overlaps a date range
     When I search the "temporal" field for records with a date after "1955-07-15"
-    Then the API should return records B, C
+    Then the API should return records B, C, F, Doppel1, Doppel2
 
   Scenario: Date search before a date that overlaps a date range
     When I search the "temporal" field for records with a date before "1955-07-15"
@@ -29,7 +29,7 @@ Feature: Search for items by date range (UC003)
   # This demonstrates that date searches after a year should be treated as after January 1 of that year
   Scenario: Date search after a date without specifying the month and year
     When I search the "temporal" field for records with a date after "1950"
-    Then the API should return records A, B, C
+    Then the API should return records A, B, C, F, Doppel1, Doppel2
                                                                            
   # This demonstrates that date searches before a year should be treated as before December 31 of that year
   Scenario: Date search before a date without specifying the month and year  

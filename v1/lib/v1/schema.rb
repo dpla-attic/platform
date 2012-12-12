@@ -1,3 +1,5 @@
+require 'v1/searchable/facet'
+
 module V1
 
   module Schema
@@ -18,9 +20,9 @@ module V1
             },
             'creator' => { :type => 'string' },
             'publisher' => { :type => 'string' },
-            'created' => { :type => 'date' },
-            'type' => { :type => 'string' },
-            'format' => { :type => 'string' },
+            'created' => { :type => 'date', 'facet' => true },
+            'type' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
+            'format' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
             'language' => {
               'properties' => {
                 'name' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
@@ -30,7 +32,7 @@ module V1
             'subject' => {
               'properties' => {
                 '@id' => { :type => 'string', 'index' => 'not_analyzed' },
-                '@type' => { :type => 'string' },
+                '@type' => { :type => 'string', 'index' => 'not_analyzed' },
                 'name' => { :type => 'string' }
               }
             },
@@ -47,8 +49,8 @@ module V1
             },
             'temporal' => {
               'properties' => {
-                'start' => { :type => 'date', :null_value => "-9999" },
-                'end'   => { :type => 'date', :null_value => "9999" }
+                'start' => { :type => 'date', :null_value => "-9999", 'facet' => true },
+                'end'   => { :type => 'date', :null_value => "9999", 'facet' => true }
               }
             },
             'relation' => { :type => 'string' },
@@ -152,13 +154,14 @@ module V1
 
     def self.expand_facet_fields(type, fields)
       # Expands a list of fields into all facetables fields and those fields' facetable subfields
+      #TODO: Refactor facet related method into Searchable::Facet
       #TODO: support wildcard facet '*'
       expanded = []
       fields.each do |field|
         new_facets = []
         mapping = mapping(type, field)
 
-        # persist unmapped fields so they will be caught by validation elsewhere
+        # allow unmapped fields to pass through so they can be handled elsewhere
         new_facets << field if mapping.nil?
 
         # top level field is facetable
@@ -181,7 +184,11 @@ module V1
     def self.facet_field(field)
       # Conditionally extend multi_field types to their .raw sub-field.
       mapping = mapping('item', field)
-      
+
+      if !mapping && field =~ /(.+)\.(.*)$/ && V1::Searchable::Facet::DATE_INTERVALS.include?($2)
+        return $1
+      end
+
       if mapping[:type] == 'multi_field' && mapping['fields']['raw'] && mapping['fields']['raw']['facet']
         field + '.raw'
       else

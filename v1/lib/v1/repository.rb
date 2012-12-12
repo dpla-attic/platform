@@ -25,8 +25,7 @@ module V1
     end
 
     def self.admin_endpoint
-      config = V1::Config.dpla['repository']
-      config['admin_endpoint'] 
+      V1::Config.dpla['repository']['admin_endpoint'] 
     end
 
     def self.recreate_database!
@@ -41,7 +40,6 @@ module V1
       # create a new one
       db = CouchRest.database!(repo_database)
 
-      # create read only user and lock down security
       create_read_only_user
       lock_down_repository_roles
 

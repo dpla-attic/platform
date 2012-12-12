@@ -9,13 +9,20 @@ module CukeApiHelper
       (field, subfield) = facet.split('.')
 
       # NOTE: Only matches ElasticSearch results for not_analyzed fields
-      # BUG: Only works for field.subfield right now
       dataset.each do |doc|
-        # that regex is a harmless no-op if query_string is nil
-        if doc[field] && doc[field][subfield].present? && doc.values.any? {|value| value =~ /#{query_string}/}
-          source[facet] ||= {}
-          source[facet][doc[field][subfield]] ||= 0
-          source[facet][doc[field][subfield]] += 1
+        if subfield
+          # that regex is a harmless no-op if query_string is nil
+          if doc[field] && doc[field][subfield].present? && doc.values.any? {|value| value =~ /#{query_string}/}
+            source[facet] ||= {}
+            source[facet][doc[field][subfield]] ||= 0
+            source[facet][doc[field][subfield]] += 1
+          end
+        else
+          if doc[field] && doc.values.any? {|value| value =~ /#{query_string}/}
+            source[facet] ||= {}
+            source[facet][doc[field]] ||= 0
+            source[facet][doc[field]] += 1
+          end
         end
       end
     end

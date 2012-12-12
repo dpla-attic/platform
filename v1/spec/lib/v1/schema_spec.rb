@@ -34,11 +34,11 @@ module V1
                 'id' => { :type => 'string', 'facet' => true },
                 'title' => { :type => 'string' },
                 'description' => { :type => 'string' },
-                'created' => { :type => 'date' },
+                'created' => { :type => 'date', 'facet' => true },
                 'temporal' => {
                   'properties' => {
-                    'start' => { :type => 'date' },
-                    'end' => { :type => 'date' }
+                    'start' => { :type => 'date', 'facet' => true },
+                    'end' => { :type => 'date', 'facet' => true }
                   }
                 },
                 'spatial' => {
@@ -110,7 +110,7 @@ module V1
         end
 
         it "returns the mapping for a single field as requested" do
-          expect(subject.mapping('item', 'created')).to eq( {:type => 'date' } )
+          expect(subject.mapping('item', 'created')).to eq( {:type => 'date', 'facet' => true } )
           expect(subject.mapping('collection', 'title')).to eq( {:type => 'string'} )
         end
 
@@ -183,6 +183,11 @@ module V1
                  V1::Schema.expand_facet_fields('item', %w( isPartOf ) )
                  ).to match_array %w( isPartOf.@id isPartOf.name )
         end
+        it "supports nested date field" do
+          expect(
+                 V1::Schema.expand_facet_fields('item', %w( temporal.start ) )
+                 ).to match_array %w( temporal.start )
+        end
         it "returns the correct values when called with a mix of fields" do
           # Make this the sum of all the above tests
           expect(
@@ -223,7 +228,7 @@ module V1
             expect(V1::Schema.facetable?('item', 'description')).to be_false
           end
           it "detects a subfield" do
-            expect(V1::Schema.facetable?('item', 'temporal.start')).to be_false
+            expect(V1::Schema.facetable?('item', 'temporal.start')).to be_true
           end
           it "detects a multi_field types with a 'raw' subfield" do
             expect(V1::Schema.facetable?('item', 'field1.export')).to be_false

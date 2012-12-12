@@ -42,7 +42,7 @@
     "dplaContributor": null,
     "creator": "",
     "publisher": "",
-    "created": "2000-12-31",
+    "created": "2000-10-09",
     "subject": {
       "name": "perplexed subject3 doodle"
     },
@@ -239,6 +239,10 @@
     "format": "",
     "rights": "",
     "spatial": null,
+    "temporal": {
+      "start": "1988-03-01",
+      "end": "1988-05-01"
+    },
     "relation": "",
     "source": "",
     "contributor": ""
@@ -277,6 +281,11 @@
     "dplaContributor": {
       "@id": "http://dp.la/api/contributor/101",
       "name": "ContribName OneOhOne"
+    },
+    "created": "2012-01-26",
+    "temporal": {
+      "start": "1988-03-01",
+      "end": "1988-03-01"
     }
   },
   {
@@ -286,7 +295,11 @@
     "dplaContributor": {
       "@id": "http://dp.la/api/contributor/102",
       "name": "ContribName OneOhTwo"
+    },
+    "created": "2012-01-26",
+    "temporal": {
+      "start": "1988-03-01",
+      "end": "1988-03-01"
     }
   }
-
 ]

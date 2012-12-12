@@ -22,7 +22,11 @@
   <li>UC008: <%= link_to nil, "#{v1_api.items_path}/aaa,bbb" %> A, B</li>
   <li>UC008: <%= link_to nil, "#{v1_api.items_path}/aaa,bbb,ccc" %> A, B, C(Error Stub)</li>
   <li>UC008: <%= link_to nil, "#{v1_api.items_path}/aaa" %> A</li>
-  <li>#2975: <%= link_to nil, "#{v1_api.items_path('facets' => 'dplaContributor')}" %> Facet on dplaContributor</li>
+  <li>#2973: <%= link_to nil, "#{v1_api.items_path('facets' => 'created')}" %> Date facet on created</li>
+  <li>#2973: <%= link_to nil, "#{v1_api.items_path('facets' => 'created.year')}" %> Date facet on created.year (interval)</li>
+  <li>#2973: <%= link_to nil, "#{v1_api.items_path('facets' => 'temporal.start')}" %> Date facet on temporal.start</li>
+  <li>#2973: <%= link_to nil, "#{v1_api.items_path('facets' => 'temporal.start.year')}" %> Date facet on temporal.start.year (interval)</li>
+  <li>#2975: <%= link_to nil, "#{v1_api.items_path('facets' => 'dplaContributor')}" %> Facet on dplaContributor (auto-expand)</li>
   <li>#2975: <%= link_to nil, "#{v1_api.items_path('facets' => 'isPartOf')}" %> Facet on isPartOf</li>
   <li>#2975: <%= link_to nil, "#{v1_api.items_path('facets' => 'dplaContributor,isPartOf')}" %> Facet on dplaContributor, isPartOf</li>
 </ul>

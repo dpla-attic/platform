@@ -39,7 +39,6 @@ module V1
     def search(params={})
       validate_params(params)
       searcher = Tire.search(V1::Config::SEARCH_INDEX) do |search|
-        #intentional empty search: search.query { all }
         got_queries = true if V1::Searchable::Query.build_all(search, params)
         got_queries = true if V1::Searchable::Filter.build_all(search, params)
         got_queries = true if V1::Searchable::Facet.build_all(search, params, !got_queries)
@@ -51,12 +50,11 @@ module V1
         # sort do
         #   by :_geo_distance, 'addresses.location' => [lng, lat], :unit => 'mi'
         # end
-        
-        # handle pagination
+
+        #TODO: size 0 if facets and no query (use q='' to force a global search)
         search.from get_search_starting_point(params)
         search.size get_search_size(params)
     
-        # limit fields in results
         field_params = parse_field_params(params)
         search.fields field_params if field_params
         
@@ -135,6 +133,7 @@ module V1
     def fetch(ids)
       doc_ids = []
       missing_ids = []
+      #TODO: construct big "a OR b OR c" query to get all items in one trip to ES
       ids.each do |id|
         result = search({'id' => "#{id}"})
         #Save the doc's '_id' if search returned a single 'id' match
@@ -162,11 +161,11 @@ module V1
         puts "* Running a completely empty query. Probably not what you intended. *"
         puts "*************************** "
       end
+      #puts "JSON: #{search.to_json}"
       puts "CURL: #{search.to_curl}"
-
-      search.results.each do |result|
-        puts "### HIT (#{result['_id']}): #{result.pretty_inspect}"
-      end
+      # search.results.each do |result|
+      #   puts "### HIT (#{result['_id']}): #{result.pretty_inspect}"
+      # end
     end
 
     def direct(params={})
