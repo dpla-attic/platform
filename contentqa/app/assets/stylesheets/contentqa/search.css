@@ -2,3 +2,12 @@
   Place all the styles related to the matching controller here.
   They will automatically be included in application.css.
 */
+.collapse.control-group
+{
+    margin-bottom: 0;
+}
+
+.collapse.control-group.in
+{
+    margin-bottom: 10px;
+}

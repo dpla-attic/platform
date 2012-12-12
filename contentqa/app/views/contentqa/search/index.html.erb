@@ -1,25 +1,60 @@
 <h2>Search and browse</h2>
 <%= form_tag("/qa/search", :method => "GET", :class => 'form-search') do %>
-<div class="well">
+<div class="row-fluid">
+<div class="span12">
+<div class="well span">
+<div class="row-fluid">
   <div class="span5">
-    <%= search_field_tag('q', nil, :placeholder => "Search...", :value => params['q']) %>
-    <%= submit_tag("Search", :class => "btn") %>
+    <div class="control-group">
+      <%= search_field_tag('q', nil, :placeholder => "Search...", :value => params['q']) %>
+      <%= submit_tag("Search", :class => "btn") %>
+    </div>
   </div>
 
-  <% if @count > 0 %>
-  Displaying results <%= @start+1 %> through <%= [@start + @limit,@count].min %> of <%= @count %>  
-  <div class="pagination">
+  <div class="span7">
+    <% if @count > 0 %>
+    Displaying results <%= @start+1 %> through <%= [@start + @limit,@count].min %> of <%= @count %>  
+    <% end %>
+  </div>
+</div>
+
+<div class="row-fluid">
+  <div class="span10">
+    <div class="control-group">
+    Advanced Search Fields: 
+    <% @search_fields.each do |f| %>    
+      <a href="#" data-toggle="collapse" data-target=".<%= f.gsub(".","-") %>-group"><%= f %></a><%= "," unless f == @search_fields.last %>
+    <% end %>
+    </div>
+    <% @search_fields.each do |f| %>    
+     <div class="control-group collapse <%= f.gsub(".","-") %>-group search-fields">
+     <%= label_tag f, f %>: 
+     <%= text_field_tag f, params[f] %>
+     </div>
+    <% end %>
+    <div class="control-group">
+    <%= label_tag "page_size", "Page Size" %>: 
+    <%= select_tag "page_size",  options_for_select([['10', 10], ['25', 25], ['50', 50], ['100', 100]], params['page_size'].nil? ? 10 : params['page_size']) %>
+    </div>
+    <%= submit_tag("Search", :class => "btn") %>
+
+  </div>
+</div>
+<% if @count > 0 %>
+<div class="row-fluid">
+  <div class="pagination span12">
     <ul>
       <li><%= link_to "First", params.merge({:page => 0}) %></li>
       <% @page_list.each do |x| %>
-      <li><%= link_to x, params.merge({:page => x}) %></li>
+      <li <%= "class=" + (params['page'].to_i == x ? "active" : "") %> ><%= link_to x, params.merge({:page => x}) %></li>
       <% end %>
       <li><%= link_to "Last", params.merge({:page => @page_count}) %></li>
     </ul>
   </div>
-  <%= label_tag "page_size", "Page Size" %>: 
-  <%= select_tag "page_size",  options_for_select([['10', 10], ['25', 25], ['50', 50], ['100', 100]], params['page_size'].nil? ? 10 : params['page_size']) %>
-  <% end %>
+<% end %>
+</div>
+</div>
+</div>
 </div>
 
 <div class="row-fluid">
