@@ -1,0 +1,47 @@
+<h2>Search and browse</h2>
+<%= form_tag("/qa/search", :method => "GET", :class => 'form-search') do %>
+<div class="well">
+  <div class="span5">
+    <%= search_field_tag('q', nil, :placeholder => "Search...", :value => params['q']) %>
+    <%= submit_tag("Search", :class => "btn") %>
+  </div>
+
+  <% if @count > 0 %>
+  Displaying results <%= @start+1 %> through <%= [@start + @limit,@count].min %> of <%= @count %>  
+  <div class="pagination">
+    <ul>
+      <li><%= link_to "First", params.merge({:page => 0}) %></li>
+      <% @page_list.each do |x| %>
+      <li><%= link_to x, params.merge({:page => x}) %></li>
+      <% end %>
+      <li><%= link_to "Last", params.merge({:page => @page_count}) %></li>
+    </ul>
+  </div>
+  <%= label_tag "page_size", "Page Size" %>: 
+  <%= select_tag "page_size",  options_for_select([['10', 10], ['25', 25], ['50', 50], ['100', 100]], params['page_size'].nil? ? 10 : params['page_size']) %>
+  <% end %>
+</div>
+
+<div class="row-fluid">
+  <div class="span2">                    
+    <h3>Search tools</h3>
+  </div>
+  <div class="span10">                                                   
+    <h3>Search results</h3>
+
+    <% @results.each do |record| %>
+    <% @display_fields.each do |f| %>
+    <% if record.key? f %>
+    <% [record.fetch(f)].flatten.each do |row| %>
+       <strong><%= f %></strong>
+       <%= row %>
+       <br/>
+       <% end %>
+       <% end %>
+    <% end %>
+    <hr/>
+    <% end %>
+    <%= "No results" if @results.empty? %>
+  </div>
+</div>
+<% end %>
