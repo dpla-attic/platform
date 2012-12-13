@@ -2,7 +2,7 @@
 <div class="well">
     Record #<%= @page %> of #<%= @total %> (<%= link_to @link, @link %>)
 </div>
-    <%= link_to "Random Item", compare_path, :class => 'btn' %>
+    <%= link_to "Random Item", {:controller => "compare", :id => @next}, :class => 'btn' %>
 <div class="row-fluid">
   <div class="span6">                    
     <h3>Enriched Record</h3>

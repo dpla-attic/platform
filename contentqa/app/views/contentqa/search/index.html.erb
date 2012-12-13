@@ -74,6 +74,8 @@
        <% end %>
        <% end %>
     <% end %>
+    <%= link_to "Compare with ingested record", {:controller => "compare", :id => record.fetch('id')}, :class => 'btn' %>
+    
     <hr/>
     <% end %>
     <%= "No results" if @results.empty? %>
