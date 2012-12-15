@@ -10,10 +10,11 @@ module Contentqa
       all_items_json = self.class.get(baseuri+v1_api.items_path()).body
       all_items = JSON.parse(all_items_json)
       @total = all_items['count'] 
-      if params[:id] == nil
+      @id = params[:id]
+      if @id == nil
         doc = get_random_doc(baseuri, all_items['count'])
       else
-        target_item_json = self.class.get(baseuri+v1_api.items_path()+'/'+params[:id]).body
+        target_item_json = self.class.get(baseuri+v1_api.items_path()+'/'+@id).body
         target_item = JSON.parse(target_item_json)      
         doc = target_item['docs'][0]
       end

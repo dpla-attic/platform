@@ -1,6 +1,7 @@
 <h2>Compare enriched records with the original</h2>
 <div class="well">
-    Record #<%= @page %> of #<%= @total %> (<%= link_to @link, @link %>)
+  
+  <% if @id == nil %>Record #<%= @page %> of #<%= @total %><% end %> (<%= link_to @link, @link %>)
 </div>
     <%= link_to "Random Item", {:controller => "compare", :id => @next}, :class => 'btn' %>
 <div class="row-fluid">
