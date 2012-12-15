@@ -15,7 +15,7 @@ module Contentqa
       else
         target_item_json = self.class.get(baseuri+v1_api.items_path()+'/'+params[:id]).body
         target_item = JSON.parse(target_item_json)      
-        doc = target_item[0]['doc']
+        doc = target_item['docs'][0]
       end
       
       @original = JSON.pretty_generate(doc['dplaSourceRecord'])
