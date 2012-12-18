@@ -14,7 +14,7 @@ module V1
         spatial_filter = spatial_coordinates_filter(params)
         if spatial_filter
           search.filter(*spatial_filter)
-          return true
+          true
         end
         false
       end

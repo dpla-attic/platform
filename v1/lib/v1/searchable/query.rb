@@ -21,18 +21,13 @@ module V1
 
             field_queries.each do |query_string|
               boolean.must do |must|
-                #                must.string query_string
-                #works                must.string "banana", 'default_field' => 'description'
-                #TODO: support field-specific boost ala "fields" : ["name^5"]
-                foo = [params['q'], 'fields' => ['title', 'subject.name']]
-                foo = [params['q']]                
                 must.string *query_string
               end
             end
 
             temporal_queries.each do |temporal|
               boolean.must do |must|
-                must.range(*temporal)
+                must.range *temporal
               end
             end
 
@@ -103,15 +98,6 @@ module V1
         end
         ranges
       end
-
-      # def self.build_temporal_query(search, params)
-      #   memo << lambda do |boolean|
-      #     boolean.must do |must|
-      #       must.range(*range)
-      #     end
-      #   end
-      #   memo
-      # end
 
     end
 
