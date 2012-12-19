@@ -1,3 +1,4 @@
+require 'v1/schema/field'
 require 'v1/searchable/facet'
 
 module V1
@@ -81,28 +82,58 @@ module V1
       mapping('item', field)
     end
 
-    def self.mapping(type=nil, field=nil)
-      # A "type" is a top-level DPLA resource: 'item', 'collection', 'creator'
+    def self.flapping(resource, field)
+      # A "resource" is a top-level DPLA resource: 'item', 'collection', 'creator'
+      #TODO: base.merge! ELASTICSEARCH_MAPPING['mappings']
+      field = field.to_s if field
+      #base = ELASTICSEARCH_MAPPING['mappings']
+      resourced_mapping = ELASTICSEARCH_MAPPING['mappings'][resource]['properties']
+
+      if field =~ /(.+)\.(.+)/
+        # TODO: is this a subfield, or a parent field with a query option?
+        # if $field has a mapping
+        #   return it
+        # else
+        #   strip the last word off and see if the remaining string has a mapping
+        #   if it does, set that field object's options with whatever we stripped off the end
+        #     (.after for a created.after date query, for example.
+        #   else
+        #     return nil i guess/
+        #   end
+        # end
+        # mapping for a dotted field name: e.g. "spatial.city"
+
+        #TODO: temporary hack to handle $validfield.$some_invalid_subfield situation
+        V1::Schema::Field.new(resource, field, resourced_mapping[$1]['properties'][$2]) if resourced_mapping[$1]['properties'] && resourced_mapping[$1]['properties'][$2]
+      else
+        # mapping for a single field within a single resource
+        #base[resource]['properties'][field] rescue nil
+        V1::Schema::Field.new(resource, field, resourced_mapping[field]) if resourced_mapping[field]
+      end
+    end
+
+    def self.mapping(resource=nil, field=nil)
+      # A "resource" is a top-level DPLA resource: 'item', 'collection', 'creator'
       #TODO: base = Hash.new { |h, k| h[k] = Hash.new({}) }  # untested
       #TODO: base.merge! ELASTICSEARCH_MAPPING['mappings']
       base = ELASTICSEARCH_MAPPING['mappings']
 
       # Standardize on strings
-      type = type.to_s if type
+      resource = resource.to_s if resource
       field = field.to_s if field
 
-      if type.nil?
-        # mapping for all types
+      if resource.nil?
+        # mapping for all resources
         base
       elsif field.nil?
-        # mapping for a single type
-        base[type]['properties'] rescue nil
+        # mapping for a single resource
+        base[resource]['properties'] rescue nil
       elsif field =~ /(.+)\.(.+)/
         # mapping for a dotted field name: e.g. "spatial.city"
-        base[type]['properties'][$1]['properties'][$2] rescue nil
+        base[resource]['properties'][$1]['properties'][$2] rescue nil
       else
-        # mapping for a single field within a single type
-        base[type]['properties'][field] rescue nil
+        # mapping for a single field within a single resource
+        base[resource]['properties'][field] rescue nil
       end
     end
 
@@ -136,65 +167,34 @@ module V1
       fields
     end
 
-    def self.facetable?(type, field)
-      mapping = mapping(type, field)
-
-      return false unless mapping
-
-      # facetable field or subfield
-      return true if mapping['facet']
-
-      # facetable multi_field subfield
-      if mapping[:type] == 'multi_field' && mapping['fields']
-        return mapping['fields']['raw'] && mapping['fields']['raw']['facet']
-      end
-
-      false
-    end
-
-    def self.expand_facet_fields(type, fields)
+    def self.expand_facet_fields(resource, fields)
       # Expands a list of fields into all facetables fields and those fields' facetable subfields
-      #TODO: Refactor facet related method into Searchable::Facet
+      #TODO: Refactor some this into field.facetable_fields=[]
       #TODO: support wildcard facet '*'
       expanded = []
-      fields.each do |field|
+      fields.each do |field_name|
+        field = flapping(resource, field_name)
+
         new_facets = []
-        mapping = mapping(type, field)
+        if field.nil?
+          # allow unmapped fields to pass through so they can be handled elsewhere
+          new_facets << field_name
+        else
+          # top level field is facetable
+          new_facets << field_name if field.facetable?
 
-        # allow unmapped fields to pass through so they can be handled elsewhere
-        new_facets << field if mapping.nil?
-
-        # top level field is facetable
-        new_facets << field if facetable?(type, field)
-
-        if mapping && mapping['properties']
-          mapping['properties'].each do |subfield, subfield_mapping|
-            new_facets << "#{field}.#{subfield}" if facetable?(type, "#{field}.#{subfield}")
+          field.subfields.each do |subfield|
+            new_facets << "#{field.name}.#{subfield.name}" if subfield.facetable?
           end
         end
-
         # If nothing has shaken out for this field, persist it so it gets flagged by validation elsehwere
-        new_facets << field if new_facets.empty?
+        new_facets << field_name if new_facets.empty?
 
         expanded << new_facets
       end
       expanded.flatten
     end
 
-    def self.facet_field(field)
-      # Conditionally extend multi_field types to their .raw sub-field.
-      mapping = mapping('item', field)
-
-      if !mapping && field =~ /(.+)\.(.*)$/ && V1::Searchable::Facet::DATE_INTERVALS.include?($2)
-        return $1
-      end
-
-      if mapping[:type] == 'multi_field' && mapping['fields']['raw'] && mapping['fields']['raw']['facet']
-        field + '.raw'
-      else
-        field
-      end
-    end
   end
 
 end

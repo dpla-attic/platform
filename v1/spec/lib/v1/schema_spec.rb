@@ -197,46 +197,6 @@ module V1
 
       end
 
-      describe "#facet_field" do
-        it "translates a top level field" do
-          expect(V1::Schema.facet_field('title')).to eq 'title'
-        end
-        it "translates a multi_field field with no .raw subfields" do
-          expect(V1::Schema.facet_field('field1.name')).to eq 'field1.name'
-        end
-        it "translates a multi_field field with a .raw subfield" do
-          expect(V1::Schema.facet_field('isPartOf.name')).to eq 'isPartOf.name.raw'
-        end
-      end
-
-      describe "#facetable?" do
-        context "facetable fields" do
-          it "detects a top level simple field" do
-            expect(V1::Schema.facetable?('item', 'id')).to be_true
-          end
-          it "detects a subfield" do
-            expect(V1::Schema.facetable?('item', 'spatial.iso3166-2')).to be_true
-          end
-          it "detects a multi_field types with a 'raw' subfield" do
-            expect(V1::Schema.facetable?('item', 'isPartOf.name')).to be_true
-          end
-
-        end
-
-        context "non-facetable fields" do
-          it "detects a top level simple field" do
-            expect(V1::Schema.facetable?('item', 'description')).to be_false
-          end
-          it "detects a subfield" do
-            expect(V1::Schema.facetable?('item', 'temporal.start')).to be_true
-          end
-          it "detects a multi_field types with a 'raw' subfield" do
-            expect(V1::Schema.facetable?('item', 'field1.export')).to be_false
-          end
-        end
-
-      end
-
     end
 
   end

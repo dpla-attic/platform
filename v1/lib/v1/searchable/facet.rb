@@ -8,7 +8,8 @@ module V1
     module Facet
       #TODO: Decouple this from V1::Schema when we have the new Field class
 
-      #TODO: Add support for integer and integer+unit(h|d|w) intervals
+      #TODO: Add support for integer and integer+unit(h|d|w) intervals or just let any
+      # suffix through and let ElasticSearch complain if it is not valid
       DATE_INTERVALS = %w( year quarter month week day hour minute )
 
       def self.build_all(search, params, global=false)
@@ -25,40 +26,41 @@ module V1
           # pre-screen date facets with optional intervals defined
           options = date_facet_options(field)
 
-          #TODO: only for date facets, convert from milli to sec.
+          #TODO: how do we want to handle timezones here?
           options[:post_zone] = '05:00'
 
           field = options.delete(:field) || field
 
           search.facet(facet_name, :global => global) do |faceter|
-            faceter.send(facet_type(field), V1::Schema.facet_field(field), options)
+            faceter.send(facet_type(field), facet_field(field), options)
           end
         end
 
         requested.any?
       end
 
-      def self.validate_params(fields)
-        # Validates that all requested facet fields are facetable. This assumes that
-        # the fields list has already been expanded where necessary.
-        invalid = fields.select do |field|
-          original = field
+      def self.validate_params(names)
+        # Validates that all requested facet fields are facetable.
+        invalid = names.select do |name|
+          original = name
 
           # trim interval string off date facet before checking if they are facetable
-          if field =~ /(.+)\.(.*)$/ && DATE_INTERVALS.include?($2)
-            field = $1
+          if name =~ /(.+)\.(.*)$/ && DATE_INTERVALS.include?($2)
+            name = $1
           end
 
           # return original string if base field fails facetable? test
-          original if !V1::Schema.facetable?('item', field)
+          field = V1::Schema.flapping('item', name)
+          original if !(field && field.facetable?)
         end
         if invalid.any?
           raise BadRequestSearchError, "Invalid field(s) specified in facets param: #{invalid.join(',')}"
         end
       end
 
-      def self.date_facet_options(field)
-        if field =~ /(.+)\.(.*)$/ && DATE_INTERVALS.include?($2)
+      def self.date_facet_options(name)
+        # TODO: allow arbitrary intervals (2d, 520w, etc.)
+        if name =~ /(.+)\.(.*)$/ && DATE_INTERVALS.include?($2)
           # Tire requires symbols for keys here
           { :field => $1, :interval => $2 }
         else
@@ -66,13 +68,30 @@ module V1
         end
       end
 
-      def self.facet_type(field)
-        # Get mapping for field to determine what kind facet to create.
+      def self.facet_type(name)
+        # Field type determines what type of facet it will create
         # Supported types: terms, date.
-        mapping = V1::Schema.item_mapping(field)
-        return (mapping && mapping[:type] == 'date') ? :date : :terms
+        # TODO: These might have to be symbols
+        field = V1::Schema.flapping('item', name)
+        field.type == 'date' ? 'date' : 'terms'
       end
 
+      def self.facet_field(name)
+        # Conditionally extend multi_field types to their .raw sub-field.
+        # e.g. facet_field('isPartOf.name') => 'isPartOf.name.raw'
+        field = V1::Schema.flapping('item', name)
+
+        # strip interval off the end and return field name
+        if !field && name =~ /(.+)\.(.*)$/ && DATE_INTERVALS.include?($2)
+          return $1
+        elsif field && field.multi_fields.select {|mf| mf.name == 'raw' && mf.facetable?}.any?
+          # this has a facetable multi_field subfield
+          name + '.raw'
+        else
+          name
+        end
+      end
+      
     end
 
   end

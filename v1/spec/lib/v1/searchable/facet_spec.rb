@@ -25,17 +25,10 @@ module V1
 
       describe "#validate_params" do
         it "does not raise error when all params are facetable" do
-          V1::Schema.stub(:facetable?) { true }
+          V1::Schema::Field.any_instance.stub(:facetable?) { true }
           expect {
             subject.validate_params(['title'])
           }.not_to raise_error BadRequestSearchError
-        end
-        it "raises an error when any of the params are not facetable" do
-          V1::Schema.stub(:facetable?).with('item', 'title') { true }
-          V1::Schema.stub(:facetable?).with('item', 'description') { false }
-          expect {
-            subject.validate_params(['title', 'description'])
-          }.to raise_error BadRequestSearchError, /invalid field/i
         end
         it "does not raise error when params is empty" do
           expect {
@@ -59,7 +52,7 @@ module V1
               subject.validate_params(['created.year'])
             }.not_to raise_error BadRequestSearchError
           end
-          it "does not raise error for a valid date facet and interval" do
+          it "raises an error for a valid date facet and an invalid interval/trailing-junk" do
             expect {
               subject.validate_params(['created.invalid_interval_name'])
             }.to raise_error BadRequestSearchError
@@ -91,25 +84,39 @@ module V1
       end
 
       describe "#facet_type" do
-        it "returns :date for date-mapped fields" do
-          field = 'datefield'
-          V1::Schema.should_receive(:item_mapping).with(field) { {:type => 'date'} }
-          expect(subject.facet_type(field)).to eq :date
+        it "returns 'date' for date-mapped fields" do
+          V1::Schema.stub(:flapping) { stub(:type => 'date') }
+          expect(subject.facet_type('some_date')).to eq 'date'
         end
         
-        it "returns :terms for string-mapped fields" do
-          field = 'stringfield'
-          V1::Schema.should_receive(:item_mapping).with(field) { {:type => 'string'} }
-          expect(subject.facet_type(field)).to eq :terms
+        it "returns 'terms' for string-mapped fields" do
+          V1::Schema.stub(:flapping) { stub(:type => 'string') }
+          expect(subject.facet_type('some_string')).to eq 'terms'
         end
 
-        it "returns :terms for any field with an unrecognized mapping" do
-          field = 'dynamicfield'
-          V1::Schema.should_receive(:item_mapping).with(field) { {:type => 'whoknows'} }
-          expect(subject.facet_type(field)).to eq :terms
+        it "returns 'terms' for any field with an unrecognized mapping" do
+          V1::Schema.stub(:flapping) { stub(:type => 'integer') }
+          expect(subject.facet_type('some_number')).to eq 'terms'
         end
-
       end
+
+      describe "#facet_field" do
+        it "translates a top level field" do
+          V1::Schema.stub(:flapping) { stub(:type => 'string', :multi_fields => []) }
+          expect(subject.facet_field('title')).to eq 'title'
+        end
+        it "translates a multi_field field with no .raw subfields" do
+          V1::Schema.stub(:flapping) { stub(:type => 'string', :multi_fields => []) }
+          expect(subject.facet_field('field1.name')).to eq 'field1.name'
+        end
+        it "translates a multi_field field with a .raw subfield" do
+          raw_field = stub(:name => 'raw', :facetable? => true)
+          V1::Schema.stub(:flapping) { stub(:type => 'string', :multi_fields => [raw_field]) }
+          expect(subject.facet_field('isPartOf.name')).to eq 'isPartOf.name.raw'
+        end
+      end
+
+
 
     end
 

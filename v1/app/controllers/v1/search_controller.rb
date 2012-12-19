@@ -2,6 +2,7 @@ require_dependency "v1/application_controller"
 
 module V1
   class SearchController < ApplicationController
+    rescue_from Errno::ECONNREFUSED, :with => :connection_refused
 
     def items
       begin
@@ -13,10 +14,9 @@ module V1
     end
 
     def fetch
-      ids = params[:ids].split(/,\s*/)
       results = []
       begin 
-        results = V1::Item.fetch(ids)
+        results = V1::Item.fetch(params[:ids].split(/,\s*/))
         status = 200
       rescue NotFoundSearchError => e
         status = e.http_code
@@ -33,7 +33,12 @@ module V1
       end
     end
     
-    def links
+    def connection_refused
+      e = ServiceUnavailableSearchError.new
+      render :json => render_json({:message => e.message}, params), :status => e.http_code
     end
+    
+    def links; end
+
   end
 end

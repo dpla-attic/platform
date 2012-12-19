@@ -51,6 +51,7 @@ module V1
 
   class InternalServerSearchError < SearchError
     def initialize(msg=nil)
+      msg ||= 'Internal Server Error'
       super
       @http_code = 500
     end
@@ -58,6 +59,7 @@ module V1
 
   class ServiceUnavailableSearchError < SearchError
     def initialize(msg=nil)
+      msg ||= 'Service Temporarily Unavailable'
       super
       @http_code = 503
     end
