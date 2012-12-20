@@ -1,7 +1,7 @@
 module V1
 
   class SearchError < StandardError
-    attr_reader :http_code
+    attr_reader :http_status
 
     def initialize(msg=nil)
       @msg = msg if msg
@@ -16,35 +16,35 @@ module V1
   class BadRequestSearchError < SearchError
     def initialize(msg=nil)
       super
-      @http_code = 400
+      @http_status = 400
     end
   end
 
   class UnauthorizedSearchError < SearchError
     def initialize(msg=nil)
       super
-      @http_code = 401
+      @http_status = 401
     end
   end
 
   class RateLimitExceededSearchError < SearchError
     def initialize(msg=nil)
       super
-      @http_code = 403
+      @http_status = 403
     end
   end
 
   class NotFoundSearchError < SearchError
     def initialize(msg=nil)
       super
-      @http_code = 404
+      @http_status = 404
     end
   end
 
   class NotAcceptableSearchError < SearchError
     def initialize(msg=nil)
       super
-      @http_code = 406
+      @http_status = 406
     end
   end
 
@@ -53,7 +53,7 @@ module V1
     def initialize(msg=nil)
       msg ||= 'Internal Server Error'
       super
-      @http_code = 500
+      @http_status = 500
     end
   end
 
@@ -61,7 +61,7 @@ module V1
     def initialize(msg=nil)
       msg ||= 'Service Temporarily Unavailable'
       super
-      @http_code = 503
+      @http_status = 503
     end
   end
 

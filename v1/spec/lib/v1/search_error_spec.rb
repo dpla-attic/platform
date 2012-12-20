@@ -26,44 +26,44 @@ module V1
       ex = BadRequestSearchError.new 'bad req error'
       expect(ex.message).to eq 'bad req error'
     end
-    it "has the correct http_code" do
-      expect(BadRequestSearchError.new.http_code).to eq 400
+    it "has the correct http_status" do
+      expect(BadRequestSearchError.new.http_status).to eq 400
     end
   end
 
   describe UnauthorizedSearchError do
-    it "has the correct http_code" do
-      expect(UnauthorizedSearchError.new.http_code).to eq 401
+    it "has the correct http_status" do
+      expect(UnauthorizedSearchError.new.http_status).to eq 401
     end
   end 
 
   describe RateLimitExceededSearchError do
-    it "has the correct http_code" do
-      expect(RateLimitExceededSearchError.new.http_code).to eq  403
+    it "has the correct http_status" do
+      expect(RateLimitExceededSearchError.new.http_status).to eq  403
     end
   end 
 
   describe NotFoundSearchError do
-    it "has the correct http_code" do
-      expect(NotFoundSearchError.new.http_code).to eq 404
+    it "has the correct http_status" do
+      expect(NotFoundSearchError.new.http_status).to eq 404
     end
   end 
 
   describe NotAcceptableSearchError do
-    it "has the correct http_code" do
-      expect(NotAcceptableSearchError.new.http_code).to eq 406
+    it "has the correct http_status" do
+      expect(NotAcceptableSearchError.new.http_status).to eq 406
     end
   end 
 
   describe InternalServerSearchError do
-    it "has the correct http_code" do
-      expect(InternalServerSearchError.new.http_code).to eq 500
+    it "has the correct http_status" do
+      expect(InternalServerSearchError.new.http_status).to eq 500
     end
   end 
 
   describe ServiceUnavailableSearchError do
-    it "has the correct http_code" do
-      expect(ServiceUnavailableSearchError.new.http_code).to eq 503
+    it "has the correct http_status" do
+      expect(ServiceUnavailableSearchError.new.http_status).to eq 503
     end
   end 
 

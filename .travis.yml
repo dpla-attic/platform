@@ -9,10 +9,11 @@ script: bin/test-full-app.sh
 notifications:
   email:
     - bgadoury@endpoint.com
-    - barrett@endpoint.com
 services:
   - elasticsearch
   - couchdb
 branches:
   only:
     - develop
+
+

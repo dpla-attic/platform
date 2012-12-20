@@ -9,7 +9,7 @@ module V1
         results = V1::Item.search(params)
         render :json => render_json(results, params)
       rescue SearchError => e
-        render :json => render_json({:message => e.message}, params), :status => e.http_code
+        render :json => render_json({:message => e.message}, params), :status => e.http_status
       end        
     end
 
@@ -19,7 +19,7 @@ module V1
         results = V1::Item.fetch(params[:ids].split(/,\s*/))
         status = 200
       rescue NotFoundSearchError => e
-        status = e.http_code
+        status = e.http_status
       end
       render :json => render_json(results, params), :status => status
     end
@@ -35,7 +35,7 @@ module V1
     
     def connection_refused
       e = ServiceUnavailableSearchError.new
-      render :json => render_json({:message => e.message}, params), :status => e.http_code
+      render :json => render_json({:message => e.message}, params), :status => e.http_status
     end
     
     def links; end

@@ -50,39 +50,6 @@ module V1
         }
       }
       
-      describe "#facetable?" do
-        context "facetable fields" do
-          it "detects a top level simple field" do
-            field = V1::Schema::Field.new(type, 'created', item_mapping['created'])
-            expect(field.facetable?).to be_true
-          end
-          it "detects a subfield" do
-            field = V1::Schema::Field.new(type, 'spatial.iso3166-2', item_mapping['spatial']['properties']['iso3166-2'])
-            expect(field.facetable?).to be_true
-          end
-          it "detects a multi_field type with a 'raw' subfield" do
-            field = V1::Schema::Field.new(type, 'isPartOf.name', item_mapping['isPartOf']['properties']['name'])
-            expect(field.facetable?).to be_true
-          end
-        end
-
-        context "non-facetable fields" do
-          it "detects a top level simple field" do
-            field = V1::Schema::Field.new(type, 'title', item_mapping['title'])
-            expect(field.facetable?).to be_false
-          end
-          it "detects a subfield" do
-            field = V1::Schema::Field.new(type, 'subject.@id', item_mapping['subject']['properties']['@id'])
-            expect(field.facetable?).to be_false
-          end
-          it "detects a multi_field types with a 'raw' subfield" do
-            field = V1::Schema::Field.new(type, 'field1.name', item_mapping['field1']['properties']['name'])
-            expect(field.facetable?).to be_false
-          end
-        end
-
-      end
-
       describe "#initialize" do
         let(:resource) { 'item' }
         let(:name) { 'title' }
@@ -151,6 +118,51 @@ module V1
         it "returns array of subfields when there are one or more subfields to build" do
           field = V1::Schema::Field.new(type, 'subject', item_mapping['subject'])
           expect(field.subfields?).to be_true
+        end
+      end
+
+      describe "#facetable?" do
+        context "facetable fields" do
+          it "detects a top level simple field" do
+            field = V1::Schema::Field.new(type, 'created', item_mapping['created'])
+            expect(field.facetable?).to be_true
+          end
+          it "detects a subfield" do
+            field = V1::Schema::Field.new(type, 'spatial.iso3166-2', item_mapping['spatial']['properties']['iso3166-2'])
+            expect(field.facetable?).to be_true
+          end
+          it "detects a multi_field type with a 'raw' subfield" do
+            field = V1::Schema::Field.new(type, 'isPartOf.name', item_mapping['isPartOf']['properties']['name'])
+            expect(field.facetable?).to be_true
+          end
+        end
+
+        context "non-facetable fields" do
+          it "detects a top level simple field" do
+            field = V1::Schema::Field.new(type, 'title', item_mapping['title'])
+            expect(field.facetable?).to be_false
+          end
+          it "detects a subfield" do
+            field = V1::Schema::Field.new(type, 'subject.@id', item_mapping['subject']['properties']['@id'])
+            expect(field.facetable?).to be_false
+          end
+          it "detects a multi_field types with a 'raw' subfield" do
+            field = V1::Schema::Field.new(type, 'field1.name', item_mapping['field1']['properties']['name'])
+            expect(field.facetable?).to be_false
+          end
+        end
+
+      end
+
+      describe "#analyzed?" do
+        it "returns false when index => not_analyzed" do
+          field = V1::Schema::Field.new(type, 'title', item_mapping['title'])
+          expect(field.analyzed?).to be_true
+        end
+        
+        it "returns true unless index => not_analyzed" do
+          field = V1::Schema::Field.new(type, 'id', item_mapping['id'])
+          expect(field.analyzed?).to be_false
         end
       end
 

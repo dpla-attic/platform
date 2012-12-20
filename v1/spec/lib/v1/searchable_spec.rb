@@ -121,41 +121,62 @@ module V1
 
     end
 
-
     describe "build_sort_attributes" do
       it "returns nil when sort params are not present" do
-        params = {'q' => 'banana'}
+        params = {}
         expect(subject.build_sort_attributes(params)).to eq nil
       end
 
-      it "returns a valid sort order if an invalid sort order param present" do
-        params = {'q' => 'banana', 'sort_by' => 'title', 'sort_order' => 'apple'}
+      it "returns a valid sort order if a valid sort order is param present" do
+        params = {'sort_by' => 'id', 'sort_order' => 'desc'}
         expect(
           subject.build_sort_attributes(params)
-        ).to eq ['title', Searchable::DEFAULT_SORT_ORDER]
+        ).to eq ['id', 'desc']
       end
 
-      it "returns the valid sort order if a valid sort order is param present" do
-        params = {'q' => 'banana', 'sort_by' => 'title', 'sort_order' => 'desc'}
+      it "returns a valid sort order if an invalid sort order param present" do
+        params = {'sort_by' => 'id', 'sort_order' => 'apple'}
         expect(
           subject.build_sort_attributes(params)
-        ).to eq ['title', 'desc']
+        ).to eq ['id', Searchable::DEFAULT_SORT_ORDER]
       end
 
       it "returns a valid sort order param if no sort order param present" do
-        params = {'q' => 'banana', 'sort_by' => 'title'}
+        params = {'sort_by' => 'id'}
         expect(
           subject.build_sort_attributes(params)
-        ).to eq ['title', Searchable::DEFAULT_SORT_ORDER]
+        ).to eq ['id', Searchable::DEFAULT_SORT_ORDER]
+      end
+
+      it "returns the valid sort_by if a valid sort order is param present" do
+        params = {'sort_by' => 'id', 'sort_order' => 'asc'}
+        expect(
+          subject.build_sort_attributes(params)
+        ).to eq ['id', 'asc']
+      end
+
+      it "raises a BadRequestSearchError on an invalid sort_by param" do
+        params = {'sort_by' => 'some_invalid_field'}
+        expect  { 
+          subject.build_sort_attributes(params)
+        }.to raise_error BadRequestSearchError, /invalid field.* sort_by parameter/i
+      end
+
+      it "raises a BadRequestSearchError on an non-sortable sort_by param" do
+        params = {'sort_by' => 'some_analyzed_field'}
+        V1::Schema.stub(:flapping) { stub(:analyzed? => true, :name => 'foo') }
+        expect  { 
+          subject.build_sort_attributes(params)
+        }.to raise_error BadRequestSearchError, /non-sortable field.* sort_by parameter/i
       end
     end
 
     describe "#parse_field_params" do
       it "raises SearchError if invalid field was sent" do
-        params = {'q' => 'banana', 'fields' => 'invalid'}
+        params = {'q' => 'banana', 'fields' => 'some_invalid_field'}
         expect  { 
           subject.parse_field_params(params) 
-        }.to raise_error BadRequestSearchError
+        }.to raise_error BadRequestSearchError, /fields parameter/
       end
       it "returns an array from CSV params" do
         params = {'q' => 'banana', 'fields' => 'title,description'}
@@ -335,6 +356,7 @@ module V1
       context "sorting" do
         it "sorts by field name if present" do
           params = {'q' => 'banana',  'sort_by' => 'title' }
+          V1::Schema.stub(:flapping) { stub(:analyzed? => false, :name => 'foo') }
           mock_search.should_receive(:sort)
           subject.should_receive(:wrap_results)
           subject.search(params)

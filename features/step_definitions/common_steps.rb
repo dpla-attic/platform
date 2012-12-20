@@ -14,3 +14,6 @@ When /^I make an empty search$/ do
   @params = {}
 end
 
+When /^sort by "(.*?)"$/ do |arg1|
+  @params['sort_by'] = arg1
+end

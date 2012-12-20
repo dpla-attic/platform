@@ -14,6 +14,7 @@ module V1
       #@ f.to_s  # => subject.name  #works for fields and subfields
       #@ f.subfields   # => array of field instances for its subfields
       #@ f.subfields?  # true if it has any 
+      #@ f.analyzed?  
       #@ f.facetable?  # true if it is. :)
       # f.facet_name  # => isPartOf.name => isPartOf.name.raw (it's multi_field)
       # f.facet_fields# results of expand_facet_name (always returns an array)
@@ -74,6 +75,10 @@ module V1
         else
           false
         end
+      end
+
+      def analyzed?
+        @mapping['index'] != 'not_analyzed'
       end
 
     end

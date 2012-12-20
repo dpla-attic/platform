@@ -38,7 +38,7 @@ module V1
 
     def search(params={})
       validate_params(params)
-      searcher = Tire.search(V1::Config::SEARCH_INDEX) do |search|
+      search = Tire.search(V1::Config::SEARCH_INDEX) do |search|
         got_queries = true if V1::Searchable::Query.build_all(search, params)
         got_queries = true if V1::Searchable::Filter.build_all(search, params)
         got_queries = true if V1::Searchable::Facet.build_all(search, params, !got_queries)
@@ -48,7 +48,7 @@ module V1
         
         #canned example to sort by geo_point, unverified
         # sort do
-        #   by :_geo_distance, 'addresses.location' => [lng, lat], :unit => 'mi'
+        #   by :_geo_distance, 'spatial.coordinates' => [lng, lat], :unit => 'mi'
         # end
 
         #TODO: size 0 if facets and no query (use q='' to force a global search)
@@ -62,20 +62,37 @@ module V1
         search
       end
 
-      #verbose_debug(searcher)
-      return wrap_results(searcher)
+      begin
+        #verbose_debug(search)
+        #puts "CURL: #{search.to_curl}"
+        return wrap_results(search)
+      rescue Tire::Search::SearchRequestFailed => e
+        #FYI: error = JSON.parse(search.response.body)['error']
+        raise InternalServerSearchError
+      end
     end
 
     def build_sort_attributes(params)
-      #TODO big picture check on field being available 
-      return nil unless params['sort_by'].present?
- 
-      order = params['sort_order']
-      if !( order.present? && %w(asc desc).include?(order.downcase) )
+      #TODO allow a csv list of sort params
+      sort_by_name = params['sort_by'].to_s
+      return nil if sort_by_name == ""
+
+      # Validate sort_by
+      sort_by = V1::Schema.flapping('item', sort_by_name)
+      if sort_by.nil?
+        raise BadRequestSearchError, "Invalid field(s) specified in sort_by parameter"
+      end
+      if sort_by.analyzed?
+        raise BadRequestSearchError, "Non-sortable field(s) specified in sort_by parameter"
+      end
+
+      # Validate sort_order
+      order = params['sort_order'].to_s.downcase
+      if !( %w(asc desc).include?(order) )
         order = DEFAULT_SORT_ORDER 
       end
 
-      [params['sort_by'], order]
+      [sort_by.name, order]
     end
 
     def wrap_results(search)
@@ -109,7 +126,7 @@ module V1
       
       invalid = fields - V1::Schema.queryable_fields
       if invalid.any?  
-        raise BadRequestSearchError, "Invalid field(s) specified for 'fields' parameter: #{invalid.join(',')}" 
+        raise BadRequestSearchError, "Invalid field(s) specified for fields parameter: #{invalid.join(',')}" 
       end
       
       fields

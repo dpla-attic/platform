@@ -32,9 +32,9 @@ module V1
             },
             'subject' => {
               'properties' => {
-                '@id' => { :type => 'string', 'index' => 'not_analyzed' },
+                '@id' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
                 '@type' => { :type => 'string', 'index' => 'not_analyzed' },
-                'name' => { :type => 'string' }
+                'name' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true }
               }
             },
             'description' => { :type => 'string' },
@@ -50,8 +50,8 @@ module V1
             },
             'temporal' => {
               'properties' => {
-                'start' => { :type => 'date', :null_value => "-9999", 'facet' => true },
-                'end'   => { :type => 'date', :null_value => "9999", 'facet' => true }
+                'start' => { :type => 'date', 'index' => 'not_analyzed', 'facet' => true, 'null_value' => '-9999' },
+                'end'   => { :type => 'date', 'index' => 'not_analyzed', 'facet' => true, 'null_value' => '9999' }
               }
             },
             'relation' => { :type => 'string' },
@@ -68,7 +68,7 @@ module V1
                 }
               }
             },
-            'contributor' => { :type => 'string', 'facet' => true },
+            'contributor' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
             'dplaSourceRecord' => {
               # completely omit dplaSourceRecord from the index
               'enabled' => false
