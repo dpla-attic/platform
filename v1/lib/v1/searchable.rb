@@ -98,18 +98,16 @@ module V1
     def wrap_results(search)
       results = search.results
 
-      wrapped = { 
+      { 
         'count' => results.total,
         'start' => search.options[:from],
         'limit' => search.options[:size],
-        'docs' => reformat_results(results)
+        'docs' => format_results(results),
+        'facets' => format_facets(results.facets)
       }
-
-      wrapped['facets'] = results.facets if results.facets
-      wrapped
     end
 
-    def reformat_results(results)
+    def format_results(results)
       results.map do |doc|
         if doc['_source'].present?
           doc['_source'].delete_if {|k,v| k =~ /^_type/}
@@ -118,6 +116,36 @@ module V1
           doc['fields']
         end
       end
+    end
+
+    def format_facets(facets)
+      return [] unless facets
+      facets.each do |name, payload|
+        if payload['_type'] == 'date_histogram' &&
+            name =~ /(.+)\.(.*)$/ &&
+            V1::Searchable::Facet::DATE_INTERVALS.include?($2)
+          payload['entries'].each do |value_hash|
+            value_hash['time'] = format_date_facet($2, value_hash['time'])
+          end
+        end
+      end
+    end
+
+    def format_date_facet(interval, value)
+      formats = {
+        'day' => '%F',
+        'month' => '%Y-%m',
+        'year' => '%Y',
+        'decade' => '%Y',
+        'century' => '%C00'
+      }      
+
+      # just return their value if we can't format it
+      return value unless formats[interval]
+      
+      date = Time.at(value/1000).to_date
+      final = date.strftime(formats[interval])
+      (interval == 'decade' ? ((final.to_i * 0.1).floor * 10) : final).to_s
     end
 
     def parse_field_params(params)

@@ -235,24 +235,14 @@ module V1
       let(:results)  { stub("results", :total => 10, :facets => nil) }
       let(:search) { stub("search", :results => results, :options => {:from => 0, :size => 10}) }
       let(:formatted_results) { stub }
+      let(:facets) { stub }
       
       before(:each) do
-        subject.stub(:reformat_results) { formatted_results }
+        subject.stub(:format_results) { formatted_results }
+        subject.stub(:format_facets) { facets }
       end
       
-      it "wraps results set correctly without facets" do
-        expect(
-               subject.wrap_results(search)
-               ).to eq({
-                         'count' => 10,
-                         'limit' => 10,
-                         'start' => 0,
-                         'docs' => formatted_results
-                       })
-      end
-      it "wraps results set correctly with facets" do
-        facets = stub
-        results.stub(:facets) { facets }
+      it "wraps results set correctly" do
         expect(
                subject.wrap_results(search)
                ).to eq({
@@ -265,7 +255,68 @@ module V1
       end
     end
 
-    describe "#reformat_results" do
+    describe "#format_facets" do
+      let(:facets) {
+        {
+          "created.year" => {
+            "_type" => "date_histogram",
+            "entries" => [
+                        {
+                          "time" => 157784400000,
+                          "count" => 1
+                        },
+                        {
+                          "time" => 946702800000,
+                          "count" => 2
+                        }
+                       ]
+          },
+          "subject.name" => {
+            "_type" => "terms",
+            "terms" => [
+                      {
+                        "term" => "Noodle Bar",
+                        "count" => 1
+                      }
+                     ]
+          }
+        }
+      }
+    end
+
+    describe "#format_date_facet" do
+      let(:epoch) { 946702800000 }
+
+      it "formats day facets correctly" do
+        expect(subject.format_date_facet('day', epoch)).to eq '2000-01-01'
+      end
+        
+      it "formats month facets correctly" do
+        expect(subject.format_date_facet('month', epoch)).to eq '2000-01'
+      end
+        
+      it "formats year facets correctly" do
+        expect(subject.format_date_facet('year', epoch)).to eq '2000'
+      end
+        
+      it "formats decade facets correctly" do
+        date1993 = Date.new(1993,1,1).to_time.to_i * 1000
+        expect(subject.format_date_facet('decade', date1993)).to eq '1990'
+      end
+        
+      it "formats century facets correctly" do
+        date1993 = Date.new(1993,1,1).to_time.to_i * 1000
+        expect(subject.format_date_facet('century', date1993)).to eq '1900'
+      end
+
+      it "returns input value unchanged when interval is not recognized" do
+        date1993 = Date.new(1993,1,1).to_time.to_i * 1000
+        expect(subject.format_date_facet('fake-interval', date1993)).to eq date1993
+      end
+
+    end
+
+    describe "#format_results" do
       it "remaps elasticsearch item wrapper to collapse items to first level with score" do
         docs = [{
           "_score" => 1, 
@@ -276,7 +327,7 @@ module V1
             "description" => "desc"
           }
         }]
-        expect(subject.reformat_results(docs)).to eq(
+        expect(subject.format_results(docs)).to match_array(
           [{
              "_id" => "1",
              "title" => "banana",
@@ -294,7 +345,7 @@ module V1
           "_score" => 1.0,
           "fields" => {"title" => "banana"}
         }]
-        expect(subject.reformat_results(docs)).to match_array(
+        expect(subject.format_results(docs)).to match_array(
           [{"title" => "banana"}]
         )
       end

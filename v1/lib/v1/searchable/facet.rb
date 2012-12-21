@@ -10,7 +10,7 @@ module V1
 
       #TODO: Add support for integer and integer+unit(h|d|w) intervals or just let any
       # suffix through and let ElasticSearch complain if it is not valid
-      DATE_INTERVALS = %w( year quarter month week day hour minute )
+      DATE_INTERVALS = %w( year quarter month week day )
 
       def self.build_all(search, params, global=false)
         # Returns boolean for "did we run any filters?"
