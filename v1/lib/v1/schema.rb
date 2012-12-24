@@ -45,7 +45,7 @@ module V1
                 'state' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
                 'city' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
                 'iso3166-2' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
-                'coordinates' => { :type => "geo_point"}
+                'coordinates' => { :type => "geo_point", 'index' => 'not_analyzed'}
               }
             },
             'temporal' => {

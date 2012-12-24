@@ -47,7 +47,7 @@ module V1
         describe "BASE_QUERY_PARAMS" do
           it "has the correct value" do
             expect(BASE_QUERY_PARAMS).to match_array %w( 
-              q controller action sort_by sort_order page page_size facets fields callback
+              q controller action sort_by sort_by_pin sort_order page page_size facets fields callback
             )
           end
         end
@@ -155,11 +155,19 @@ module V1
         ).to eq ['id', 'asc']
       end
 
+      it "returns the correct array value if the sort_by field is a geo_point type" do
+        params = {'sort_by' => 'some_geo_field', 'sort_by_pin' => '41,-71', 'order' => 'asc'}
+        V1::Schema.stub(:flapping) { stub(:type => 'geo_point', :analyzed? => false, :name => 'some_geo_field') }
+        expect(
+          subject.build_sort_attributes(params)
+        ).to eq ['_geo_distance', { 'some_geo_field' => '41,-71', 'order' => 'asc' }]
+      end
+
       it "raises a BadRequestSearchError on an invalid sort_by param" do
         params = {'sort_by' => 'some_invalid_field'}
         expect  { 
           subject.build_sort_attributes(params)
-        }.to raise_error BadRequestSearchError, /invalid field.* sort_by parameter/i
+        }.to raise_error BadRequestSearchError, /invalid field.* sort_by parameter: some_invalid_field/i
       end
 
       it "raises a BadRequestSearchError on an non-sortable sort_by param" do
@@ -167,67 +175,67 @@ module V1
         V1::Schema.stub(:flapping) { stub(:analyzed? => true, :name => 'foo') }
         expect  { 
           subject.build_sort_attributes(params)
-        }.to raise_error BadRequestSearchError, /non-sortable field.* sort_by parameter/i
+        }.to raise_error BadRequestSearchError, /non-sortable field.* sort_by parameter: some_analyzed_field/i
       end
     end
 
-    describe "#parse_field_params" do
+    describe "#validate_field_params" do
       it "raises SearchError if invalid field was sent" do
         params = {'q' => 'banana', 'fields' => 'some_invalid_field'}
         expect  { 
-          subject.parse_field_params(params) 
+          subject.validate_field_params(params) 
         }.to raise_error BadRequestSearchError, /fields parameter/
       end
       it "returns an array from CSV params" do
         params = {'q' => 'banana', 'fields' => 'title,description'}
         expect(
-          subject.parse_field_params(params)
+          subject.validate_field_params(params)
         ).to eq ['title', 'description']
       end
       
       it "returns nil when no fields param present" do
         params = {'q' => 'banana'}
-        expect(subject.parse_field_params(params)).to eq nil
+        expect(subject.validate_field_params(params)).to eq nil
       end
     end
    
-    describe "#get_search_starting_point" do
+    describe "#search_offset" do
       it "returns starting point based on 'page size' and the start page" do
         params = { "page" => "2", 'page_size' => "5" }
-        expect(subject.get_search_starting_point(params)).to eq (5)
+        expect(subject.search_offset(params)).to eq (5)
       end
 
       it "returns the starting point of 0 when called with non-integer param" do
         params = { "page" => "a" }
-        expect(subject.get_search_starting_point(params)).to eq (0)
+        expect(subject.search_offset(params)).to eq (0)
       end
 
       it "returns the starting point of zero when called with no  page param" do 
         params = {}
-        expect(subject.get_search_starting_point(params)).to eq (0)
+        expect(subject.search_offset(params)).to eq (0)
       end
     end
 
-    describe "#get_search_size" do
+    describe "#search_page_size" do
       it "returns the default page size when a non-integer param is passed" do
         params = { "page_size" => "a" }
-        expect(subject.get_search_size(params)).to eq(Searchable::DEFAULT_PAGE_SIZE)
+        expect(subject.search_page_size(params)).to eq(Searchable::DEFAULT_PAGE_SIZE)
       end
 
       it "returns the desired page size when a valid integer param is passed" do
         params = { "page_size" => "20" }
-        expect(subject.get_search_size(params)).to eq (20)
+        expect(subject.search_page_size(params)).to eq (20)
       end
 
       it "returns the default page size when no search size param is passed" do
         params = {}
-        expect(subject.get_search_size(params)).to eq (Searchable::DEFAULT_PAGE_SIZE)
+        expect(subject.search_page_size(params)).to eq (Searchable::DEFAULT_PAGE_SIZE)
       end
 
       it "returns the default max page size when the search size is greater than the max" do
         huge_size = Searchable::DEFAULT_MAX_PAGE_SIZE + 1
         params = { "page_size" => huge_size }
-        expect(subject.get_search_size(params)).to eq (Searchable::DEFAULT_MAX_PAGE_SIZE)
+        expect(subject.search_page_size(params)).to eq (Searchable::DEFAULT_MAX_PAGE_SIZE)
       end
     end
 
@@ -391,14 +399,14 @@ module V1
       context "fields" do
         it "limits result fields returned" do
           params = {'q' => 'banana',  'fields' => 'title, description' }
-          subject.stub(:parse_field_params) { ["title", "description"] }
+          subject.stub(:validate_field_params) { ["title", "description"] }
           mock_search.should_receive(:fields)
           subject.search(params)
         end
         
         it "does not set field restrictions if not present" do
           params = {'q' => 'banana' }
-          subject.stub(:parse_field_params) { nil }
+          subject.stub(:validate_field_params) { nil }
           mock_search.should_not_receive(:fields)
           subject.search(params) 
         end
@@ -408,8 +416,9 @@ module V1
         it "sorts by field name if present" do
           params = {'q' => 'banana',  'sort_by' => 'title' }
           V1::Schema.stub(:flapping) { stub(:analyzed? => false, :name => 'foo') }
+          subject.should_receive(:build_sort_attributes).with(params) { [] } 
           mock_search.should_receive(:sort)
-          subject.should_receive(:wrap_results)
+          subject.stub(:wrap_results)
           subject.search(params)
         end
 

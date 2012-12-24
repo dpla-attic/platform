@@ -16,6 +16,7 @@
   <li>#2789: <%= link_to nil, v1_api.items_path('sort_by' => 'id') %> Sort: by 'id' field </li>
   <li>#2789: <%= link_to nil, v1_api.items_path('sort_by' => 'id', 'sort_order' => 'desc') %> Sort: by 'id' field descending</li>
   <li>#2789: <%= link_to nil, v1_api.items_path('sort_by' => 'description') %> Sort: by 'description' field, (non-sortable field error) </li>
+  <li>#2789: <%= link_to nil, v1_api.items_path('sort_by' => 'spatial.coordinates', 'sort_by_pin' => '41.3,-71') %> Geo-Sort: Sort by distance from 41.3,-71 (Harvard, New Hampshire, Maine) </li>
   <li>#2890: <%= link_to nil, v1_api.items_path() %> Successful empty search </li> 
   <li>#2890: <%= link_to nil, v1_api.items_path('some_invalid_field' => 'banana') %> Invalid field in query, error in JSON format </li> 
   <li>#2890: <%= link_to nil, v1_api.items_path('some_invalid_field' => 'banana', 'callback' => 'jsPhunktion') %> Invalid field in query, error in JSON format </li> 

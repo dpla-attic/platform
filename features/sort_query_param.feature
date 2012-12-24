@@ -17,3 +17,8 @@ Feature: Sort search results
     When I make an empty search
     And sort by "description"
     Then I should get http status code "400"
+
+  Scenario: geo_point type sort request without required sort_by_pin param
+    When I make an empty search
+    And sort by "spatial.coordinates"
+    Then I should get http status code "400"

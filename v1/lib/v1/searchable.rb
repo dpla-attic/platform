@@ -24,7 +24,7 @@ module V1
     MAXIMUM_FACETS_COUNT = 'not implemented'
 
     # General query params that are not type-specific
-    BASE_QUERY_PARAMS = %w( q controller action sort_by sort_order page page_size facets fields callback ).freeze
+    BASE_QUERY_PARAMS = %w( q controller action sort_by sort_by_pin sort_order page page_size facets fields callback ).freeze
     
     def validate_params(params)
       # Raises exception if any unrecognized search params are present. Query-based 
@@ -45,18 +45,13 @@ module V1
 
         sort_attrs = build_sort_attributes(params)
         search.sort { by(*sort_attrs) } if sort_attrs
-        
-        #canned example to sort by geo_point, unverified
-        # sort do
-        #   by :_geo_distance, 'spatial.coordinates' => [lng, lat], :unit => 'mi'
-        # end
 
         #TODO: size 0 if facets and no query (use q='' to force a global search)
-        search.from get_search_starting_point(params)
-        search.size get_search_size(params)
+        search.from search_offset(params)
+        search.size search_page_size(params)
     
-        field_params = parse_field_params(params)
-        search.fields field_params if field_params
+        field_params = validate_field_params(params)
+        search.fields(field_params) if field_params
         
         # for testability, this block should always return its search object
         search
@@ -67,8 +62,8 @@ module V1
         #puts "CURL: #{search.to_curl}"
         return wrap_results(search)
       rescue Tire::Search::SearchRequestFailed => e
-        #FYI: error = JSON.parse(search.response.body)['error']
-        raise InternalServerSearchError
+        error = JSON.parse(search.response.body)['error'] rescue nil
+        raise InternalServerSearchError, error
       end
     end
 
@@ -80,10 +75,10 @@ module V1
       # Validate sort_by
       sort_by = V1::Schema.flapping('item', sort_by_name)
       if sort_by.nil?
-        raise BadRequestSearchError, "Invalid field(s) specified in sort_by parameter"
+        raise BadRequestSearchError, "Invalid field(s) specified in sort_by parameter: #{sort_by_name}"
       end
       if sort_by.analyzed?
-        raise BadRequestSearchError, "Non-sortable field(s) specified in sort_by parameter"
+        raise BadRequestSearchError, "Non-sortable field(s) specified in sort_by parameter: #{sort_by_name}"
       end
 
       # Validate sort_order
@@ -92,7 +87,15 @@ module V1
         order = DEFAULT_SORT_ORDER 
       end
 
-      [sort_by.name, order]
+      # Special handling for geo_point sorts
+      if sort_by.type == 'geo_point'
+        if params['sort_by_pin'].to_s == ''
+          raise BadRequestSearchError, "Missing required sort_by_pin parameter when sorting on #{sort_by.name}"
+        end
+        ['_geo_distance', { sort_by.name => params['sort_by_pin'], 'order' => order }]
+      else
+        [sort_by.name, order]
+      end
     end
 
     def wrap_results(search)
@@ -145,10 +148,12 @@ module V1
       
       date = Time.at(value/1000).to_date
       final = date.strftime(formats[interval])
+      
+      # round decades down (E.g. 1993 -> 1990)
       (interval == 'decade' ? ((final.to_i * 0.1).floor * 10) : final).to_s
     end
 
-    def parse_field_params(params)
+    def validate_field_params(params)
       return nil unless params['fields'].present?
       fields = params['fields'].split(/,\s*/)
       
@@ -160,12 +165,12 @@ module V1
       fields
     end
     
-    def get_search_starting_point(params)
+    def search_offset(params)
       page = params["page"].to_i
-      page == 0 ? 0 : get_search_size(params) * (page - 1)
+      page == 0 ? 0 : search_page_size(params) * (page - 1)
     end
 
-    def get_search_size(params)
+    def search_page_size(params)
       size = params["page_size"].to_i
       if size == 0
         DEFAULT_PAGE_SIZE
@@ -177,6 +182,7 @@ module V1
     end
 
     def fetch(ids)
+      # Transparently translate "id" values from query to the "_id" values CouchDB expects
       doc_ids = []
       missing_ids = []
       #TODO: construct big "a OR b OR c" query to get all items in one trip to ES

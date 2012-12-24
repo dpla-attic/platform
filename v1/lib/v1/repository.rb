@@ -61,7 +61,12 @@ module V1
 
       V1::StandardDataset.recreate_river!
 
-      db.bulk_save items
+      begin
+        db.bulk_save items
+      rescue RestClient::BadRequest => e
+        error = JSON.parse(e.response) rescue {}
+        raise Exception, "FATAL ERROR: #{error['reason'] || e.to_s}"
+      end
     end
 
     def self.create_read_only_user

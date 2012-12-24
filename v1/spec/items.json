@@ -316,5 +316,25 @@
       "start": "1988-03-01",
       "end": "1988-03-01"
     }
+  },
+  {
+    "_id": "GeoDistance1",
+    "id": "GeoDistance1",
+    "spatial": {
+        "name": "geo_distance1",
+        "coordinates": "43,-71",
+        "state": "NH",
+        "city": "Exeter"
+    }
+  },
+  {
+    "_id": "GeoDistance2",
+    "id": "GeoDistance2",
+    "spatial": {
+        "name": "geo_distance2",
+        "coordinates": "45,-71",
+        "state": "ME",
+        "city": "Errol"
+    }
   }
 ]
