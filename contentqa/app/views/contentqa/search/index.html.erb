@@ -80,8 +80,9 @@
        <% end %>
        <% end %>
     <% end %>
-    <%= link_to "Compare with ingested record", {:controller => "compare", :id => record.fetch('id')}, :class => 'btn' %>
-    
+    <% if record.key? 'id' %>
+    <%=  link_to("Compare with ingested record", {:controller => "compare", :id => record.fetch('id')}, :class => 'btn') %>
+    <% end %>
     <hr/>
     <% end %>
     <%= "No results" if @results.empty? %>
