@@ -4,10 +4,10 @@ require "httparty"
 module Contentqa
   class SearchController < ApplicationController
     include HTTParty
-    PARAMETERS = %w[title description creator type publisher format rights contributor created spatial temporal.after temporal.before isPartOf source id q page_size page ]
-    DISPLAY = %w[id title description creator type publisher format rights contributor created spatial temporal source ingestDate isPartOf]
-    SEARCH = %w[id title description creator type publisher format rights contributor spatial temporal.after temporal.before isPartOf]
-    FACETS = %w[type format language.name spatial.name spatial.state spatial.city  isPartOf.name dplaContributor.name contributor]
+    PARAMETERS = %w[title description creator type publisher format rights contributor created spatial temporal.after temporal.before isPartOf source id q page_size page subject.name]
+    DISPLAY = %w[id title description creator type publisher format rights contributor created spatial temporal source subject ingestDate isPartOf]
+    SEARCH = %w[id title description creator type publisher format rights contributor spatial temporal.after temporal.before subject.name isPartOf]
+    FACETS = %w[type format language.name spatial.name spatial.state spatial.city subject.name isPartOf.name dplaContributor.name contributor]
 
     def index
       baseuri = request.protocol+request.host_with_port() 
