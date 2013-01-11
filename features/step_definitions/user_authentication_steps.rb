@@ -20,8 +20,8 @@ end
 
 When /^I fill in the following:$/ do |table|
   table.hashes.each do |hash|
-    fill_in "Email", :with => hash["Email"]
-    fill_in "Password", :with => hash["Password"]
+    fill_in "user_email", :with => hash["Email"]
+    fill_in "user_password", :with => hash["Password"]
   end
 end
 

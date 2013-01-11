@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '3.2.8'
+gem 'rails', '3.2.11'
 gem 'pg', :require => 'pg'
 gem 'devise', '2.1.2'
 gem 'jquery-rails'
@@ -16,7 +16,7 @@ group :assets do
   gem 'therubyracer', :platforms => :ruby
   gem 'uglifier', '>= 1.0.3'
   gem 'twitter-bootstrap-rails'
-  gem 'less'
+  gem 'less-rails'
 end
 
 gem 'rspec-rails', :group => [:test, :development]
