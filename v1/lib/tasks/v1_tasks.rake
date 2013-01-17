@@ -1,49 +1,75 @@
+require 'v1/standard_dataset'
+require 'v1/repository'
+
 namespace :v1 do
 
-  desc "Creates new ElasticSearch index and populates it with the standard dataset"
+  # NOTE: Any task that makes calls to Tire, must pass the :environment symbol in the task()
+  # call so the Tire initializer gets called.
+
+  desc "Tests river by posting test doc to CouchDB and verifying it in ElasticSearch"
+  task :test_river => :environment do
+    V1::StandardDataset.test_river
+  end
+
+  desc "Re-creates ElasticSearch index and schema"
   task :recreate_search_index => :environment do
-    require 'v1/standard_dataset'
     V1::StandardDataset.recreate_index!
   end
 
-  desc "Gets ES search cluster status"
-  task :search_status do
-    endpoint = V1::Config.get_search_endpoint
-    # silly curl arguments to suppress the progress bar but let errors through
-    puts %x( curl #{endpoint} -s -S )
+  desc "Re-creates ElasticSearch index, schema, river and re-populates index with test dataset"
+  task :recreate_search_env => :environment do
+    V1::StandardDataset.recreate_env!
   end
 
-  desc "Diplays the ElasticSearch search_endpoint the API is configured to use"
-  task :search_endpoint do
-    puts V1::Config.get_search_endpoint
-  end
-
-
-  desc "Diplays the CouchDB repository_endpoint the API is configured to use"
-  task :repository_endpoint do
-    puts V1::Config.get_repository_endpoint
-  end
-
-  desc "Creates new CouchDB database (and River) and populates it with the standard dataset"
-  task :recreate_repo_database => :environment do
-    require 'v1/repository'
-    V1::Repository.recreate_database!
-  end
-
-  desc "Creates new CouchDB River on 'items'"
-  task :recreate_repo_river => :environment do
-    require 'v1/standard_dataset'
+  desc "Creates new ElasticSearch river on 'items'"
+  task :recreate_river => :environment do
     V1::StandardDataset.recreate_river!
   end
 
   desc "Deletes CouchDB River on 'items'"
-  task :delete_repo_river => :environment do
-    require 'v1/standard_dataset'
+  task :delete_river do
     V1::StandardDataset.delete_river!
+  end
+
+  desc "Gets ElasticSearch search cluster status"
+  task :search_status do
+    # silly curl arguments to suppress the progress bar but let errors through
+    puts %x( curl #{ V1::Config.search_endpoint } -s -S )
+  end
+
+  desc "Gets number of docs in search index"
+  task :search_doc_count do
+    puts V1::StandardDataset.doc_count
+  end
+
+  desc "Diplays the ElasticSearch search_endpoint the API is configured to use"
+  task :search_endpoint do
+    puts V1::Config.search_endpoint
+  end
+
+  desc "Diplays the CouchDB repository_endpoint the API is configured to use"
+  task :repo_endpoint do
+    puts V1::Repository.read_only_endpoint
+  end
+
+  desc "Creates new CouchDB database (and river)"
+  task :recreate_repo_database do
+    V1::Repository.recreate_database!
+  end
+
+  desc "Gets number of docs in search index"
+  task :repo_doc_count do
+    puts V1::Repository.doc_count
+  end
+
+  desc "Re-creates CouchDB database, users, river and re-populates Couch with test dataset"
+  task :recreate_repo_env => :environment do
+    V1::Repository.recreate_env!
   end
 
   desc "Verify all required V1 API config files exist"
   task :check_config do
+    require 'dpla'
     if Dpla.check_config( __FILE__, %w( config/elasticsearch/elasticsearch_pointer.yml ) )
       puts "OK. All required V1 API config files present."
     end

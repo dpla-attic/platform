@@ -325,7 +325,7 @@ module V1
     end
 
     describe "#format_results" do
-      it "remaps elasticsearch item wrapper to collapse items to first level with score" do
+      it "reformats results correctly" do
         docs = [{
           "_score" => 1, 
           "_source" => {
@@ -345,7 +345,7 @@ module V1
         )
       end
 
-      it "remaps on fields key when no _source key present" do
+      it "reformats results correctly for a field-limited query" do
         docs = [{
           "_index" => "dpla",
           "_type" => "item",
@@ -357,6 +357,19 @@ module V1
           [{"title" => "banana"}]
         )
       end
+
+      it "reformats results correctly for a field-limited query when the results are missing the requested fields" do
+        docs = [{
+          "_index" => "dpla",
+          "_type" => "item",
+          "_id" => "1",
+          "_score" => 1.0
+        }]
+        expect(subject.format_results(docs)).to match_array(
+          [{}]
+        )
+      end
+
     end
 
     describe "#search" do

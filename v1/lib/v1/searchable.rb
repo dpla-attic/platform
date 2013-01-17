@@ -100,8 +100,7 @@ module V1
 
     def wrap_results(search)
       results = search.results
-
-      { 
+      {
         'count' => results.total,
         'start' => search.options[:from],
         'limit' => search.options[:size],
@@ -116,7 +115,7 @@ module V1
           doc['_source'].delete_if {|k,v| k =~ /^_type/}
           doc['_source'].merge!({'score' => doc['_score']})
         else
-          doc['fields']
+          doc['fields'] || {}
         end
       end
     end

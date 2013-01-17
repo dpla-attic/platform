@@ -19,7 +19,7 @@ module V1
       context "when the dpla config file does not exist" do
         it "it raises an error" do
           File.stub(:expand_path) { '/wrong path' }
-          File.should_receive(:exists?).with('/wrong path') { false }
+          File.stub(:exists?).with('/wrong path') { false }
           expect do
             Config.dpla
           end.to raise_error /No config file found at.*/i
@@ -29,41 +29,39 @@ module V1
       context "when the dpla config file exists but is mal-formed" do
         it "should raise an error" do
           File.stub(:expand_path) { '/dpla.yml' }
-          File.should_receive(:exists?).with('/dpla.yml') { true }
-          YAML.stub(:load_file) { {'no_ES' => 'abc', 'no_cdb' => 'abc'} }
-          expect do
+          File.stub(:exists?).with('/dpla.yml') { true }
+          YAML.stub(:load_file) { {'some_key' => 'abc'} }
+          expect {
             Config.dpla
-          end.to raise_error /Missing proper values in:.*/i
+          }.to raise_error /Missing proper values in:.*/i
         end
       end
 
       context "when the dpla config file includes all valid section headers" do
         it "returns the hash of config values" do
           File.stub(:expand_path) { '/dpla.yml' }
-          File.should_receive(:exists?).with('/dpla.yml') { true }
+          File.stub(:exists?).with('/dpla.yml') { true }
           YAML.stub(:load_file) { {'read_only_user' => 'abc', 'search' => 'abc', 'repository' => 'abc'} }
-          expect(Config.dpla).to have_key("read_only_user") && have_key("repository") && have_key("search")
+          expect( Config.dpla.keys ).to match_array %w( read_only_user repository search )
         end
 
       end
     end
 
-    context "#get_search_endpoint" do
+    context "#search_endpoint" do
 
       it "constructs the correct elasticsearch URL based on explicit values in elasticsearch.yml" do
         config_values = {
           'search' => { 'endpoint' => "http://testhost:9999" }
         }
-
         YAML.stub(:load_file) { config_values }
-
-        Config.get_search_endpoint.should == "http://testhost:9999"
+        expect(Config.search_endpoint).to eq "http://testhost:9999"
       end
 
       it "handles an empty elasticsearch.yml by supplying default values" do
         config_values = {}
         YAML.stub(:load_file) { config_values }
-        expect(Config.get_search_endpoint).to eq "http://0.0.0.0:9200"
+        expect(Config.search_endpoint).to eq "http://0.0.0.0:9200"
       end
 
     end

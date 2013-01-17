@@ -5,10 +5,28 @@ module V1
   describe Repository do
 
     describe "#recreate_database!" do
-      it "uses correct repository URI to delete"
-      it "uses correct repository URI to create"
-      it "recreates the river after recreating the database"
-      it "bulk saves the items dataset"
+      it "uses correct repository URI to delete and delete" do
+        subject.stub(:admin_endpoint_database => 'dbname')
+        couchdb = mock
+        couchdb.should_receive(:delete!)
+        CouchRest.should_receive(:database).with('dbname') { couchdb }
+
+        CouchRest.should_receive(:database!).with('dbname')
+        subject.stub(:create_read_only_user)
+        subject.stub(:lock_down_repository_roles)
+        V1::StandardDataset.stub(:recreate_river!)
+        subject.recreate_database!
+      end
+      
+      it "creates reader user and sets up access rules on DB" do
+        CouchRest.stub(:database) { stub.as_null_object }
+        CouchRest.stub(:database!)
+        subject.should_receive(:create_read_only_user)
+        subject.should_receive(:lock_down_repository_roles)
+        V1::StandardDataset.stub(:recreate_river!)
+        subject.recreate_database!        
+      end
+
     end
 
     describe "#reformat_results" do
@@ -84,6 +102,62 @@ module V1
 
     end
 
+    describe "#import_data_file" do
+      it "calls import_docs with correct params" do
+        data_file = stub
+        processed_input_file = stub
+        V1::StandardDataset.should_receive(:process_input_file).with(nil, data_file) { processed_input_file }
+        subject.should_receive(:import_docs).with(processed_input_file)
+        subject.import_data_file(data_file)
+      end
+    end
+
+    describe "#import_test_dataset" do
+      it "imports test data for all resources" do
+        subject.should_receive(:import_data_file).with(V1::StandardDataset::ITEMS_JSON_FILE)
+        #subject.should_receive(:import_data_file).with(V1::StandardDataset::COLLECTIONS_JSON_FILE)
+        subject.import_test_dataset
+      end
+    end
+
+    describe "#import_docs" do
+      it "imports the correct resource type via the admin endpoint" do
+        subject.stub(:admin_endpoint_database) { 'admin_endpoint/dbname' }
+        couchdb = mock
+
+        CouchRest.should_receive(:database).with("admin_endpoint/dbname") { couchdb }
+        docs = [stub]
+        couchdb.should_receive(:bulk_save).with(docs)
+
+        subject.import_docs(docs)
+      end
+
+      it "raises an Exception if the bulk_save raises a BadRequest exception" do
+        subject.stub(:admin_endpoint_database) { 'admin_endpoint/dbname' }
+        couchdb = mock
+        couchdb.stub(:bulk_save).and_raise RestClient::BadRequest
+
+        CouchRest.stub(:database).with("admin_endpoint/dbname") { couchdb }
+        expect {
+          subject.import_docs([stub])
+        }.to raise_error Exception, /^FATAL ERROR/
+      end
+    end
+
+    describe "#delete_docs" do
+      it "delegates to CouchRest with correct params" do
+        subject.stub(:admin_endpoint_database) { 'admin_endpoint/dbname' }
+        couchdb = mock
+
+        CouchRest.should_receive(:database).with("admin_endpoint/dbname") { couchdb }
+        docs = [stub, stub]
+        # lazy way to test that it calls delete on all elements of docs array param
+        couchdb.should_receive(:delete_doc).with(docs.first)
+        couchdb.should_receive(:delete_doc).with(docs.last)
+
+        subject.delete_docs(docs)        
+      end
+    end
 
     describe "#create_read_only_user" do
       
@@ -124,11 +198,11 @@ module V1
 
       it "should lock down database roles and create design doc for validation" do
         RestClient.should_receive(:put).with(
-          "#{V1::Repository.admin_endpoint}/#{V1::Repository.repository_database}/_security",
+          "#{V1::Repository.admin_endpoint_database}/_security",
           anything()
         )
         RestClient.should_receive(:put).with(
-          "#{V1::Repository.admin_endpoint}/#{V1::Repository.repository_database}/_design/auth",
+          "#{V1::Repository.admin_endpoint_database}/_design/auth",
           anything()
         )
         V1::Repository.lock_down_repository_roles

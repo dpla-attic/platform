@@ -1,8 +1,0 @@
-elasticsearch:
-  username: dpla
-  password: searchM3
-couch_db:
-  admin: couchadmin
-  password: couchM3
-search:
-  endpoint: http://5.9.72.163:9253

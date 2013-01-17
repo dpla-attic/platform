@@ -1,24 +1,21 @@
-require 'inifile'
-
 module V1
 
   module Config
 
-    SEARCH_INDEX = 'dpla'.freeze
+    SEARCH_INDEX = 'dpla'
     REPOSITORY_DATABASE = SEARCH_INDEX
 
-    def self.get_search_endpoint
+    def self.search_endpoint
+      #TODO: should search_endpoint have index name appended?
       search_config = dpla['search']
-      if search_config.nil? || search_config['endpoint'].nil? 
-        endpoint = "http://0.0.0.0:9200"
+      if search_config && search_config['endpoint']
+        search_config['endpoint']
       else
-        endpoint = search_config['endpoint']
+        "http://0.0.0.0:9200"
       end
-      endpoint
     end
 
     def self.dpla
-      #TODO: test
       dpla_config_path = File.expand_path("../../../config/dpla.yml", __FILE__)
 
       raise "No config file found at #{dpla_config_path}" unless File.exists? dpla_config_path 
@@ -37,8 +34,7 @@ module V1
     end
 
     def self.initialize_tire
-      #TODO: test
-      Tire::Configuration.url(get_search_endpoint)
+      Tire::Configuration.url(search_endpoint)
       Tire::Configuration.wrapper(Hash)
       logfile = File.expand_path('../../../../var/log/elasticsearch.log', __FILE__)
       Tire.configure { logger logfile, :level => 'debug' }
