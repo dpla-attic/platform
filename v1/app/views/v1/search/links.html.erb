@@ -1,34 +1,181 @@
-<ul>
-  <li>UC001: <%= link_to nil, v1_api.items_path('q' => 'banana') %> </li>
-  <li>UC001: <%= link_to nil, v1_api.items_path('q' => 'perplexed', 'callback' => 'jsPhunktion') %> (as JSONP) </li>
-  <li>UC002: <%= link_to nil, v1_api.items_path('title' => 'banana') %> </li>
-  <li>UC002: <%= link_to nil, v1_api.items_path('description' => 'notfound OR three', 'subject' => 'doodle') %>
-  <li>UC002: <%= link_to nil, v1_api.items_path('description' => 'banana') %> (zero results)</li>
-  <li>UC003: <%= link_to nil, v1_api.items_path('temporal.after' => '1950-01-01') %> (A, B, C)</li>
-  <li>UC003: <%= link_to nil, v1_api.items_path('temporal.before' => '1955-07-15', 'callback' => 'jsPhunktion') %> (A, B, D as JSONP)</li>
-  <li>UC003: <%= link_to nil, v1_api.items_path('temporal.after' => '1800-01-01', 'temporal.before' => '1850-12-31') %> (zero results)</li>
-  <li>UC004: <%= link_to nil, v1_api.items_path('spatial' => 'Cambridge') %> M (recursive spatial)</li>
-  <li>UC004: <%= link_to nil, v1_api.items_path('spatial.city' => 'Cambridge') %> M </li>
-  <li>UC004: <%= link_to nil, v1_api.items_path('spatial.coordinates' => '42.3,-71') %> M (default distance)</li>
-  <li>UC004: <%= link_to nil, v1_api.items_path('spatial.coordinates' => '41,-71', 'spatial.distance' => '100mi') %> M (bigger range)</li>
-  <li>#2788: <%= link_to nil, v1_api.items_path('q' => 'banana', 'page_size' => '2') %> Pagination: page size </li> 
-  <li>#2788: <%= link_to nil, v1_api.items_path('q' => 'banana', 'page_size' => '3', 'page' => '3') %> Pagination: page size &amp; page offset</li> 
-  <li>#2789: <%= link_to nil, v1_api.items_path('sort_by' => 'id') %> Sort: by 'id' field </li>
-  <li>#2789: <%= link_to nil, v1_api.items_path('sort_by' => 'id', 'sort_order' => 'desc') %> Sort: by 'id' field descending</li>
-  <li>#2789: <%= link_to nil, v1_api.items_path('sort_by' => 'description') %> Sort: by 'description' field, (non-sortable field error) </li>
-  <li>#2789: <%= link_to nil, v1_api.items_path('sort_by' => 'spatial.coordinates', 'sort_by_pin' => '41.3,-71') %> Geo-Sort: Sort by distance from 41.3,-71 (Harvard, New Hampshire, Maine) </li>
-  <li>#2890: <%= link_to nil, v1_api.items_path() %> Successful empty search </li> 
-  <li>#2890: <%= link_to nil, v1_api.items_path('some_invalid_field' => 'banana') %> Invalid field in query, error in JSON format </li> 
-  <li>#2890: <%= link_to nil, v1_api.items_path('some_invalid_field' => 'banana', 'callback' => 'jsPhunktion') %> Invalid field in query, error in JSON format </li> 
-  <li>#2790: <%= link_to nil, v1_api.items_path('fields' => 'title,description') %> Specify fields in results</li>
-  <li>UC008: <%= link_to nil, "#{v1_api.items_path}/aaa,bbb" %> A, B</li>
-  <li>UC008: <%= link_to nil, "#{v1_api.items_path}/aaa,bbb,ccc" %> A, B, C(Error Stub)</li>
-  <li>UC008: <%= link_to nil, "#{v1_api.items_path}/aaa" %> A</li>
-  <li>#2973: <%= link_to nil, "#{v1_api.items_path('facets' => 'created')}" %> Date facet on created</li>
-  <li>#2973: <%= link_to nil, "#{v1_api.items_path('facets' => 'created.year')}" %> Date facet on created.year (interval)</li>
-  <li>#2973: <%= link_to nil, "#{v1_api.items_path('facets' => 'temporal.start')}" %> Date facet on temporal.start</li>
-  <li>#2973: <%= link_to nil, "#{v1_api.items_path('facets' => 'temporal.start.year')}" %> Date facet on temporal.start.year (interval)</li>
-  <li>#2975: <%= link_to nil, "#{v1_api.items_path('facets' => 'dplaContributor')}" %> Facet on dplaContributor (auto-expand)</li>
-  <li>#2975: <%= link_to nil, "#{v1_api.items_path('facets' => 'isPartOf')}" %> Facet on isPartOf</li>
-  <li>#2975: <%= link_to nil, "#{v1_api.items_path('facets' => 'dplaContributor,isPartOf')}" %> Facet on dplaContributor, isPartOf</li>
-</ul>
+<table border="1" width="1000px">
+  <tr>
+    <th>Use-case or<br/>Redmine #</th> 
+    <th>Example URL</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>UC001</td> 
+    <td><%= link_to nil, v1_api.items_path('q' => 'banana') %> </td>
+    <td>Free text search</td>
+  </tr>
+  <tr>
+    <td>UC001</td> 
+    <td><%= link_to nil, v1_api.items_path('q' => 'perplexed', 'callback' => 'jsPhunktion') %></td>
+    <td>Free text search wrapped with JSONP </td>
+  </tr>
+  <tr>
+    <td>UC002</td> 
+    <td><%= link_to nil, v1_api.items_path('title' => 'banana') %> </td>
+    <td>Field-specific search</td>
+    </tr>
+  <tr>
+    <td>UC002</td> 
+    <td><%= link_to nil, v1_api.items_path('description' => 'notfound OR three', 'subject' => '*doodle') %>
+    <td>Field-specific boolean search, normal field-specific search (w/wildcard because it is not_analyzed)</td>
+  </tr>
+  <tr>
+    <td>UC002</td>
+    <td><%= link_to nil, v1_api.items_path('description' => 'banana') %></td>
+    <td>(zero results)</td>
+  <tr>
+    <td>UC003</td>
+    <td><%= link_to nil, v1_api.items_path('temporal.after' => '1950-01-01') %></td>
+    <td>(A, B, C)</td>
+  </tr>
+  <tr>
+    <td>UC003</td>
+    <td><%= link_to nil, v1_api.items_path('temporal.before' => '1955-07-15', 'callback' => 'jsPhunktion') %></td>
+    <td>(A, B, D as JSONP)</td>
+  </tr>
+  <tr>
+    <td>UC003</td>
+    <td><%= link_to nil, v1_api.items_path('temporal.after' => '1800-01-01', 'temporal.before' => '1850-12-31') %></td>
+    <td>(temporal date range, zero results)</td>
+  </tr>
+  <tr>
+    <td>UC004</td>
+    <td><%= link_to nil, v1_api.items_path('spatial' => 'Cambridge') %></td>
+    <td>M (spatial search, auto-expanded to search all spatial subfields)</td>
+  </tr>
+  <tr>
+    <td>UC004</td>
+    <td><%= link_to nil, v1_api.items_path('spatial.city' => 'Cambridge') %></td>
+    <td>M </td>
+  </tr>
+  <tr>
+    <td>UC004</td>
+    <td><%= link_to nil, v1_api.items_path('spatial.coordinates' => '42.3,-71') %></td>
+    <td>M (default range)</td>
+  </tr>
+  <tr>
+    <td>UC004</td>
+    <td><%= link_to nil, v1_api.items_path('spatial.coordinates' => '41,-71', 'spatial.distance' => '100mi') %></td>
+    <td>M (specific range expressed in miles)</td>
+  </tr>
+  <tr>
+    <td>#2788</td>
+    <td><%= link_to nil, v1_api.items_path('q' => 'title', 'page_size' => '2') %></td>
+    <td>Pagination: page size </td> 
+  </tr>
+  <tr>
+    <td>#2788</td>
+    <td><%= link_to nil, v1_api.items_path('q' => 'title', 'page_size' => '2', 'page' => '2') %></td>
+    <td>Pagination: page size &amp; page offset</td> 
+  </tr>
+  <tr>
+    <td>#2789</td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'id') %></td>
+    <td>Sort: by 'id' field </td>
+  </tr>
+  <tr>
+    <td>#2789</td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'id', 'sort_order' => 'desc') %></td>
+    <td>Sort: by 'id' field descending</td>
+  </tr>
+  <tr>
+    <td>#2789</td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'description') %></td>
+    <td>Sort: by 'description' field, (HTTP 400 error: non-sortable field) </td>
+  </tr>
+  <tr>
+    <td>#2789</td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'spatial.coordinates', 'sort_by_pin' => '41.3,-71') %></td>
+    <td>Geo-Sort: Sort by distance from a "sort_by_pin" of 41.3,-71 (Harvard, New Hampshire, Maine) </td>
+  </tr>
+  <tr>
+    <td>#2890</td>
+    <td><%= link_to nil, v1_api.items_path() %></td>
+    <td>Successful empty search </td> 
+  </tr>
+  <tr>
+    <td>#2890</td>
+    <td><%= link_to nil, v1_api.items_path('some_invalid_field' => 'banana') %></td>
+    <td>Invalid field in query</td> 
+  </tr>
+  <tr>
+    <td>#2890</td>
+    <td><%= link_to nil, v1_api.items_path('some_invalid_field' => 'banana', 'callback' => 'jsPhunktion') %></td>
+    <td>Invalid field in query, error in JSONP </td> 
+  </tr>
+  <tr>
+    <td>#2790</td>
+    <td><%= link_to nil, v1_api.items_path('fields' => 'title,description') %></td>
+    <td>Specify fields in results</td>
+  </tr>
+  <tr>
+    <td>UC008</td>
+    <td><%= link_to nil, v1_api.items_path + '/aaa' %></td>
+    <td>Fetch id: A</td>
+  </tr>
+  <tr>
+    <td>UC008</td>
+    <td><%= link_to nil, v1_api.items_path + '/aaa,bbb' %></td>
+    <td>Fetch ids: A, B</td>
+  </tr>
+  <tr>
+    <td>UC008</td>
+    <td><%= link_to nil, v1_api.items_path + '/aaa,bbb,ccc' %></td>
+    <td>Fetch ids: A, B, C (404 for 'C')</td>
+  </tr>
+  <tr>
+    <td>#2973</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'created') %></td>
+    <td>Date facet on created</td>
+  </tr>
+  <tr>
+    <td>#2973</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'created.year') %></td>
+    <td>Date facet on created.year (interval)</td>
+  </tr>
+  <tr>
+    <td>#2973</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'temporal.start') %></td>
+    <td>Date facet on temporal.start</td>
+  </tr>
+  <tr>
+    <td>#2973</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'temporal.start.year') %></td>
+    <td>Date facet on temporal.start.year (interval)</td>
+  </tr>
+  <tr>
+    <td>#2974</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'spatial.coordiantes:42.3:-71') %></td>
+    <td>Geo-distance facet typo (HTTP 400 error)</td>
+  </tr>
+  <tr>
+    <td>#2974</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'spatial.coordinates:42.3:-71') %></td>
+    <td>Geo-distance facet with default range size</td>
+  </tr>
+  <tr>
+    <td>#2974</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'spatial.coordinates:42.3:-71:12km') %></td>
+    <td>Geo-distance facet with specific range value and range units</td>
+  </tr>
+  <tr>
+    <td>#2975</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'dplaContributor') %></td>
+    <td>Facet on dplaContributor (auto-expanded)</td>
+  </tr>
+  <tr>
+    <td>#2975</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'isPartOf') %></td>
+    <td>Facet on isPartOf (auto-expanded)</td>
+  </tr>
+  <tr>
+    <td>#2975</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'dplaContributor,isPartOf') %></td>
+    <td>Facet on dplaContributor, isPartOf (multiple auto-expanded)</td>
+  </tr>
+</table>

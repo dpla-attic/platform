@@ -55,7 +55,6 @@ module V1
             next if mapping.nil?  #skip unmapped fields, including spatial.distance
             # temporal.after and created.after won't have a mapping, and are handled elsewhere
 
-            #BUG: The $field:$value field query breaks when $value contains a colon
             # subfield search
             if field =~ /(.+)\.(.+)/
               next if mapping[:type] == 'geo_point'  #build geo search elsewhere

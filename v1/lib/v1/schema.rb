@@ -1,5 +1,4 @@
 require 'v1/schema/field'
-require 'v1/searchable/facet'
 
 module V1
 
@@ -45,7 +44,7 @@ module V1
                 'state' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
                 'city' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
                 'iso3166-2' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
-                'coordinates' => { :type => "geo_point", 'index' => 'not_analyzed'}
+                'coordinates' => { :type => "geo_point", 'index' => 'not_analyzed', 'facet' => true }
               }
             },
             'temporal' => {
@@ -70,8 +69,7 @@ module V1
             },
             'contributor' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
             'dplaSourceRecord' => {
-              # completely omit dplaSourceRecord from the index
-              'enabled' => false
+              'enabled' => false  # completely omit dplaSourceRecord from the index
             }
           }
         }
@@ -82,40 +80,31 @@ module V1
       mapping('item', field)
     end
 
-    def self.flapping(resource, field)
+    def self.flapping(resource, name, modifier=nil)
       # A "resource" is a top-level DPLA resource: 'item', 'collection', 'creator'
-      #TODO: base.merge! ELASTICSEARCH_MAPPING['mappings']
-      field = field.to_s if field
-      #base = ELASTICSEARCH_MAPPING['mappings']
-      resourced_mapping = ELASTICSEARCH_MAPPING['mappings'][resource]['properties']
+      name = name.to_s
 
-      if field =~ /(.+)\.(.+)/
-        # TODO: is this a subfield, or a parent field with a query option?
-        # if $field has a mapping
-        #   return it
-        # else
-        #   strip the last word off and see if the remaining string has a mapping
-        #   if it does, set that field object's options with whatever we stripped off the end
-        #     (.after for a created.after date query, for example.
-        #   else
-        #     return nil i guess/
-        #   end
-        # end
-        # mapping for a dotted field name: e.g. "spatial.city"
+      mapped_fields = ELASTICSEARCH_MAPPING['mappings'][resource]['properties']
+
+      if name =~ /(.+)\.(.+)/
+        #TODO:IDEA: We could strip of trailing dotted modifiers (e.g. created.year) to get down to
+        # a valid field, then store that modifier string in the Field instance...
 
         #TODO: temporary hack to handle $validfield.$some_invalid_subfield situation
-        V1::Schema::Field.new(resource, field, resourced_mapping[$1]['properties'][$2]) if resourced_mapping[$1]['properties'] && resourced_mapping[$1]['properties'][$2]
+        if mapped_fields[$1] && mapped_fields[$1]['properties'] && mapped_fields[$1]['properties'][$2]
+          # This is a subfield
+          return V1::Schema::Field.new(resource, name, mapped_fields[$1]['properties'][$2], modifier)
+        end
       else
-        # mapping for a single field within a single resource
-        #base[resource]['properties'][field] rescue nil
-        V1::Schema::Field.new(resource, field, resourced_mapping[field]) if resourced_mapping[field]
+        # mapping for a top-level field
+        if mapped_fields[name]
+          return V1::Schema::Field.new(resource, name, mapped_fields[name], modifier)
+        end
       end
     end
 
     def self.mapping(resource=nil, field=nil)
       # A "resource" is a top-level DPLA resource: 'item', 'collection', 'creator'
-      #TODO: base = Hash.new { |h, k| h[k] = Hash.new({}) }  # untested
-      #TODO: base.merge! ELASTICSEARCH_MAPPING['mappings']
       base = ELASTICSEARCH_MAPPING['mappings']
 
       # Standardize on strings
@@ -139,6 +128,7 @@ module V1
 
     def self.queryable_fields
       # Renders mapping into a list of fields and $field.subfields
+      #TODO: Refactor to use Field class and subfields
       fields = []
       mapping.each do |type, type_mapping|
         type_mapping['properties'].each do |field, field_mapping|
@@ -165,34 +155,6 @@ module V1
         end
       end
       fields
-    end
-
-    def self.expand_facet_fields(resource, fields)
-      # Expands a list of fields into all facetables fields and those fields' facetable subfields
-      #TODO: Refactor some this into field.facetable_fields=[]
-      #TODO: support wildcard facet '*'
-      expanded = []
-      fields.each do |field_name|
-        field = flapping(resource, field_name)
-
-        new_facets = []
-        if field.nil?
-          # allow unmapped fields to pass through so they can be handled elsewhere
-          new_facets << field_name
-        else
-          # top level field is facetable
-          new_facets << field_name if field.facetable?
-
-          field.subfields.each do |subfield|
-            new_facets << "#{field.name}.#{subfield.name}" if subfield.facetable?
-          end
-        end
-        # If nothing has shaken out for this field, persist it so it gets flagged by validation elsehwere
-        new_facets << field_name if new_facets.empty?
-
-        expanded << new_facets
-      end
-      expanded.flatten
     end
 
   end

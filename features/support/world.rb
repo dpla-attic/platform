@@ -2,6 +2,7 @@ module CukeApiHelper
 
   def compute_facets(facets, query_string=nil)
     # Delicately massage query results facets structure into something more testable
+    #TODO: Should probably be named compute_facet_counts
     dataset = JSON.parse(load_dataset)
     source = {}
     # for each facet they want to test

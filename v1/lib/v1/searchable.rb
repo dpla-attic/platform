@@ -39,9 +39,10 @@ module V1
     def search(params={})
       validate_params(params)
       search = Tire.search(V1::Config::SEARCH_INDEX) do |search|
-        got_queries = true if V1::Searchable::Query.build_all(search, params)
-        got_queries = true if V1::Searchable::Filter.build_all(search, params)
-        got_queries = true if V1::Searchable::Facet.build_all(search, params, !got_queries)
+        queries_ran = []
+        queries_ran << V1::Searchable::Query.build_all(search, params)
+        queries_ran << V1::Searchable::Filter.build_all(search, params)
+        queries_ran << V1::Searchable::Facet.build_all(search, params, queries_ran.empty?)
 
         sort_attrs = build_sort_attributes(params)
         search.sort { by(*sort_attrs) } if sort_attrs
@@ -123,17 +124,19 @@ module V1
     def format_facets(facets)
       return [] unless facets
       facets.each do |name, payload|
-        if payload['_type'] == 'date_histogram' &&
-            name =~ /(.+)\.(.*)$/ &&
-            V1::Searchable::Facet::DATE_INTERVALS.include?($2)
+        if payload['_type'] == 'date_histogram'
+          # TODO: We probably need to be stricter about what is definitely a field and
+          # what is probably an interval here.
+          name =~ /(.+)\.(.*)$/
           payload['entries'].each do |value_hash|
-            value_hash['time'] = format_date_facet($2, value_hash['time'])
+            value_hash['time'] = format_date_facet(value_hash['time'], $2)
           end
         end
       end
     end
 
-    def format_date_facet(interval, value)
+    def format_date_facet(value, interval=nil)
+      #TODO: Move to Facet module maybe
       formats = {
         'day' => '%F',
         'month' => '%Y-%m',
@@ -142,11 +145,12 @@ module V1
         'century' => '%C00'
       }      
 
-      # just return their value if we can't format it
-      return value unless formats[interval]
-      
-      date = Time.at(value/1000).to_date
-      final = date.strftime(formats[interval])
+      format = formats[interval] || '%F'
+
+      # temporary hack to work around ElasticSearch adjusting timezones and breaking our dates
+      offset = 5 * 60 * 60 * 1000 #5 hours in milliseconds
+      date = Time.at( (value+offset)/1000 ).to_date
+      final = date.strftime(format)
       
       # round decades down (E.g. 1993 -> 1990)
       (interval == 'decade' ? ((final.to_i * 0.1).floor * 10) : final).to_s

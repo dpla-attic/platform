@@ -18,21 +18,28 @@ Then /^the "(.*?)" terms facets contains items for every unique field within the
   end
 end
 
-Then /^the "(.*?)" date facets contains items for every unique field within the (search index|results set)$/ do |facet_list, junk|
-#   @facets = facet_list.split(/,\s*/)
-#   @source = compute_facets(@facets, @query_string)
-#   puts "SOURCE: #{@source.pretty_inspect}"
-#   @facets.each do |facet|
-#     puts "HEY: #{@results['facets'][facet]['entries'].pretty_inspect}"
-# #    puts @results['facets'][facet]['entries'].map {|f| f['time'] }
-#     expect(
-#            @results['facets'][facet]['entries'].map {|f| f['time'] }
-#            ).to match_array @source[facet].keys
-#   end
+Then /^the "(.*?)" date facet contains items for every unique field within the (search index|results set)$/ do |facet_list, junk|
+  @facets = facet_list.split(/,\s*/)
+  @source = compute_facets(@facets, @query_string)
+
+  @facets.each do |facet_name|
+    # Simplify structure of this facet, from the results set
+    returned_facets = @results['facets'][facet_name]['entries'].inject({}) do |memo, tuple|
+      memo[tuple['time']] = tuple['count']
+      memo
+    end
+
+    # Compare hashes
+    expect( returned_facets ).to eq @source[facet_name]
+  end
+
 end
 
-Then /^each item within each facet contains a count of matching items$/ do
+#TODO: These steps, and the corresponding uc010 feature, could use some consolidation
+Then /^each item within each facet contains a count of matching "(.*)" facet items$/ do |facet_type|
   @facets.each do |facet|
+    # puts "FACET: #{facet}"
+    # puts "SRCET: #{@source[facet]}"
     expect(
            @results['facets'][facet]['terms'].map {|f| [f['term'], f['count']] }.flatten
            ).to match_array @source[facet].flatten

@@ -295,31 +295,35 @@ module V1
     describe "#format_date_facet" do
       let(:epoch) { 946702800000 }
 
+      it "defaults to YYYY-MM-DD" do
+        expect(subject.format_date_facet(epoch)).to eq '2000-01-01'
+      end
+
       it "formats day facets correctly" do
-        expect(subject.format_date_facet('day', epoch)).to eq '2000-01-01'
+        expect(subject.format_date_facet(epoch, 'day')).to eq '2000-01-01'
       end
         
       it "formats month facets correctly" do
-        expect(subject.format_date_facet('month', epoch)).to eq '2000-01'
+        expect(subject.format_date_facet(epoch, 'month')).to eq '2000-01'
       end
         
       it "formats year facets correctly" do
-        expect(subject.format_date_facet('year', epoch)).to eq '2000'
+        expect(subject.format_date_facet(epoch, 'year')).to eq '2000'
       end
         
       it "formats decade facets correctly" do
         date1993 = Date.new(1993,1,1).to_time.to_i * 1000
-        expect(subject.format_date_facet('decade', date1993)).to eq '1990'
+        expect(subject.format_date_facet(date1993, 'decade')).to eq '1990'
       end
         
       it "formats century facets correctly" do
         date1993 = Date.new(1993,1,1).to_time.to_i * 1000
-        expect(subject.format_date_facet('century', date1993)).to eq '1900'
+        expect(subject.format_date_facet(date1993, 'century')).to eq '1900'
       end
 
       it "returns input value unchanged when interval is not recognized" do
         date1993 = Date.new(1993,1,1).to_time.to_i * 1000
-        expect(subject.format_date_facet('fake-interval', date1993)).to eq date1993
+        expect(subject.format_date_facet(date1993, 'fake-interval')).to eq '1993-01-01'
       end
 
     end
@@ -388,7 +392,7 @@ module V1
 
       it "uses V1::Config::SEARCH_INDEX for its search index" do
         params = {'q' => 'banana'}
-        Tire.should_receive(:search).with(V1::Config::SEARCH_INDEX) #.and_yield(mock_search)
+        Tire.should_receive(:search).with(V1::Config::SEARCH_INDEX)
         subject.search(params)
       end
 

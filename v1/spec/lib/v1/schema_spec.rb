@@ -161,41 +161,54 @@ module V1
           expect(queryable_fields).not_to include 'someBlob'
         end
       end
-      
-      describe "#expand_facet_fields" do
-        it "returns all facetable subfields for a non-facetable field" do
-          expect(
-                 V1::Schema.expand_facet_fields('item', %w( field2 ) )
-                 ).to match_array %w( field2.sub2a )
-        end
-        it "returns a facetable field with no subfields" do
-          expect(
-                 V1::Schema.expand_facet_fields('item', %w( id ) )
-                 ).to match_array %w( id )
-        end
-        it "includes a non-facetable field with no facetable subfields for validation to flag later" do
-          expect(
-                 V1::Schema.expand_facet_fields('item', %w( description ) )
-                 ).to match_array %w( description )
-        end
-        it "supports multi_field types correctly" do
-          expect(
-                 V1::Schema.expand_facet_fields('item', %w( isPartOf ) )
-                 ).to match_array %w( isPartOf.@id isPartOf.name )
-        end
-        it "supports nested date field" do
-          expect(
-                 V1::Schema.expand_facet_fields('item', %w( temporal.start ) )
-                 ).to match_array %w( temporal.start )
-        end
-        it "returns the correct values when called with a mix of fields" do
-          # Make this the sum of all the above tests
-          expect(
-                 V1::Schema.expand_facet_fields('item', %w( field2 spatial id description isPartOf ) )
-                 ).to match_array %w( field2.sub2a id spatial.iso3166-2 description isPartOf.@id isPartOf.name )
+
+      describe "#flapping" do
+        let(:item_mapping) { mock_mapping['mappings']['item']['properties'] }
+
+        it "creates a top level field correctly" do
+          fieldstub = stub
+          name = 'title'
+          V1::Schema::Field.should_receive(:new)
+            .with('item',
+                  name,
+                  item_mapping[name],
+                  nil
+                  ) { fieldstub }
+          expect(V1::Schema.flapping('item', name)).to eq fieldstub
         end
 
-      end
+        it "creates a subfield field correctly" do
+          subfieldstub = stub
+          name = 'temporal.start'
+          V1::Schema::Field.should_receive(:new)
+            .with(
+                  'item',
+                  name,
+                  item_mapping['temporal']['properties']['start'],
+                  nil
+                  ) { subfieldstub }
+          expect(V1::Schema.flapping('item', name)).to eq subfieldstub
+        end
+
+        it "calls Field.new with correct params" do
+          fieldstub = stub
+          name = 'title'
+          V1::Schema::Field.should_receive(:new)
+            .with('item',
+                  name,
+                  item_mapping[name],
+                  '.some_extra'
+                  ) { fieldstub }
+          expect(V1::Schema.flapping('item', name, '.some_extra')).to eq fieldstub
+        end
+
+        it "returns nil for an unrecognized mapping" do
+          name = 'some_invalid_field'
+          V1::Schema::Field.should_not_receive(:new)
+          expect(V1::Schema.flapping('item', name)).to eq nil
+        end 
+
+      end      
 
     end
 
