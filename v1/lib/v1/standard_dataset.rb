@@ -16,7 +16,6 @@ module V1
     def self.recreate_env!
       recreate_index!
       import_test_dataset
-      puts "ElasticSearch docs: #{ doc_count }"
       recreate_river!
     end
 

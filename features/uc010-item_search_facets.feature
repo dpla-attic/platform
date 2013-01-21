@@ -44,6 +44,12 @@ Feature: Search the DPLA using facets (UC010)
     Then the API returns the "temporal.start.year" facets
       And I should get http status code "200"
 
+  Scenario: Test scenario
+    When I make an empty search
+      And request the "temporal.end" facet
+    Then the API returns the "temporal.end" facets
+      And I should get http status code "200"
+
   Scenario: Retrieve geo_distance facet
     When I make an empty search
       And request the "spatial.coordinates:42.3:-71:10mi" facet

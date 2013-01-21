@@ -85,6 +85,11 @@
   </tr>
   <tr>
     <td>#2789</td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'created') %></td>
+    <td>Sort: by 'created' date field </td>
+  </tr>
+  <tr>
+    <td>#2789</td>
     <td><%= link_to nil, v1_api.items_path('sort_by' => 'description') %></td>
     <td>Sort: by 'description' field, (HTTP 400 error: non-sortable field) </td>
   </tr>

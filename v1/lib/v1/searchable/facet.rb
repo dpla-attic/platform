@@ -19,7 +19,7 @@ module V1
       #TODO: Add support for integer and integer+unit(h|d|w) intervals or just let any
       # suffix through and let ElasticSearch complain if it is not valid
       # ElasticSearch's built-in intervals
-      DATE_INTERVALS = %w( year month week day )
+      DATE_INTERVALS = %w( year quarter month week day )
 
       def self.build_all(search, params, global=false)
         # Returns boolean for "did we create any facets?"
@@ -28,7 +28,6 @@ module V1
         requested = params['facets'].to_s.split(/,\s*/)
         return false if requested.empty?
 
-        #TODO: something here does not correctly support temporal.start.year
         requested = expand_facet_fields('item', requested)
 
         requested.each do |name|
@@ -43,10 +42,10 @@ module V1
           facet_name = field.name
           facet_name += ".#{field.facet_modifier}" if field.date? && field.facet_modifier
 
-          #TODO: refactor facet_options now that we have facet_modifier
           options = facet_options(field)
 
           type = facet_type(field)
+          # geo_distance facets get called differently than other types of facets
           if type == 'geo_distance'
             facet_params = [type, options]
           else
@@ -91,16 +90,27 @@ module V1
             'unit' => bucket_size =~ /([a-z]{2})$/ ? $1 : 'mi'
           }
         elsif field.date?
-          #TODO: strip date intervals upstream, in build_all
-          # date field name with an interval
-          options = date_facet_options(field.name)
-          #TODO: how do we want to handle timezones here?
-          #options[:post_zone] = '05:00'  #Do we need this now that we format all date facet results?
-        else
-          # string or anything else that does not need any options
-          options = {}
+          # Grab interval from date facet if it looks like one
+          # Tire requires symbol keys in this hash
+
+          # Tire defaults to 'day' too, but we set it here to improve testability
+          default_interval = 'day'
+          
+          if field.facet_modifier
+            if DATE_INTERVALS.include?(field.facet_modifier)
+              #TODO: how do we want to handle timezones here?
+              options = {:interval => field.facet_modifier } 
+#              options[:pre_zone] = '-12:00'
+#              options[:pre_zone_adjust_large_interval] = true
+            else
+              raise BadRequestSearchError, "Date facet '#{field.name}.#{field.facet_modifier}' has invalid interval"
+            end
+          else
+            options = {:interval => default_interval } 
+          end
         end
-        options
+
+        options || {}
       end
 
       def self.geo_facet_ranges(bucket_modifier)
@@ -120,47 +130,6 @@ module V1
         [ { 'to' => size }, *ranges, { 'from' => max_buckets * size + size } ]
       end
 
-      def self.date_facet_options(name)
-        # TODO: allow arbitrary intervals (2d, 520w, etc.)
-        interval = date_interval(name)
-        # Tire requires symbols for keys here
-        interval.any? ? {:field => interval.first, :interval => interval.last} : {}
-      end
-
-      def self.date_interval(name)
-        #TODO: Deprecated - use parse_facet_name higher upstream
-        # Parses date interval if present
-        (name =~ /(.+)\.(.*)$/ && DATE_INTERVALS.include?($2)) ? [$1, $2] : []
-      end
-
-      # def self.validate_params(names)
-      #   # Validates that all requested facet fields are facetable.
-      #   invalid = names.select do |name|
-      #     original = name
-
-      #     # strip interval string off date facet before checking if they are facetable
-      #     interval = date_interval(name)
-      #     name = interval.first if interval.first
-
-      #     # strip geo facet modifiers
-      #     if name =~ /^(.+?):.+/
-      #       name = $1
-      #       geo_field = V1::Schema.flapping('item', name)
-      #       if geo_field.nil? or !geo_field.geo_point?
-      #         raise BadRequestSearchError, "Facet '#{name}' looks like geo_distance facet, but it is invalid"
-      #       end
-      #     end
-
-      #     # return original string if base field fails facetable? test
-      #     field = V1::Schema.flapping('item', name)
-      #     original if !(field && field.facetable?)
-      #   end
-
-      #   if invalid.any?
-      #     raise BadRequestSearchError, "Invalid field(s) specified in facets param: #{invalid.join(',')}"
-      #   end
-      # end
-
       def self.facet_type(field)
         # Returns correct facet type based on field type. Defaults to terms.
         # Expects valid Field instance
@@ -172,7 +141,7 @@ module V1
       end
 
       def self.facet_field(field)
-        # Determines what field (not name) to use for different types of facets
+        # Determines what field (not name) to tell ElasticSearch to use for a facet on this field
         # Expects valid Field instance
         if field.multi_fields.any? {|mf| (mf.name == field.name + '.raw') && mf.facetable?}
           # facetable multi_field with our standard .raw subfield

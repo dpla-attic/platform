@@ -9,7 +9,7 @@ module V1
       context "Constants" do
         describe "DATE_INTERVALS" do
           it "has the correct value" do
-            expect(subject::DATE_INTERVALS).to match_array( %w( year month week day ) )
+            expect(subject::DATE_INTERVALS).to match_array( %w( year quarter month week day ) )
           end
         end
       end
@@ -21,55 +21,6 @@ module V1
         end
         it "calls the search.facet block with the correct params"
       end
-
-      # describe "#validate_params" do
-      #   it "does not raise error when all params are facetable" do
-      #     V1::Schema::Field.any_instance.stub(:facetable?) { true }
-      #     expect {
-      #       subject.validate_params(['title'])
-      #     }.not_to raise_error BadRequestSearchError
-      #   end
-      #   it "does not raise error when params is empty" do
-      #     expect {
-      #       subject.validate_params([])
-      #     }.not_to raise_error BadRequestSearchError
-      #   end
-      #   context "date facets" do
-      #     it "does not raise error for a valid temporal date facet" do
-      #       expect {
-      #         subject.validate_params(['temporal.start'])
-      #       }.not_to raise_error BadRequestSearchError
-      #     end
-      #     it "does not raise error for a valid temporal date facet and interval" do
-      #       expect {
-      #         subject.validate_params(['temporal.start.month'])
-      #       }.not_to raise_error BadRequestSearchError
-      #     end
-      #     it "does not raise error for a valid date facet and interval" do
-      #       expect {
-      #         subject.validate_params(['created.year'])
-      #       }.not_to raise_error BadRequestSearchError
-      #     end
-      #     it "raises an error for a valid date facet and an invalid interval/trailing-junk" do
-      #       expect {
-      #         subject.validate_params(['created.invalid_interval_name'])
-      #       }.to raise_error BadRequestSearchError
-      #     end
-      #   end
-      #   context "geo facets" do
-      #     it "does not raise error for a valid geo facet with modifiers" do
-      #       expect {
-      #         subject.validate_params(['spatial.coordinates:41:-71:20mi'])
-      #       }.not_to raise_error BadRequestSearchError
-      #     end
-      #     it "raises an error for geo_point-formatted params on non-geo_point (or invalid) fields" do
-      #       expect {
-      #         subject.build_all(stub, {'facets' => 'foo.bar:42:-71:50mi'})
-      #       }.to raise_error /Facet 'foo.bar' looks like geo_distance facet, but it is invalid/i
-      #     end
-
-      #   end
-      # end
 
       describe "#parse_facet_name" do
         it "returns the result of V1::Schema.flapping" do
@@ -101,13 +52,13 @@ module V1
 
       describe "#facet_options" do
         it "raises an error for geo_point facet missing a lat/lon value" do
-          field = stub('field', :name => 'spatial.coordinates', :geo_point? => true, :facet_modifier => nil)
+          field = stub(:name => 'spatial.coordinates', :geo_point? => true, :facet_modifier => nil)
           expect {
             subject.facet_options(field)
           }.to raise_error BadRequestSearchError, /Facet 'spatial.coordinates' missing lat\/lon modifiers/i
         end
         it "returns correct options for geo_point fields"  do
-          field = stub('field', :name => 'spatial.coordinates', :geo_point? => true, :facet_modifier => '42:-71:50mi')
+          field = stub(:name => 'spatial.coordinates', :geo_point? => true, :facet_modifier => '42:-71:50mi')
           geo_facet_stub = stub
           subject.stub(:geo_facet_ranges) { geo_facet_stub }
           expect(
@@ -121,13 +72,21 @@ module V1
                          )
         end
         it "returns correct options for date fields with an interval"  do
-          field = stub('field', :name => 'created', :geo_point? => false, :date? => true, :facet_modifier => 'year')
-          dfo_stub = stub('date_facet_options', :any? => true)
-          subject.stub(:date_facet_options) { dfo_stub }
-          expect(subject.facet_options(field)).to eq(dfo_stub)
+          field = stub(:name => 'created', :geo_point? => false, :date? => true, :facet_modifier => 'year')
+          expect(subject.facet_options(field)).to eq({:interval => 'year'})
+        end
+        it "raises an error for an unrecognized interval on a date field" do
+          field = stub(:name => 'created', :geo_point? => false, :date? => true, :facet_modifier => 'invalid_interval')
+          expect {
+            subject.facet_options(field)
+          }.to raise_error BadRequestSearchError, /date facet 'created.invalid_interval' has invalid interval/i
+        end
+        it "returns correct default interval for date field with no interval"  do
+          field = stub(:name => 'created', :geo_point? => false, :date? => true, :facet_modifier => nil)
+          expect(subject.facet_options(field)).to eq({:interval => 'day'})
         end
         it "returns empty hash for anything else" do
-          field = stub('format', :geo_point? => false, :date? => false)
+          field = stub(:geo_point? => false, :date? => false)
           expect(subject.facet_options(field)).to eq({})
         end
       end
@@ -166,43 +125,6 @@ module V1
                              {"from"=>450}
                             ]
                             )
-        end
-      end
-
-      describe "#date_facet_options" do
-        it "handles date fields with a valid interval" do
-          expect(subject.date_facet_options('created.day')
-                 ).to eq( { :field => 'created', :interval => 'day' } )
-        end
-        it "handles date fields with an invalid interval" do
-          expect(subject.date_facet_options('created.invalid_interval_name')
-                 ).to eq( {} )
-        end
-        it "handles date fields with no interval" do
-          expect(subject.date_facet_options('created')
-                 ).to eq( {} )
-        end
-        it "handles temporal date fields with no interval" do
-          expect(subject.date_facet_options('temporal.start')
-                 ).to eq( {} )
-        end
-        it "handles temporal date fields with a valid interval" do
-          expect(subject.date_facet_options('temporal.start.month')
-                 ).to eq( { :field => 'temporal.start', :interval => 'month' } )
-        end
-      end
-
-      describe "#date_interval" do
-        before(:each) do
-          stub_const("V1::Searchable::Facet::DATE_INTERVALS", %w(year month))
-        end
-
-        it "returns correct array for a date with a valid interval" do
-          expect(subject.date_interval('foo.year')).to eq(['foo', 'year'])
-        end
-        it "returns empty array for anything else" do
-          expect(subject.date_interval('foo.banana')).to eq([])
-          expect(subject.date_interval('foo')).to eq([])
         end
       end
 

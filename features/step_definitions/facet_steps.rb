@@ -5,6 +5,14 @@ end
 Then /^the API returns the "(.*?)" facets$/ do |arg1|
   facets = arg1.split(/,\s*/)
   @results = item_query(@params)
+#  puts @results.pretty_inspect
+#   dates = @results['facets'][ @results['facets'].keys.first ]['entries']
+# #  puts "entries: #{dates.inspect}"
+#   dates.each do |tuple|
+#     time = tuple['time']
+#     puts "Time/Date: #{time} / #{ Time.at( (time)/1000 ).to_date }"
+#   end
+                                   
   expect(@results['facets'].keys).to match_array facets
 end
 

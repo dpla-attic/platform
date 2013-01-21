@@ -69,7 +69,7 @@ module V1
     end
 
     def build_sort_attributes(params)
-      #TODO allow a csv list of sort params
+      #TODO allow a csv list of sort params?
       sort_by_name = params['sort_by'].to_s
       return nil if sort_by_name == ""
 
@@ -136,7 +136,7 @@ module V1
     end
 
     def format_date_facet(value, interval=nil)
-      #TODO: Move to Facet module maybe
+      # Value is from ElasticSearch and it is in UTC milliseconds since the epoch
       formats = {
         'day' => '%F',
         'month' => '%Y-%m',
@@ -149,6 +149,8 @@ module V1
 
       # temporary hack to work around ElasticSearch adjusting timezones and breaking our dates
       offset = 5 * 60 * 60 * 1000 #5 hours in milliseconds
+      # offset *= -1 if value < 0  #TODO: subtract for pre-epoch dates, add for post-epoch
+      #      Rails.logger.debug "offset/value: #{offset} / #{value}"
       date = Time.at( (value+offset)/1000 ).to_date
       final = date.strftime(format)
       

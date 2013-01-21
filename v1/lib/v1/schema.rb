@@ -20,7 +20,7 @@ module V1
             },
             'creator' => { :type => 'string' },
             'publisher' => { :type => 'string' },
-            'created' => { :type => 'date', 'facet' => true },
+            'created' => { :type => 'date', 'index' => 'not_analyzed', 'facet' => true },
             'type' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
             'format' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
             'language' => {
