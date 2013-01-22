@@ -134,6 +134,11 @@
     <td>Fetch ids: A, B, C (404 for 'C')</td>
   </tr>
   <tr>
+    <td>UC008</td>
+    <td><%= link_to nil, v1_api.items_path + '/one.two.three' %></td>
+    <td>Fetch id with dotted ID: one.two.three</td>
+  </tr>
+  <tr>
     <td>#2973</td>
     <td><%= link_to nil, v1_api.items_path('facets' => 'created') %></td>
     <td>Date facet on created</td>

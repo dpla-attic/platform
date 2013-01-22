@@ -1,18 +1,16 @@
 Then /^the API will return a (\d+) http error message$/ do |status|
-  expect(last_response.status).to eq(status.to_i)
-end
-
-Then /^include all the fields available in the repository for that record$/ do
-  pending # express the regexp above with the code you wish you had
+  item_fetch(@fetch_id_string)
+  expect(page.status_code.to_s).to eq(status)
 end
 
 When /^I request details for items with ingestion identifiers "(.*?)"$/ do |arg1|
-  get "/api/v1/items/#{arg1}"
+  @fetch_id_string = arg1
 end
 
 Then /^the API will return the items with the document identifiers "(.*?)"$/ do |arg1|
   expected_ids = arg1.split(/,\s*/)
-  body = JSON.parse(last_response.body)
+  
+  body = item_fetch(@fetch_id_string)
   body['docs'].delete_if {|r| r['error'].present? }
   
   returned_ids = body['docs'].map { |r| r['_id'] }
@@ -21,7 +19,7 @@ end
 
 Then /^items that identify errors with ids "(.*?)"$/ do |missing_docs|
   missing_ids = missing_docs.split(/,\s*/)
-  body = JSON.parse(last_response.body)
+  body = item_fetch(@fetch_id_string)
 
   error_docs = body['docs'].select { |r| r['error'].present? }
   error_ids = error_docs.map { |d| d['id'] }

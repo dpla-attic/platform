@@ -38,6 +38,7 @@ module V1
 
     def search(params={})
       validate_params(params)
+
       search = Tire.search(V1::Config::SEARCH_INDEX) do |search|
         queries_ran = []
         queries_ran << V1::Searchable::Query.build_all(search, params)
@@ -60,7 +61,7 @@ module V1
 
       begin
         #verbose_debug(search)
-        #puts "CURL: #{search.to_curl}"
+        # puts "CURL: #{search.to_curl}"
         return wrap_results(search)
       rescue Tire::Search::SearchRequestFailed => e
         error = JSON.parse(search.response.body)['error'] rescue nil

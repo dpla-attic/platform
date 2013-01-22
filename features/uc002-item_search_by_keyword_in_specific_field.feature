@@ -16,6 +16,11 @@ Feature: Search for items by keyword (UC002)
     When I search for "perplexed" in the "description" field
     Then the API should return 2 items with "perplexed"
 
+  @wip
+  Scenario: Basic keyword search of format field
+    When I search for "text/xml" in the "format" field
+    Then the API should return 1 items with "text/xml"
+
   Scenario: Complex field-specific search with boolean operators
     When I search for "notfound OR three" in the "description" field
     And  I search for "*doodle*" in the "subject" field

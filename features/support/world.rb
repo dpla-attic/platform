@@ -33,11 +33,22 @@ module CukeApiHelper
   def item_query_to_json(params={})
     item_query(params)['docs']
   end
-  
+
+  def item_fetch(ids_string)
+    visit("/api/v1/items/#{ ids_string }")
+    JSON.parse(page.source) rescue nil
+  end
+
   def item_query(params={})
+    #    format = get_request_format(params)
     visit("/api/v1/items?#{ params.to_param }")
     JSON.parse(page.source) rescue nil
   end
+
+  # def get_request_format(params)
+  #   format = params.delete 'format'
+  #   format ? '.' + format : ''
+  # end
 
   def load_dataset
     File.read(V1::StandardDataset::ITEMS_JSON_FILE)

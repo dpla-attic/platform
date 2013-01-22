@@ -7,6 +7,10 @@ module V1
     def items
       begin
         results = V1::Item.search(params)
+        # TODO: Uncomment this when we have renamed the format field in the schema
+        # respond_to do |format|
+        #   format.json  { render :json => render_json(results, params) }
+        # end
         render :json => render_json(results, params)
       rescue SearchError => e
         render :json => render_json({:message => e.message}, params), :status => e.http_status

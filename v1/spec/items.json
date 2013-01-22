@@ -50,7 +50,7 @@
       "name": "perplexed subject3 doodle"
     },
     "type": "",
-    "format": "",
+    "format": "text/xml",
     "rights": "",
     "relation": "",
     "source": "",
@@ -336,5 +336,10 @@
         "state": "ME",
         "city": "Errol"
     }
+  },
+  {
+    "_id": "one.two.three",
+    "id": "one.two.three",
+    "title": "dotted id test"
   }
 ]
