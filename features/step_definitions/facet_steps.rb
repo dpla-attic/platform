@@ -2,17 +2,32 @@ When /^request the "(.*?)" facet$/ do |arg1|
   @params['facets'] = arg1
 end
 
+When /^request facet size of "(.*?)"$/ do |arg1|
+  @params['facet_size'] = arg1
+end
+
+Then /^the "(.*?)" terms facets contains the requested number of facets$/ do |facet_list|
+  @facets = facet_list.split(/,\s*/)
+  @facets.each do |facet|
+    expect( @results['facets'][facet]['terms'].size.to_s ).to eq @params['facet_size']
+  end
+end
+
+Then /^the "(.*?)" date facets contains the requested number of facets$/ do |facet_list|
+  @facets = facet_list.split(/,\s*/)
+  @facets.each do |facet|
+    expect( @results['facets'][facet]['entries'].size.to_s ).to eq @params['facet_size']
+  end
+end
+
 Then /^the API returns the "(.*?)" facets$/ do |arg1|
   facets = arg1.split(/,\s*/)
   @results = item_query(@params)
-#  puts @results.pretty_inspect
-#   dates = @results['facets'][ @results['facets'].keys.first ]['entries']
-# #  puts "entries: #{dates.inspect}"
-#   dates.each do |tuple|
-#     time = tuple['time']
-#     puts "Time/Date: #{time} / #{ Time.at( (time)/1000 ).to_date }"
-#   end
-                                   
+  if !@results['facets']
+    # if it goes wrong, it goes wrong here
+    raise Exception, "Test error: No facets found\nResponse: #{@results['message']}"
+  end
+
   expect(@results['facets'].keys).to match_array facets
 end
 
@@ -46,8 +61,6 @@ end
 #TODO: These steps, and the corresponding uc010 feature, could use some consolidation
 Then /^each item within each facet contains a count of matching "(.*)" facet items$/ do |facet_type|
   @facets.each do |facet|
-    # puts "FACET: #{facet}"
-    # puts "SRCET: #{@source[facet]}"
     expect(
            @results['facets'][facet]['terms'].map {|f| [f['term'], f['count']] }.flatten
            ).to match_array @source[facet].flatten

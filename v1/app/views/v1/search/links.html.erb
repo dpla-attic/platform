@@ -180,12 +180,17 @@
   </tr>
   <tr>
     <td>#2975</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'isPartOf') %></td>
-    <td>Facet on isPartOf (auto-expanded)</td>
-  </tr>
-  <tr>
-    <td>#2975</td>
     <td><%= link_to nil, v1_api.items_path('facets' => 'dplaContributor,isPartOf') %></td>
     <td>Facet on dplaContributor, isPartOf (multiple auto-expanded)</td>
+  </tr>
+  <tr>
+    <td>#2977</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'subject.name', 'facet_size' => '2') %></td>
+    <td>Limit number of facets returned to 2</td>
+  </tr>
+  <tr>
+    <td>#2977</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'subject.name', 'facet_size' => 'max') %></td>
+    <td>Limit number of facets returned to max system setting</td>
   </tr>
 </table>

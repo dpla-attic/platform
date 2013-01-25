@@ -20,10 +20,12 @@ module V1
       # suffix through and let ElasticSearch complain if it is not valid
       # ElasticSearch's built-in intervals
       DATE_INTERVALS = %w( year quarter month week day )
+      DEFAULT_FACET_SIZE = 20
+      MAXIMUM_FACET_SIZE = 50
 
       def self.build_all(search, params, global=false)
-        # Returns boolean for "did we create any facets?"
         # Run facets from params['facets'] against the search object
+        # Returns boolean for "did we create any facets?"
 
         requested = params['facets'].to_s.split(/,\s*/)
         return false if requested.empty?
@@ -42,9 +44,15 @@ module V1
           facet_name = field.name
           facet_name += ".#{field.facet_modifier}" if field.date? && field.facet_modifier
 
+          type = facet_type(field)
+
           options = facet_options(field)
 
-          type = facet_type(field)
+          # only facet type (that we support) that supports size attr
+          #TODO: fold into facet_options and base it on field.string?
+          options[:size] = facet_size(params) if type == 'terms'
+          options[:order] = 'count' unless field.geo_point?
+          
           # geo_distance facets get called differently than other types of facets
           if type == 'geo_distance'
             facet_params = [type, options]
@@ -59,7 +67,18 @@ module V1
 
         requested.any?
       end
-      
+
+      def self.facet_size(params)
+        size = params['facet_size'] == 'max' ? MAXIMUM_FACET_SIZE : params['facet_size']
+        if size.to_s == ''
+          DEFAULT_FACET_SIZE
+        elsif size.to_i > MAXIMUM_FACET_SIZE
+          MAXIMUM_FACET_SIZE
+        else
+          size
+        end
+      end
+
       def self.parse_facet_name(name)
         # Handles logic of parsing different types of facets and their optional modifier suffixes
         args = [name]

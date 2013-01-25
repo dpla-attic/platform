@@ -20,36 +20,22 @@ module V1
       end
 
       context "Module constants" do
-        describe "DEFAULT_PAGE_SIZE" do
-          it "has the correct value" do
-            expect(DEFAULT_PAGE_SIZE).to eq 10
-          end
+        it "DEFAULT_PAGE_SIZE has the correct value" do
+          expect(DEFAULT_PAGE_SIZE).to eq 10
         end
         
-        describe "DEFAULT_MAX_PAGE_SIZE" do
-          it "has the correct value" do
-            expect(DEFAULT_MAX_PAGE_SIZE).to eq 100
-          end
+        it "DEFAULT_MAX_PAGE_SIZE has the correct value" do
+          expect(DEFAULT_MAX_PAGE_SIZE).to eq 100
         end
 
-        describe DEFAULT_SORT_ORDER do
-          it "has the correct value" do
-            expect(DEFAULT_SORT_ORDER).to eq "asc"
-          end
+        it "DEFAULT_SORT_ORDER has the correct value" do
+          expect(DEFAULT_SORT_ORDER).to eq "asc"
         end
 
-        describe "MAXIMUM_FACETS_COUNT" do
-          it "has the correct value" do
-            expect(MAXIMUM_FACETS_COUNT).to eq 'not implemented'
-          end
-        end
-
-        describe "BASE_QUERY_PARAMS" do
-          it "has the correct value" do
-            expect(BASE_QUERY_PARAMS).to match_array %w( 
-              q controller action sort_by sort_by_pin sort_order page page_size facets fields callback
+        it "BASE_QUERY_PARAMS has the correct value" do
+          expect(BASE_QUERY_PARAMS).to match_array %w( 
+              q controller action sort_by sort_by_pin sort_order page page_size facets facet_size fields callback
             )
-          end
         end
       end
     end
@@ -57,7 +43,7 @@ module V1
 
   describe SearchableItem do
 
-    describe "#validate_params" do
+    describe "#validate_query_params" do
       before(:each) do
         stub_const("V1::Searchable::BASE_QUERY_PARAMS", %w( q controller action ) )
       end
@@ -65,12 +51,12 @@ module V1
         Schema.stub(:queryable_fields) { %w( title description ) }
 
         expect {
-          SearchableItem.validate_params({'q' => 'banana'})
-          SearchableItem.validate_params({'title' => 'curious george'})
+          SearchableItem.validate_query_params({'q' => 'banana'})
+          SearchableItem.validate_query_params({'title' => 'curious george'})
         }.not_to raise_error BadRequestSearchError
 
         expect {
-          SearchableItem.validate_params({'invalid_field' => 'banana'})
+          SearchableItem.validate_query_params({'invalid_field' => 'banana'})
         }.to raise_error BadRequestSearchError, /invalid field/i
       end
     end
@@ -180,23 +166,27 @@ module V1
     end
 
     describe "#validate_field_params" do
-      it "raises SearchError if invalid field was sent" do
-        params = {'q' => 'banana', 'fields' => 'some_invalid_field'}
+      it "raises BadRequestSearchError if invalid field was sent" do
+        V1::Schema.stub(:queryable_fields) { %w( title ) }
+        params = {'fields' => 'some_invalid_field'}
         expect  { 
           subject.validate_field_params(params) 
         }.to raise_error BadRequestSearchError, /fields parameter/
       end
-      it "returns an array from CSV params" do
-        params = {'q' => 'banana', 'fields' => 'title,description'}
-        expect(
+      it "does not raise an error when all fields are valid" do
+        V1::Schema.stub(:queryable_fields) { %w( title description ) }
+        params = {'fields' => 'title,description'}
+        expect {
           subject.validate_field_params(params)
-        ).to eq ['title', 'description']
+        }.not_to raise_error BadRequestSearchError
+      end
+      it "does not raise an error when no fields are specified" do
+        params = {}
+        expect {
+          subject.validate_field_params(params)
+        }.not_to raise_error BadRequestSearchError
       end
       
-      it "returns nil when no fields param present" do
-        params = {'q' => 'banana'}
-        expect(subject.validate_field_params(params)).to eq nil
-      end
     end
    
     describe "#search_offset" do
@@ -240,19 +230,19 @@ module V1
     end
 
     describe "#wrap_results" do
-      let(:results)  { stub("results", :total => 10, :facets => nil) }
-      let(:search) { stub("search", :results => results, :options => {:from => 0, :size => 10}) }
-      let(:formatted_results) { stub }
-      let(:facets) { stub }
-      
-      before(:each) do
+      it "wraps results set correctly" do
+        results = stub("results", :total => 10, :facets => nil)
+        search = stub("search", :results => results, :options => {:from => 0, :size => 10})
+        formatted_results = stub
+        facets = stub
+        
         subject.stub(:format_results) { formatted_results }
         subject.stub(:format_facets) { facets }
-      end
-      
-      it "wraps results set correctly" do
+        params = stub()
+        V1::Searchable::Facet.stub(:facet_size)
+
         expect(
-               subject.wrap_results(search)
+               subject.wrap_results(search, params)
                ).to eq({
                          'count' => 10,
                          'limit' => 10,
@@ -290,6 +280,21 @@ module V1
           }
         }
       }
+      it "formats date facets" do
+        subject.should_receive(:format_date_facet).with(157784400000, 'year')
+        subject.should_receive(:format_date_facet).with(946702800000, 'year')
+        subject.format_facets(facets, nil)
+      end
+      it "enforces facet_size limit" do
+        # returned facets should all have 1 value hash in them
+        formatted = subject.format_facets(facets, 1)
+        
+        formatted.each do |name, payload|
+          facet_values = payload['entries'] || payload['terms']
+          expect(facet_values.size).to be <= 1
+        end
+
+      end
     end
 
     describe "#format_date_facet" do
@@ -384,9 +389,10 @@ module V1
         subject.stub(:wrap_results)
       end
 
-      it "calls validates_params" do
+      it "validates params and field params" do
         params = {}
-        subject.should_receive(:validate_params).with(params)
+        subject.should_receive(:validate_query_params).with(params)
+        subject.should_receive(:validate_field_params).with(params)
         subject.search(params)
       end
 
@@ -409,26 +415,10 @@ module V1
         results = stub("results")
         dictionary_results = stub("dictionary_wrapped")
         mock_search.stub(:results) { results }
-        subject.stub(:wrap_results).with(mock_search) { dictionary_results }
+        subject.stub(:wrap_results).with(mock_search, params) { dictionary_results }
         expect(subject.search(params)).to eq dictionary_results
       end
 
-      context "fields" do
-        it "limits result fields returned" do
-          params = {'q' => 'banana',  'fields' => 'title, description' }
-          subject.stub(:validate_field_params) { ["title", "description"] }
-          mock_search.should_receive(:fields)
-          subject.search(params)
-        end
-        
-        it "does not set field restrictions if not present" do
-          params = {'q' => 'banana' }
-          subject.stub(:validate_field_params) { nil }
-          mock_search.should_not_receive(:fields)
-          subject.search(params) 
-        end
-      end
-      
       context "sorting" do
         it "sorts by field name if present" do
           params = {'q' => 'banana',  'sort_by' => 'title' }
@@ -445,6 +435,14 @@ module V1
           subject.should_receive(:wrap_results)
           subject.search(params)
         end
+      end
+
+      it "limits the requested fields if fields param is present" do
+        params = {'fields' => 'title,type'}
+        subject.stub(:validate_query_params)
+        subject.stub(:validate_field_params)
+        mock_search.should_receive(:fields).with('title,type')
+        subject.search(params)
       end
 
     end

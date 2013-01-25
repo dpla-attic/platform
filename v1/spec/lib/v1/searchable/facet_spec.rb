@@ -6,11 +6,15 @@ module V1
 
     describe Facet do      
 
-      context "Constants" do
-        describe "DATE_INTERVALS" do
-          it "has the correct value" do
-            expect(subject::DATE_INTERVALS).to match_array( %w( year quarter month week day ) )
-          end
+      describe "CONSTANTS" do
+        it "DATE_INTERVALS has the correct value" do
+          expect(subject::DATE_INTERVALS).to match_array( %w( year quarter month week day ) )
+        end
+        it "DEFAULT_FACET_SIZE has correct value" do
+          expect(subject::DEFAULT_FACET_SIZE).to eq 20
+        end
+        it "MAXIMUM_FACET_SIZE has correct value" do
+          expect(subject::MAXIMUM_FACET_SIZE).to eq 50
         end
       end
       
@@ -200,6 +204,30 @@ module V1
                  ).to match_array %w( somefield.sub2a id )
         end
 
+      end
+
+      describe "#facet_size" do
+        before(:each) do
+          stub_const("V1::Searchable::Facet::DEFAULT_FACET_SIZE", 19)
+          stub_const("V1::Searchable::Facet::MAXIMUM_FACET_SIZE", 42)
+        end
+        it "returns MAXIMUM_FACET_SIZE when 'max' is passed" do
+          params = {'facet_size' => 'max'}
+          expect(subject.facet_size(params)).to eq 42
+        end
+        it "returns default value when no facet_size param is present" do
+          params = {}
+          expect(subject.facet_size(params)).to eq 19
+        end
+        it "limits maximum value" do
+          params = {'facet_size' => 9999}
+          expect(subject.facet_size(params)).to eq 42
+        end
+        it "parses and returns valid value" do
+          params = {'facet_size' => 25}
+          expect(subject.facet_size(params)).to eq 25
+        end
+        
       end
 
     end

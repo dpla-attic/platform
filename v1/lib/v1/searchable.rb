@@ -20,13 +20,10 @@ module V1
     # Default sort order for search results
     DEFAULT_SORT_ORDER = 'asc'
 
-    # Maximum facets to return. See use case details
-    MAXIMUM_FACETS_COUNT = 'not implemented'
-
     # General query params that are not type-specific
-    BASE_QUERY_PARAMS = %w( q controller action sort_by sort_by_pin sort_order page page_size facets fields callback ).freeze
+    BASE_QUERY_PARAMS = %w( q controller action sort_by sort_by_pin sort_order page page_size facets facet_size fields callback ).freeze
     
-    def validate_params(params)
+    def validate_query_params(params)
       # Raises exception if any unrecognized search params are present. Query-based 
       # extensions (e.g: spatial.distance) are added here as well. Does not examine
       # contents of fields containing field names, such as sorting, facets, etc.
@@ -37,7 +34,8 @@ module V1
     end
 
     def search(params={})
-      validate_params(params)
+      validate_query_params(params)
+      validate_field_params(params)
 
       search = Tire.search(V1::Config::SEARCH_INDEX) do |search|
         queries_ran = []
@@ -52,8 +50,7 @@ module V1
         search.from search_offset(params)
         search.size search_page_size(params)
     
-        field_params = validate_field_params(params)
-        search.fields(field_params) if field_params
+        search.fields(params['fields']) if params['fields'].present?
         
         # for testability, this block should always return its search object
         search
@@ -61,8 +58,8 @@ module V1
 
       begin
         #verbose_debug(search)
-        # puts "CURL: #{search.to_curl}"
-        return wrap_results(search)
+        #puts "CURL: #{search.to_curl}" if search.respond_to? :to_curl
+        return wrap_results(search, params)
       rescue Tire::Search::SearchRequestFailed => e
         error = JSON.parse(search.response.body)['error'] rescue nil
         raise InternalServerSearchError, error
@@ -100,14 +97,16 @@ module V1
       end
     end
 
-    def wrap_results(search)
+    def wrap_results(search, params)
       results = search.results
+      facet_size = V1::Searchable::Facet.facet_size(params)
+      
       {
         'count' => results.total,
         'start' => search.options[:from],
         'limit' => search.options[:size],
         'docs' => format_results(results),
-        'facets' => format_facets(results.facets)
+        'facets' => format_facets(results.facets, facet_size)
       }
     end
 
@@ -122,10 +121,23 @@ module V1
       end
     end
 
-    def format_facets(facets)
+    def format_facets(facets, facet_size)
       return [] unless facets
+
+      facet_keys = {
+        'date_histogram' => 'entries',
+        'terms' => 'terms',
+        'geo_distance' => 'ranges'
+      }
+
       facets.each do |name, payload|
-        if payload['_type'] == 'date_histogram'
+        type = payload['_type']
+
+        if facet_size
+          payload[facet_keys[type]] = payload[facet_keys[type]].first(facet_size.to_i)
+        end
+
+        if type == 'date_histogram'
           # TODO: We probably need to be stricter about what is definitely a field and
           # what is probably an interval here.
           name =~ /(.+)\.(.*)$/
@@ -146,6 +158,7 @@ module V1
         'century' => '%C00'
       }      
 
+      # Default to 'day' format (e.g. '1993-01-31')
       format = formats[interval] || '%F'
 
       # temporary hack to work around ElasticSearch adjusting timezones and breaking our dates
@@ -160,15 +173,10 @@ module V1
     end
 
     def validate_field_params(params)
-      return nil unless params['fields'].present?
-      fields = params['fields'].split(/,\s*/)
-      
-      invalid = fields - V1::Schema.queryable_fields
+      invalid = params['fields'].to_s.split(/,\s*/) - V1::Schema.queryable_fields
       if invalid.any?  
         raise BadRequestSearchError, "Invalid field(s) specified for fields parameter: #{invalid.join(',')}" 
       end
-      
-      fields
     end
     
     def search_offset(params)

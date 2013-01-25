@@ -26,6 +26,12 @@ Feature: Search the DPLA using facets (UC010)
       And request the "most_definitely_invalid" facet
     Then I should get http status code "400"
 
+  Scenario: Retrieve simple text facet
+    When I make an empty search
+      And request the "subject.name" facet
+    Then the API returns the "subject.name" facets
+      And the "subject.name" terms facets contains items for every unique field within the search index
+
   Scenario: Retrieve date facet
     When I make an empty search
       And request the "created" facet
@@ -44,7 +50,7 @@ Feature: Search the DPLA using facets (UC010)
     Then the API returns the "temporal.start.year" facets
       And I should get http status code "200"
 
-  Scenario: Test scenario
+  Scenario: Retrieve date facet for date subfield 
     When I make an empty search
       And request the "temporal.end" facet
     Then the API returns the "temporal.end" facets
@@ -61,3 +67,30 @@ Feature: Search the DPLA using facets (UC010)
       And request the "spatial.coordinates" facet
       And I should get http status code "400"
 
+  Scenario: Retrieve simple text facet with facet_size of 'max'
+    When I make an empty search
+      And request the "created" facet
+      And request facet size of "max"
+    Then the API returns the "created" facets
+      And I should get http status code "200"
+
+  Scenario: Retrieve simple text facet with facet_size of 1 
+    When I make an empty search
+      And request the "subject.name" facet
+      And request facet size of "1"
+    Then the API returns the "subject.name" facets
+      And the "subject.name" terms facets contains the requested number of facets
+
+  Scenario: Retrieve simple text facet with facet_size of 2
+    When I make an empty search
+      And request the "subject.name" facet
+      And request facet size of "2"
+    Then the API returns the "subject.name" facets
+      And the "subject.name" terms facets contains the requested number of facets
+
+  Scenario: Retrieve date facet with facet_size of 2
+    When I make an empty search
+      And request the "created" facet
+      And request facet size of "2"
+    Then the API returns the "created" facets
+      And the "created" date facets contains the requested number of facets

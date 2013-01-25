@@ -7,9 +7,7 @@
     "dplaContributor": null,
     "creator": "",
     "publisher": "",
-    "created": "1950-01-01",
     "subject": {
-      "name": "banana subject1"
     },
     "type": "",
     "format": "",
@@ -26,9 +24,7 @@
     "dplaContributor": null,
     "creator": "",
     "publisher": "",
-    "created": "1975-06-15",
     "subject": {
-      "name": "perplexed subject2"
     },
     "type": "",
     "format": "",
@@ -45,9 +41,8 @@
     "dplaContributor": null,
     "creator": "",
     "publisher": "",
-    "created": "2000-10-09",
     "subject": {
-      "name": "perplexed subject3 doodle"
+    "name": "perplexed subject3 doodle"
     },
     "type": "",
     "format": "text/xml",
@@ -66,7 +61,6 @@
       "name": "South Carolina Digital Library"
     },
     "creator": "",
-    "created": "2000-12-31",
     "format": ["image/jpeg", "Manuscripts"],
     "language": {
       "name": "English",
@@ -74,8 +68,7 @@
     },
     "subject": {
       "@id": "http://lccn.loc.gov/sh85140205",
-      "@type": "LCSH",
-      "name": "Noodle Bar"
+      "@type": "LCSH"
     },
     "isPartOf": {
       "@id": "http://dp.la/api/collections/coll-P",
@@ -87,6 +80,8 @@
     "id": "P2",
     "title": "P2 title",
     "description": "facettest, coll-P, contrib 42",
+    "subject": {
+    },
     "dplaContributor": {
       "@id": "http://dp.la/api/contributor/42",
       "name": "South Carolina Digital Library"
@@ -101,6 +96,8 @@
     "id": "P3",
     "title": "P3 title",
     "description": "facettest, coll-P, contrib 13",
+    "subject": {
+    },
     "dplaContributor": {
       "@id": "http://dp.la/api/contributor/13",
       "name": "South Carolina Digital Library"
@@ -267,7 +264,6 @@
     "dplaContributor": null,
     "creator": "",
     "publisher": "",
-    "created": "2012-01-26",
     "type": "",
     "format": "",
     "rights": "",
@@ -296,7 +292,6 @@
       "@id": "http://dp.la/api/contributor/101",
       "name": "ContribName OneOhOne"
     },
-    "created": "2012-01-26",
     "temporal": {
       "start": "1988-03-01",
       "end": "1988-03-01"
@@ -311,7 +306,6 @@
       "@id": "http://dp.la/api/contributor/102",
       "name": "ContribName OneOhTwo"
     },
-    "created": "2012-01-26",
     "temporal": {
       "start": "1988-03-01",
       "end": "1988-03-01"
@@ -341,5 +335,61 @@
     "_id": "one.two.three",
     "id": "one.two.three",
     "title": "dotted id test"
+  },
+
+  {
+    "_id": "S1",
+    "id": "S1",
+    "subject": {
+      "name": "Tone"
+    },
+    "type": "Tone",
+    "created": "1981-01-01"
+  },
+  {
+    "_id": "S2",
+    "id": "S2",
+    "subject": {
+      "name": "Ttwo"
+    },
+    "type": "Ttwo",
+    "created": "1982-01-01"
+  },
+  {
+    "_id": "S3",
+    "id": "S3",
+    "subject": {
+      "name": "Ttwo"
+    },
+    "type": "Ttwo",
+    "created": "1982-01-01"
+  },
+  {
+    "_id": "S4",
+    "id": "S4",
+    "subject": {
+      "name": "Tthree"
+    },
+    "type": "Tthree",
+    "created": "1983-01-01"
+  },
+  {
+    "_id": "S5",
+    "id": "S5",
+    "subject": {
+      "name": "Tthree"
+    },
+    "type": "Tthree",
+    "created": "1983-01-01"
+  },
+  {
+    "_id": "S6",
+    "id": "S6",
+    "subject": {
+      "name": "Tthree"
+    },
+    "type": "Tthree",
+    "created": "1983-01-01"
   }
+
 ]
