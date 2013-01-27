@@ -34,7 +34,7 @@ module Contentqa
 
     def paginate (count, start, limit, page_size)
       page_count = get_page_count count, page_size
-      current_page = start / page_size + (start % page_size > 0 ? 1 : 0) 
+      current_page = start / page_size + (start % page_size > 0 ? 1 : 0)
       if count == 0 
         return (), 0
       end

@@ -5,6 +5,7 @@ Contentqa::Engine.routes.draw do
 
   get "/" => "search#index"
   get "/compare" => "compare#index"
-  get "/compare/:id" => "compare#index"
+  #the * wildcard prevents Rails from splitting IDs on forward slashes, which is its default
+  get "/compare/*id" => "compare#index"
   get "/search" => "search#index"
 end
