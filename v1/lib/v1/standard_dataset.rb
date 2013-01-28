@@ -22,7 +22,7 @@ module V1
     def self.doc_count
       # Quick hack intended for rake tasks
       url = V1::Config.search_endpoint + '/' + V1::Config::SEARCH_INDEX + '/' + '_status'
-      json = JSON.load( %x( curl #{url} ) )
+      json = HTTParty.get url
       json['indices'][V1::Config::SEARCH_INDEX]['docs']['num_docs'] rescue 'ERROR'
     end
 
@@ -140,6 +140,25 @@ module V1
       response = Tire::Configuration.client.delete("#{V1::Config.search_endpoint}/_river/#{SEARCH_RIVER_NAME}")
       #delete_result = JSON.parse(response.body)
       #puts "ERROR: #{ delete_result['error'] }" if response.code != 200
+    end
+
+    def self.search_status
+      begin
+        return HTTParty.get(V1::Config.search_endpoint).body
+      rescue Exception => e
+        return "Error: #{e}"
+      end
+    end
+
+    def self.search_schema(resource=nil)
+      uri = V1::Config.search_endpoint + '/' + V1::Config::SEARCH_INDEX
+      uri += "/#{resource}" if resource
+      uri += '/_mapping?pretty'
+      begin
+        return HTTParty.get(uri).body
+      rescue Exception => e
+        return "Error: #{e}"
+      end
     end
 
     def self.test_river

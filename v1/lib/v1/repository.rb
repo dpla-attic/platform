@@ -59,8 +59,7 @@ module V1
       # Intended for rake tasks
       #TODO: don't count views. In a cruel twist of fate, we may need a view
       # to do that. :O
-      json = JSON.load( %x( curl #{admin_endpoint_database} ) )
-      json['doc_count'] rescue 'ERROR'
+      HTTParty.get(admin_endpoint_database)['doc_count'] rescue 'ERROR'
     end
 
     def self.import_test_dataset

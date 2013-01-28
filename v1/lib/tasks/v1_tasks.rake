@@ -33,8 +33,7 @@ namespace :v1 do
 
   desc "Gets ElasticSearch search cluster status"
   task :search_status do
-    # silly curl arguments to suppress the progress bar but let errors through
-    puts %x( curl #{ V1::Config.search_endpoint } -s -S )
+    puts V1::StandardDataset.search_status
   end
 
   desc "Gets number of docs in search index"
@@ -42,12 +41,17 @@ namespace :v1 do
     puts V1::StandardDataset.doc_count
   end
 
-  desc "Diplays the ElasticSearch search_endpoint the API is configured to use"
+  desc "Displays the ElasticSearch search_endpoint the API is configured to use"
   task :search_endpoint do
     puts V1::Config.search_endpoint
   end
 
-  desc "Diplays the CouchDB repository_endpoint the API is configured to use"
+  desc "Displays the schema that ElasticSearch is currently using, according to ElasticSearch."
+  task :search_schema, [:resource] do |t, args|
+    puts V1::StandardDataset.search_schema(args.resource)
+  end
+
+  desc "Displays the CouchDB repository_endpoint the API is configured to use"
   task :repo_endpoint do
     puts V1::Repository.read_only_endpoint
   end
