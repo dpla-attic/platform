@@ -41,7 +41,7 @@ module V1
         queries_ran = []
         queries_ran << V1::Searchable::Query.build_all(search, params)
         queries_ran << V1::Searchable::Filter.build_all(search, params)
-        queries_ran << V1::Searchable::Facet.build_all(search, params, queries_ran.empty?)
+        V1::Searchable::Facet.build_all(search, params, !queries_ran.any?)
 
         sort_attrs = build_sort_attributes(params)
         search.sort { by(*sort_attrs) } if sort_attrs

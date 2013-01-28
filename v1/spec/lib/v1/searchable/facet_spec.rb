@@ -20,7 +20,7 @@ module V1
       
       describe "#build_all" do
         it "returns true if it created any facets"
-        it "returns false if it created zero facets" do
+        it "returns false if it did not create any facets" do
           expect(subject.build_all(stub, {}, false)).to be_false
         end
         it "calls the search.facet block with the correct params"
