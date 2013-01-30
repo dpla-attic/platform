@@ -5,7 +5,7 @@ module CukeApiHelper
     #TODO: Should probably be named compute_facet_counts
     dataset = JSON.parse(load_dataset)
     source = {}
-    # for each facet they want to test
+    # for each facet we want to test
     facets.each do |facet|
       (field, subfield) = facet.split('.')
 
@@ -13,10 +13,21 @@ module CukeApiHelper
       dataset.each do |doc|
         if subfield
           # that regex is a harmless no-op if query_string is nil
-          if doc[field] && doc[field][subfield].present? && doc.values.any? {|value| value =~ /#{query_string}/}
-            source[facet] ||= {}
-            source[facet][doc[field][subfield]] ||= 0
-            source[facet][doc[field][subfield]] += 1
+          if doc[field]
+            if doc[field].is_a?(Hash) && doc[field][subfield].present? && doc.values.any? {|value| value =~ /#{query_string}/}
+              facet_value = doc[field][subfield]
+              source[facet] ||= {}
+              source[facet][facet_value] ||= 0
+              source[facet][facet_value] += 1
+            elsif doc[field].is_a?(Array) && doc[field].any?
+              # need to get values for doc[field].each foo[subfield]
+              doc[field].each do |facethash|
+                facet_value = facethash[subfield]
+                source[facet] ||= {}
+                source[facet][facet_value] ||= 0
+                source[facet][facet_value] += 1
+              end
+            end
           end
         else
           if doc[field] && doc.values.any? {|value| value =~ /#{query_string}/}

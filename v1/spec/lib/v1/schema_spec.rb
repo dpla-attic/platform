@@ -31,31 +31,31 @@ module V1
           'mappings' => {
             'item' => {
               'properties' => {
-                'id' => { :type => 'string', 'facet' => true },
-                'title' => { :type => 'string' },
-                'description' => { :type => 'string' },
-                'created' => { :type => 'date', 'facet' => true },
+                'id' => { 'type' => 'string', 'facet' => true },
+                'title' => { 'type' => 'string' },
+                'description' => { 'type' => 'string' },
+                'created' => { 'type' => 'date', 'facet' => true },
                 'temporal' => {
                   'properties' => {
-                    'start' => { :type => 'date', 'facet' => true },
-                    'end' => { :type => 'date', 'facet' => true }
+                    'start' => { 'type' => 'date', 'facet' => true },
+                    'end' => { 'type' => 'date', 'facet' => true }
                   }
                 },
                 'spatial' => {
                   'properties' => {
-                    'city' => { :type => 'string', 'index' => "not_analyzed" },
-                    'iso3166-2' => { :type => 'string', :index => 'not_analyzed', 'facet' => true },
-                    'coordinates' => { :type => "geo_point" }
+                    'city' => { 'type' => 'string', 'index' => "not_analyzed" },
+                    'iso3166-2' => { 'type' => 'string', :index => 'not_analyzed', 'facet' => true },
+                    'coordinates' => { 'type' => "geo_point" }
                   }
                 },
                 'isPartOf' => {
                   'properties' => {
-                    '@id' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
+                    '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'facet' => true },
                     'name' => {
-                      :type => 'multi_field',
+                      'type' => 'multi_field',
                       'fields' => {
-                        'name' => {:type => 'string' },
-                        'raw' => {:type => 'string', 'index' => 'not_analyzed', 'facet' => true }
+                        'name' => {'type' => 'string' },
+                        'raw' => {'type' => 'string', 'index' => 'not_analyzed', 'facet' => true }
                       }
                     }
                   }
@@ -63,23 +63,23 @@ module V1
                 'field1' => {
                   'properties' => {
                     'name' => {
-                      :type => 'multi_field',
+                      'type' => 'multi_field',
                       'fields' => {
-                        'name' => {:type => 'string', 'index' => 'analyzed' }
+                        'name' => {'type' => 'string', 'index' => 'analyzed' }
                       }
                     }
                   }
                 },
                 'field2' => {
                   'properties' => {
-                    'sub2a' => {:type => 'string', 'index' => 'not_analyzed', 'facet' => true },
-                    'sub2b' => {:type => 'string', 'index' => 'not_analyzed'}
+                    'sub2a' => {'type' => 'string', 'index' => 'not_analyzed', 'facet' => true },
+                    'sub2b' => {'type' => 'string', 'index' => 'not_analyzed'}
                   }
                 },
                 'field3' => {
                   'properties' => {
-                    'sub3a' => {:type => 'string' },
-                    'sub3b' => {:type => 'string' }
+                    'sub3a' => {'type' => 'string' },
+                    'sub3b' => {'type' => 'string' }
                   }
                 },
                 'someBlob' => { 'enabled' => false },
@@ -87,7 +87,7 @@ module V1
             },
             'collection' => {
               'properties' => {
-                'title' => { :type => 'string' }
+                'title' => { 'type' => 'string' }
               }
             }
           }
@@ -110,14 +110,13 @@ module V1
         end
 
         it "returns the mapping for a single field as requested" do
-          expect(subject.mapping('item', 'created')).to eq( {:type => 'date', 'facet' => true } )
-          expect(subject.mapping('collection', 'title')).to eq( {:type => 'string'} )
+          expect(subject.mapping('item', 'created')).to eq( {'type' => 'date', 'facet' => true } )
+          expect(subject.mapping('collection', 'title')).to eq( {'type' => 'string'} )
         end
 
         it "maps dotted names to nested hashes" do
-          expect(
-                 subject.mapping('item', 'spatial.city')
-                 ).to eq( {:type => "string", 'index' => "not_analyzed"} )
+          expect(subject.mapping('item', 'spatial.city'))
+            .to eq( {'type' => "string", 'index' => "not_analyzed"} )
         end
 
         it "returns nil for non-existent types" do

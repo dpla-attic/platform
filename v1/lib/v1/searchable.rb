@@ -37,20 +37,22 @@ module V1
       validate_query_params(params)
       validate_field_params(params)
 
+      #, :search_type => 'count' (on an empty search) would just return total count
+      # params['title'] = 'peanut'
+      # params['fields'] = 'id,subject.name,scriptfield'
       search = Tire.search(V1::Config::SEARCH_INDEX) do |search|
         queries_ran = []
         queries_ran << V1::Searchable::Query.build_all(search, params)
         queries_ran << V1::Searchable::Filter.build_all(search, params)
         V1::Searchable::Facet.build_all(search, params, !queries_ran.any?)
-
+        
         sort_attrs = build_sort_attributes(params)
         search.sort { by(*sort_attrs) } if sort_attrs
 
-        #TODO: size 0 if facets and no query (use q='' to force a global search)
         search.from search_offset(params)
         search.size search_page_size(params)
-    
-        search.fields(params['fields']) if params['fields'].present?
+
+        search.fields(params['fields'].to_s.split(/,\s*/)) if params['fields'].present?
         
         # for testability, this block should always return its search object
         search
@@ -58,7 +60,8 @@ module V1
 
       begin
         #verbose_debug(search)
-        #puts "CURL: #{search.to_curl}" if search.respond_to? :to_curl
+        puts "CURL: #{search.to_curl}" if search.respond_to? :to_curl
+        #puts "JSON: #{search.to_json}" if search.respond_to? :to_json
         return wrap_results(search, params)
       rescue Tire::Search::SearchRequestFailed => e
         error = JSON.parse(search.response.body)['error'] rescue nil
@@ -67,18 +70,10 @@ module V1
     end
 
     def build_sort_attributes(params)
-      #TODO allow a csv list of sort params?
+      #TODO: can also sort by multiple fields: sort { by [{'published_on' => 'desc'}, {'_score' => 'asc'}] } 
+
       sort_by_name = params['sort_by'].to_s
       return nil if sort_by_name == ""
-
-      # Validate sort_by
-      sort_by = V1::Schema.flapping('item', sort_by_name)
-      if sort_by.nil?
-        raise BadRequestSearchError, "Invalid field(s) specified in sort_by parameter: #{sort_by_name}"
-      end
-      if sort_by.analyzed?
-        raise BadRequestSearchError, "Non-sortable field(s) specified in sort_by parameter: #{sort_by_name}"
-      end
 
       # Validate sort_order
       order = params['sort_order'].to_s.downcase
@@ -86,14 +81,31 @@ module V1
         order = DEFAULT_SORT_ORDER 
       end
 
-      # Special handling for geo_point sorts
-      if sort_by.type == 'geo_point'
+      # Validate sort_by
+      sort_by = V1::Schema.flapping('item', sort_by_name)
+      if sort_by.nil?
+        raise BadRequestSearchError, "Invalid field(s) specified in sort_by parameter: #{sort_by_name}"
+      end
+
+      if !sort_by.sortable?
+        raise BadRequestSearchError, "Non-sortable field(s) specified in sort_by parameter: #{sort_by_name}"
+      end
+
+      if sort_by.sort == 'field'
+        [ {sort_by.name => order} ]
+      elsif sort_by.sort == 'script'
+        [{
+           '_script' => {
+             'script' => "s='';foreach(val : doc['#{sort_by.name}'].values) {s += val + ' '} s",
+             'type' => "string",
+             'order' => order
+           }
+         }]
+      elsif sort_by.sort == 'geo_distance'
         if params['sort_by_pin'].to_s == ''
           raise BadRequestSearchError, "Missing required sort_by_pin parameter when sorting on #{sort_by.name}"
         end
-        ['_geo_distance', { sort_by.name => params['sort_by_pin'], 'order' => order }]
-      else
-        [sort_by.name, order]
+        [ {'_geo_distance' => { sort_by.name => params['sort_by_pin'], 'order' => order } } ]
       end
     end
 
@@ -199,7 +211,7 @@ module V1
       # Transparently translate "id" values from query to the "_id" values CouchDB expects
       doc_ids = []
       missing_ids = []
-      #TODO: construct big "a OR b OR c" query to get all items in one trip to ES
+      #TODO: use search.ids() method, or add logic for it in search()
       ids.each do |id|
         result = search({'id' => id})
         
@@ -227,30 +239,10 @@ module V1
     end
 
     def verbose_debug(search)
-      if search.to_json == '{}'
-        puts "********* WARNING ********* "
-        puts "* Running a completely empty query. Probably not what you intended. *"
-        puts "*************************** "
-      end
       #puts "JSON: #{search.to_json}"
       puts "CURL: #{search.to_curl}"
-      # search.results.each do |result|
-      #   puts "### HIT (#{result['_id']}): #{result.pretty_inspect}"
-      # end
     end
 
-    def direct(params={})
-      s = Tire.search(V1::Config::SEARCH_INDEX) do
-        query do
-          boolean do
-            must { string 'perplexed' }
-          end
-        end
-      end
-      verbose_debug(s)
-      s.results
-    end
-    
   end
 
 end

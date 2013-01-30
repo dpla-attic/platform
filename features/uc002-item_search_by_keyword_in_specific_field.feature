@@ -12,6 +12,10 @@ Feature: Search for items by keyword (UC002)
     When I search for "banana" in the "title" field
     Then the API should return 1 items with "banana"
     
+  Scenario: Basic keyword search of dotted field name
+    When I search for "Cambridge" in the "spatial.city" field
+    Then the API should return 1 items with "Cambridge"
+    
   Scenario: Basic keyword search of description field
     When I search for "perplexed" in the "description" field
     Then the API should return 2 items with "perplexed"
@@ -25,5 +29,6 @@ Feature: Search for items by keyword (UC002)
     When I search for "notfound OR three" in the "description" field
     And  I search for "*doodle*" in the "subject" field
     Then the API should return record 3
+
 
 

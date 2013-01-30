@@ -116,37 +116,56 @@ module V1
       it "returns a valid sort order if a valid sort order is param present" do
         params = {'sort_by' => 'id', 'sort_order' => 'desc'}
         expect(
-          subject.build_sort_attributes(params)
-        ).to eq ['id', 'desc']
+               subject.build_sort_attributes(params)
+               ).to eq [ {'id' => 'desc'} ]
       end
 
       it "returns a valid sort order if an invalid sort order param present" do
         params = {'sort_by' => 'id', 'sort_order' => 'apple'}
         expect(
-          subject.build_sort_attributes(params)
-        ).to eq ['id', Searchable::DEFAULT_SORT_ORDER]
+               subject.build_sort_attributes(params)
+               ).to eq [ {'id' => Searchable::DEFAULT_SORT_ORDER} ]
       end
 
       it "returns a valid sort order param if no sort order param present" do
         params = {'sort_by' => 'id'}
         expect(
-          subject.build_sort_attributes(params)
-        ).to eq ['id', Searchable::DEFAULT_SORT_ORDER]
+               subject.build_sort_attributes(params)
+               ).to eq [ {'id' => Searchable::DEFAULT_SORT_ORDER} ]
       end
 
       it "returns the valid sort_by if a valid sort order is param present" do
         params = {'sort_by' => 'id', 'sort_order' => 'asc'}
         expect(
-          subject.build_sort_attributes(params)
-        ).to eq ['id', 'asc']
+               subject.build_sort_attributes(params)
+               ).to eq [ {'id' => 'asc'} ]
       end
 
-      it "returns the correct array value if the sort_by field is a geo_point type" do
-        params = {'sort_by' => 'some_geo_field', 'sort_by_pin' => '41,-71', 'order' => 'asc'}
-        V1::Schema.stub(:flapping) { stub(:type => 'geo_point', :analyzed? => false, :name => 'some_geo_field') }
+      it "returns correct array values for geo_point types" do
+        params = {'sort_by' => 'coordinates', 'sort_by_pin' => '41,-71', 'order' => 'asc'}
+        field = stub(:sort => 'geo_distance', :sortable? => true, :name => 'coordinates')
+        V1::Schema.stub(:flapping) { field }
         expect(
-          subject.build_sort_attributes(params)
-        ).to eq ['_geo_distance', { 'some_geo_field' => '41,-71', 'order' => 'asc' }]
+               subject.build_sort_attributes(params)
+               ).to eq [ {'_geo_distance' => { 'coordinates' => '41,-71', 'order' => 'asc' } } ]
+      end
+
+      it "returns correct array for script sort" do
+        params = {'sort_by' => 'title'}
+        field = stub(:sort => 'script', :sortable? => true, :name => 'title')
+        V1::Schema.stub(:flapping) { field }
+        expect(
+               subject.build_sort_attributes(params)
+               ).to eq( 
+                       [{
+                          '_script' => {
+                            'script' => "s='';foreach(val : doc['title'].values) {s += val + ' '} s",
+                            'type' => "string",
+                            'order' => 'asc'
+                          }
+                        }]
+                       )
+
       end
 
       it "raises a BadRequestSearchError on an invalid sort_by param" do
@@ -156,9 +175,9 @@ module V1
         }.to raise_error BadRequestSearchError, /invalid field.* sort_by parameter: some_invalid_field/i
       end
 
-      it "raises a BadRequestSearchError on an non-sortable sort_by param" do
+      it "raises a BadRequestSearchError on a non-sortable sort_by param" do
         params = {'sort_by' => 'some_analyzed_field'}
-        V1::Schema.stub(:flapping) { stub(:analyzed? => true, :name => 'foo') }
+        V1::Schema.stub(:flapping) { stub(:sortable? => false, :name => 'foo') }
         expect  { 
           subject.build_sort_attributes(params)
         }.to raise_error BadRequestSearchError, /non-sortable field.* sort_by parameter: some_analyzed_field/i
@@ -422,7 +441,9 @@ module V1
       context "sorting" do
         it "sorts by field name if present" do
           params = {'q' => 'banana',  'sort_by' => 'title' }
-          V1::Schema.stub(:flapping) { stub(:analyzed? => false, :name => 'foo') }
+          V1::Schema.stub(:flapping) {
+            stub(:analyzed? => false, :name => 'foo', :geo_point? => false, :subfields? => false)
+          }
           subject.should_receive(:build_sort_attributes).with(params) { [] } 
           mock_search.should_receive(:sort)
           subject.stub(:wrap_results)
@@ -441,7 +462,7 @@ module V1
         params = {'fields' => 'title,type'}
         subject.stub(:validate_query_params)
         subject.stub(:validate_field_params)
-        mock_search.should_receive(:fields).with('title,type')
+        mock_search.should_receive(:fields).with( %w( title type ) )
         subject.search(params)
       end
 

@@ -4,70 +4,69 @@ module V1
 
   module Schema
 
-    #TODO: finish refactor by using strings for all mapping declarations (:type, etc)
     ELASTICSEARCH_MAPPING = {
       'mappings' => {
         'item' => {
           'properties' => {
-            'id' => { :type => 'string', 'index' => 'not_analyzed' },
-            '@id' => { :type => 'string', 'index' => 'not_analyzed' },
-            'title' => { :type => 'string' },
+            'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
+            '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
+            'title' => { 'type' => 'string', 'sort' => 'script' },
             'dplaContributor' => {
               'properties' => {
-                '@id' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
-                'name' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true }
+                '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+                'name' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true }
               }
             },
-            'creator' => { :type => 'string' },
-            'publisher' => { :type => 'string' },
-            'created' => { :type => 'date', 'index' => 'not_analyzed', 'facet' => true },
-            'type' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
-            'format' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
+            'creator' => { 'type' => 'string' },
+            'publisher' => { 'type' => 'string' },
+            'created' => { 'type' => 'date', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+            'type' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+            'format' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
             'language' => {
               'properties' => {
-                'name' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
-                'iso639' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true }
+                'name' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+                'iso639' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true }
               }
             },
             'subject' => {
               'properties' => {
-                '@id' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
-                '@type' => { :type => 'string', 'index' => 'not_analyzed' },
-                'name' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true }
+                '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+                '@type' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
+                'name' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
               }
             },
-            'description' => { :type => 'string' },
-            'rights' => { :type => 'string' },
+            'description' => { 'type' => 'string' },
+            'rights' => { 'type' => 'string' },
             'spatial' => {
               'properties' => {
-                'name' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
-                'state' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
-                'city' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
-                'iso3166-2' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
-                'coordinates' => { :type => "geo_point", 'index' => 'not_analyzed', 'facet' => true }
+                'name' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+                'state' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+                'city' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+                'iso3166-2' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+                'coordinates' => { 'type' => "geo_point", 'index' => 'not_analyzed', 'sort' => 'geo_distance', 'facet' => true }
               }
             },
             'temporal' => {
               'properties' => {
-                'start' => { :type => 'date', 'index' => 'not_analyzed', 'facet' => true, 'null_value' => '-9999' },
-                'end'   => { :type => 'date', 'index' => 'not_analyzed', 'facet' => true, 'null_value' => '9999' }
+                'start' => { 'type' => 'date', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true, 'null_value' => '-9999' },
+                'end'   => { 'type' => 'date', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true, 'null_value' => '9999' }
               }
             },
-            'relation' => { :type => 'string' },
-            'source' => { :type => 'string' },
+            'relation' => { 'type' => 'string' },
+            'source' => { 'type' => 'string' },
             'isPartOf' => {
               'properties' => {
-                '@id' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
+                '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
                 'name' => {
-                  :type => 'multi_field',
+                  'type' => 'multi_field',
                   'fields' => {
-                    'name' => {:type => 'string' },
-                    'raw' => {:type => 'string', 'index' => 'not_analyzed', 'facet' => true}
+                    'name' => {'type' => 'string' },
+                    'raw' => {'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true}
                   }
                 }
               }
             },
-            'contributor' => { :type => 'string', 'index' => 'not_analyzed', 'facet' => true },
+            'contributor' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
             'dplaSourceRecord' => {
               'enabled' => false  # completely omit dplaSourceRecord from the index
             }
@@ -138,7 +137,7 @@ module V1
 
           #top level date fields
           #TODO: use mapping metadata to handle temporal special case
-          if field_mapping[:type] == 'date' || field == 'temporal'
+          if field_mapping['type'] == 'date' || field == 'temporal'
             fields << "#{field}.before" << "#{field}.after"
           end
 
@@ -147,7 +146,7 @@ module V1
               fields << "#{field}.#{subfield}"
 
               # support our custom $field.distance query param for all geo_point fields
-              if subfield_mapping[:type] == 'geo_point'
+              if subfield_mapping['type'] == 'geo_point'
                 fields << "#{field}.distance"
               end
             end

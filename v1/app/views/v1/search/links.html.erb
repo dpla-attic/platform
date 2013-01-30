@@ -22,7 +22,7 @@
   <tr>
     <td>UC002</td> 
     <td><%= link_to nil, v1_api.items_path('description' => 'notfound OR three', 'subject' => '*doodle') %>
-    <td>Field-specific boolean search, normal field-specific search (w/wildcard because it is not_analyzed)</td>
+    <td>Field-specific boolean search, field-specific wildcard search (because it is not_analyzed)</td>
   </tr>
   <tr>
     <td>UC002</td>
@@ -87,6 +87,16 @@
     <td>#2789</td>
     <td><%= link_to nil, v1_api.items_path('sort_by' => 'created') %></td>
     <td>Sort: by 'created' date field </td>
+  </tr>
+  <tr>
+    <td>#3382</td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'title') %></td>
+    <td>Sort: by (analyzed) 'title' field using _script sort under the hood </td>
+  </tr>
+  <tr>
+    <td>#3382</td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'subject.name') %></td>
+    <td>Sort: by (multi-valued) 'subject.name' field using _script sort under the hood </td>
   </tr>
   <tr>
     <td>#2789</td>

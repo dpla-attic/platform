@@ -37,31 +37,35 @@ module V1
       end
 
       def self.field_queries(params)
+        # TODO: We need a parse_facet_name type method in here
         seen_date_ranges = []
         query_strings = []
-        params.each do |field, value|
+
+        params.each do |name, value|
           next if value.blank?
 
-          if field == 'q'
-            query_strings << value
-          elsif field =~ /^(created)\.(before|after)$/
+          if name == 'q'
+            query_strings << [value, 'fields' => ['_all']]
+          elsif name =~ /^(created)\.(before|after)$/
             if !seen_date_ranges.include? $1
               query_strings << build_date_range_queries($1, params)
-              # remember field so we don't doubledip it with the other end of the range
+              # remember name so we don't doubledip it with the other end of the range
               seen_date_ranges << $1
             end
           else
-            mapping = V1::Schema.item_mapping(field)
-            next if mapping.nil?  #skip unmapped fields, including spatial.distance
+            field = V1::Schema.flapping('item', name)
+            next if field.nil?  #skip unmapped names, including spatial.distance
             # temporal.after and created.after won't have a mapping, and are handled elsewhere
 
+            next if field.geo_point?  #build geo search elsewhere
+
+            if name =~ /(.+)\.(.+)/
             # subfield search
-            if field =~ /(.+)\.(.+)/
-              next if mapping[:type] == 'geo_point'  #build geo search elsewhere
-              next if $2 =~ /^(before|after)$/  #build range elsewhere
-              query_strings << [value, 'fields' => [field]]
+              next if field.date? && $2 =~ /^(before|after)$/  #build date range elsewhere
+              query_strings << [value, 'fields' => [field.name]]
             else
-              fields_attr = mapping['properties'].present? ? "#{field}.*" : field
+              # search in multiple fields
+              fields_attr = field.subfields? ? "#{field.name}.*" : field.name
               query_strings << [value, 'fields' => [fields_attr]]
             end
           end

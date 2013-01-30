@@ -9,7 +9,7 @@ module V1
       # f.facet_fields# results of expand_facet_name (always returns an array)
       # f.options (?) # query params appended to field name (e.g. created.before)
 
-      attr_reader :resource, :name, :type, :facet_modifier
+      attr_reader :resource, :name, :facet_modifier
       
       def initialize(resource, name, mapping, facet_modifier=nil)
         if mapping.nil?
@@ -19,10 +19,21 @@ module V1
         @resource = resource
         @name = name
         @mapping = mapping
-        @type = mapping[:type]
 
         # facet_modifier is any extra text that modifies how this field is used as a facet
         @facet_modifier = facet_modifier
+      end
+
+      def type
+        @mapping['type']
+      end
+
+      def sort
+        @mapping['sort']
+      end
+
+      def sortable?
+        !sort.nil?
       end
 
       def subfields?
@@ -45,7 +56,6 @@ module V1
       def mapping_to_fields(mapping)
         if mapping
           mapping.map do |name, mapping|
-            #            self.class.new(@resource, name, mapping, @name)
             self.class.new(@resource, "#{@name}.#{name}", mapping)
           end
         else
@@ -80,19 +90,19 @@ module V1
       end
 
       def geo_point?
-        @type == 'geo_point'
+        type == 'geo_point'
       end
 
       def date?
-        @type == 'date'
+        type == 'date'
       end
 
       def string?
-        @type == 'string'
+        type == 'string'
       end
 
       def multi_field?
-        @type == 'multi_field'
+        type == 'multi_field'
       end
 
     end

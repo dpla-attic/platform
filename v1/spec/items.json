@@ -141,17 +141,7 @@
     "_id": "P3-temporal-1",
     "id": "P3-temporal-1",
     "title": "P3-temporal-1",
-    "description": "bookend temporal ranges",
-    "temporal": [
-    {
-      "start-OFF": "2150",
-      "end-OFF": "2151"
-    },
-    {
-      "start-OFF": "2160",
-      "end-OFF": "2161"
-    }
-    ]
+    "description": "bookend temporal ranges"
   },
   {
     "_id": "A",
@@ -390,6 +380,33 @@
     },
     "type": "Tthree",
     "created": "1983-01-01"
+  },
+  {
+    "_id": "R8",
+    "id": "R8",
+    "title": "peanut",
+    "description": "Testing script sort on not_analyzed fields with array values",
+    "subject": [
+      {
+        "name": "subname1"
+      },
+      {
+        "name": "subname2"
+      },
+      {
+        "name": "subname3"
+      }
+    ]
+  },
+  {
+    "_id": "R9",
+    "id": "R9",
+    "title": "peanut",
+    "description": "Nuts!",
+    "subject": 
+      {
+        "name": "xcalibur"
+      }
   }
 
 ]

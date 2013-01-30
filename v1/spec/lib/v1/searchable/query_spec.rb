@@ -57,7 +57,7 @@ module V1
       describe "#field_queries" do
         it "returns correct query string for a free text search" do
           params = {'q' => 'something'}
-          expect(subject.field_queries(params)).to match_array [['something']]
+          expect(subject.field_queries(params)).to match_array [['something', {"fields"=>["_all"]}]]
         end
         
         it "returns correct query string for field search" do
