@@ -59,7 +59,7 @@ module V1
       # Intended for rake tasks
       #TODO: don't count views. In a cruel twist of fate, we may need a view
       # to do that. :O
-      HTTParty.get(admin_endpoint_database)['doc_count'] rescue 'ERROR'
+      CouchRest.database(admin_endpoint_database).info['doc_count'] rescue 'ERROR'
     end
 
     def self.import_test_dataset
@@ -121,6 +121,7 @@ module V1
         :roles => ["reader"]
       }
 
+      #TODO: we can probably use db.save_doc(...) here instead
       RestClient.put(
         "#{admin_endpoint}/_users/org.couchdb.user:#{username}",
         user_hash.to_json,
@@ -140,6 +141,7 @@ module V1
       )
 
       # add validation to ensure only admin can create new docs
+      #TODO: we can probably use db.save_doc(...) here instead
       design_doc_hash = {
         :_id => "_design/auth",
         :language => "javascript",
