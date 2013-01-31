@@ -129,9 +129,7 @@ module V1
                                                 )
 
       create_result = JSON.parse(response.body)
-      if create_result['ok']
-        puts "River created OK"
-      else
+      if !create_result['ok']
         puts "Problem creating river: #{create_result.inspect}"
       end
     end

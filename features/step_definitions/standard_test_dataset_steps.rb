@@ -1,5 +1,5 @@
 Given /^the dataset exists$/ do
-  expect(File.exist?V1::StandardDataset::ITEMS_JSON_FILE).to be(true)
+  expect(File.exist?V1::StandardDataset::ITEMS_JSON_FILE).to be_true
 end
 
 When /^I have valid JSON in the test dataset$/ do
@@ -7,7 +7,7 @@ When /^I have valid JSON in the test dataset$/ do
 end
 
 Then /^I should not get a dataset error$/ do
-  expect{
+  expect {
     JSON.parse(@json)
   }.to_not raise_error(JSON::ParserError)
 end
@@ -23,7 +23,11 @@ Given /^there is a metadata record "(.*?)" with "(.*?)" in the "(.*?)" field$/ d
   dataset = JSON.parse(load_dataset)
   
   doc = dataset.detect {|doc| doc['_id'] == id}
-  expect(doc[field]).to eq expected
+  #TODO: make this work for arbitrary levels of nesting
+
+  value = field =~ /(.+)\.(.+)/ ? doc[$1][$2] : doc[field]
+
+  expect(value).to eq expected
   # grouped_dataset = dataset.group_by {|el| el["_id"]}
   # expect(grouped_dataset.include?(arg1)).to be(true)
   # expect(grouped_dataset[arg1].count).to be(1)

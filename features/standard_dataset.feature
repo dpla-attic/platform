@@ -12,7 +12,7 @@ Feature: Standard test dataset
     And there are 0 items that contain the word "perplexed" in the "title"
    
   Scenario: Confirm Items with Metadata 
-    And there is a metadata record "F" with "1973-04-19" in the "created" field 
+    And there is a metadata record "F" with "1973-04-19" in the "created.start" field 
     # And there is a metadata record "A" with "June 1, 1950" in the "temporal" field 
     # And there is a metadata record "B" with "July 1, 1955 - July 30, 1955" in the "temporal" field
     # And there is a metadata record "C" with "1970 - 1979 CE" in the "temporal" field

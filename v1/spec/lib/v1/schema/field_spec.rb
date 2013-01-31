@@ -177,6 +177,13 @@ module V1
         end
       end
 
+      describe "#subfield_names" do
+        it "returns array of subfield names d" do
+          field = V1::Schema::Field.new(resource, 'subject', item_mapping['subject'])
+          expect(field.subfield_names).to match_array %w( subject.@id subject.@type subject.name )
+        end
+      end
+
       describe "#facetable?" do
         context "facetable fields" do
           it "detects a top level simple field" do

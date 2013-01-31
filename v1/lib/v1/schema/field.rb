@@ -45,6 +45,10 @@ module V1
         @subfields ||= mapping_to_fields(@mapping['properties'])
       end
 
+      def subfield_names
+        subfields.map {|sf| sf.name}
+      end
+
       def multi_fields
         @multi_fields ||= build_multi_fields
       end

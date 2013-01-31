@@ -10,11 +10,11 @@ module V1
       def self.build_all(search, params)
         # Returns boolean for "did we run any queries?"
         field_queries = field_queries(params)
-        temporal_queries = temporal_queries(params)
+        date_range_queries = date_range_queries(params)
 
         # Only call search.query.boolean if we have some queries to pass it.
         # Otherwise we'll get incorrect search results.
-        return false if (field_queries.empty? && temporal_queries.empty?)
+        return false if (field_queries.empty? && date_range_queries.empty?)
 
         search.query do |query|
           query.boolean do |boolean|
@@ -25,7 +25,7 @@ module V1
               end
             end
 
-            temporal_queries.each do |temporal|
+            date_range_queries.each do |temporal|
               boolean.must do |must|
                 must.range *temporal
               end
@@ -36,11 +36,13 @@ module V1
         true
       end
 
-      def self.field_queries(params)
+
+      def self.field_queriesORIG(params)
         # TODO: We need a parse_facet_name type method in here
         seen_date_ranges = []
         query_strings = []
 
+        # We skip all query types that are handled elsewhere
         params.each do |name, value|
           next if value.blank?
 
@@ -73,18 +75,57 @@ module V1
 
         query_strings.map {|q| Array.wrap(q)}
       end
-      
-      def self.build_date_range_queries(field, params)
-        if params.keys.include?("#{field}.before") || params.keys.include?("#{field}.after")
-          after = params["#{field}.after"].presence || '*'
-          before = params["#{field}.before"].presence || '*'
-          # Inclusive range queries: square brackets. Exclusive range queries: curly brackets.
-          ["[#{after} TO #{before}]", 'fields' => [field]]
+
+      def self.field_queries(params)
+        # Only handles 'q' and basic field/subfield searches
+
+        query_strings = []
+        # We skip all query types that are handled elsewhere
+        params.each do |name, value|
+          next if value.blank?
+          next if name =~ /^.+\.(before|after)$/
+
+          if name == 'q'
+            query_strings << [value, 'fields' => ['_all']]
+          else
+            field = V1::Schema.flapping('item', name)
+
+            # it probably has some kind of modifier
+            next if field.nil?
+
+            next if field.geo_point?
+
+            query_strings << [ value, 'fields' => field.subfields? ? field.subfield_names : [field.name] ]
+          end
         end
+
+        query_strings.map {|query| Array.wrap(query)}
+      end
+      
+      def self.date_range_queries(params)
+        ranges = []
+        params.each do |name, value|
+          next unless name =~ /^(.+)\.(before|after)$/
+          field_name = $1
+          modifier = $2
+
+          if modifier == 'after' #  params['temporal.after']
+            limits = { :gte => value }
+            # uncomment the below to enforce a strict "between" query rather than the
+            # the default "if there is any overlap in timeframes" we use now.
+            #limits[:lte] = params['temporal.before'] if params['temporal.before']
+            ranges << ["#{field_name}.end", limits]
+          elsif modifier == 'before'  #  params['temporal.before']
+            limits = { :lte => value }
+            # see above "between" comment
+            #limits[:gte] = params['temporal.after'] if params['temporal.after']
+            ranges << ["#{field_name}.start", limits]
+          end
+        end
+        ranges
       end
 
-      def self.temporal_queries(params)
-        #TODO: test
+      def self.range_queriesORIG(params)
         ranges = []
         if params['temporal.after']
           limits = { :gte => params['temporal.after'] }

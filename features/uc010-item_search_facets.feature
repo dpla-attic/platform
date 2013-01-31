@@ -34,14 +34,14 @@ Feature: Search the DPLA using facets (UC010)
 
   Scenario: Retrieve date facet
     When I make an empty search
-      And request the "created" facet
-    Then the API returns the "created" facets
-      And the "created" date facet contains items for every unique field within the search index
+      And request the "created.start" facet
+    Then the API returns the "created.start" facets
+      And the "created.start" date facet contains items for every unique field within the search index
 
   Scenario: Retrieve date facet with an interval
     When I make an empty search
-      And request the "created.year" facet
-    Then the API returns the "created.year" facets
+      And request the "created.start.year" facet
+    Then the API returns the "created.start.year" facets
       And I should get http status code "200"
 
   Scenario: Retrieve date facet on the temporal field with an interval
@@ -69,9 +69,9 @@ Feature: Search the DPLA using facets (UC010)
 
   Scenario: Retrieve simple text facet with facet_size of 'max'
     When I make an empty search
-      And request the "created" facet
+      And request the "created.end" facet
       And request facet size of "max"
-    Then the API returns the "created" facets
+    Then the API returns the "created.end" facets
       And I should get http status code "200"
 
   Scenario: Retrieve simple text facet with facet_size of 1 
@@ -90,7 +90,7 @@ Feature: Search the DPLA using facets (UC010)
 
   Scenario: Retrieve date facet with facet_size of 2
     When I make an empty search
-      And request the "created" facet
+      And request the "created.start" facet
       And request facet size of "2"
-    Then the API returns the "created" facets
-      And the "created" date facets contains the requested number of facets
+    Then the API returns the "created.start" facets
+      And the "created.start" date facets contains the requested number of facets

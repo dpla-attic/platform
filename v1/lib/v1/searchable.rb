@@ -60,7 +60,7 @@ module V1
 
       begin
         #verbose_debug(search)
-        puts "CURL: #{search.to_curl}" if search.respond_to? :to_curl
+        #puts "CURL: #{search.to_curl}" if search.respond_to? :to_curl
         #puts "JSON: #{search.to_json}" if search.respond_to? :to_json
         return wrap_results(search, params)
       rescue Tire::Search::SearchRequestFailed => e

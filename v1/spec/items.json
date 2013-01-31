@@ -7,7 +7,9 @@
     "dplaContributor": null,
     "creator": "",
     "publisher": "",
-    "subject": {
+    "created": {
+      "start": "1977-01-01",
+      "end": "1977-01-01"
     },
     "type": "",
     "format": "",
@@ -24,7 +26,9 @@
     "dplaContributor": null,
     "creator": "",
     "publisher": "",
-    "subject": {
+    "created": {
+      "start": "1978-01-01",
+      "end": "1979-01-01"
     },
     "type": "",
     "format": "",
@@ -41,8 +45,12 @@
     "dplaContributor": null,
     "creator": "",
     "publisher": "",
+    "created": {
+      "start": "2000-06-01",
+      "end": "2001-01-01"
+    },
     "subject": {
-    "name": "perplexed subject3 doodle"
+      "name": "perplexed subject3 doodle"
     },
     "type": "",
     "format": "text/xml",
@@ -233,7 +241,10 @@
     "dplaContributor": null,
     "creator": "",
     "publisher": "",
-    "created": "1973-04-19",
+    "created": {
+      "start": "1973-04-19",
+      "end": "1973-04-19"
+    },
     "type": "",
     "format": "",
     "rights": "",
@@ -326,7 +337,6 @@
     "id": "one.two.three",
     "title": "dotted id test"
   },
-
   {
     "_id": "S1",
     "id": "S1",
@@ -334,7 +344,10 @@
       "name": "Tone"
     },
     "type": "Tone",
-    "created": "1981-01-01"
+    "created": {
+      "start": "1981-01-01",
+      "end": "1981-01-01"
+    }
   },
   {
     "_id": "S2",
@@ -343,7 +356,10 @@
       "name": "Ttwo"
     },
     "type": "Ttwo",
-    "created": "1982-01-01"
+    "created": {
+      "start": "1982-01-01",
+      "end": "1982-01-01"
+    }
   },
   {
     "_id": "S3",
@@ -352,7 +368,10 @@
       "name": "Ttwo"
     },
     "type": "Ttwo",
-    "created": "1982-01-01"
+    "created": {
+      "start": "1982-01-01",
+      "end": "1982-01-01"
+    }
   },
   {
     "_id": "S4",
@@ -361,7 +380,10 @@
       "name": "Tthree"
     },
     "type": "Tthree",
-    "created": "1983-01-01"
+    "created": {
+      "start": "1982-01-01",
+      "end": "1982-01-01"
+    }
   },
   {
     "_id": "S5",
@@ -370,7 +392,10 @@
       "name": "Tthree"
     },
     "type": "Tthree",
-    "created": "1983-01-01"
+    "created": {
+      "start": "1982-01-01",
+      "end": "1982-01-01"
+    }
   },
   {
     "_id": "S6",
@@ -379,7 +404,10 @@
       "name": "Tthree"
     },
     "type": "Tthree",
-    "created": "1983-01-01"
+    "created": {
+      "start": "1982-01-01",
+      "end": "1982-01-01"
+    }
   },
   {
     "_id": "R8",

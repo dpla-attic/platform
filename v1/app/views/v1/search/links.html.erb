@@ -85,8 +85,8 @@
   </tr>
   <tr>
     <td>#2789</td>
-    <td><%= link_to nil, v1_api.items_path('sort_by' => 'created') %></td>
-    <td>Sort: by 'created' date field </td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'created.start', 'page_size' => 99) %></td>
+    <td>Sort: by 'created.start' date field (w/large page size, for effect)</td>
   </tr>
   <tr>
     <td>#3382</td>
@@ -150,13 +150,13 @@
   </tr>
   <tr>
     <td>#2973</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'created') %></td>
-    <td>Date facet on created</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'created.start') %></td>
+    <td>Date facet on created.start</td>
   </tr>
   <tr>
     <td>#2973</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'created.year') %></td>
-    <td>Date facet on created.year (interval)</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'created.start.year') %></td>
+    <td>Date facet on created.start.year (interval)</td>
   </tr>
   <tr>
     <td>#2973</td>

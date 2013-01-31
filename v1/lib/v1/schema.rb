@@ -19,7 +19,12 @@ module V1
             },
             'creator' => { 'type' => 'string' },
             'publisher' => { 'type' => 'string' },
-            'created' => { 'type' => 'date', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+            'created' => {
+              'properties' => {
+                'start' => { 'type' => 'date', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true, 'null_value' => '-9999' },
+                'end'   => { 'type' => 'date', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true, 'null_value' => '9999' }
+              }
+            },
             'type' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
             'format' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
             'language' => {
@@ -127,33 +132,32 @@ module V1
 
     def self.queryable_fields
       # Renders mapping into a list of fields and $field.subfields
-      #TODO: Refactor to use Field class and subfields
-      fields = []
-      mapping.each do |type, type_mapping|
-        type_mapping['properties'].each do |field, field_mapping|
-          next if field_mapping.has_key?('enabled') && field_mapping['enabled'] == false
+      #TODO: Refactor to use Field class and all its magic
+      names = []
+      mapping('item').each do |name, type_mapping|
+        field = V1::Schema.flapping('item', name)
+        next unless field.enabled?
 
-          fields << field
+        names << field.name
 
-          #top level date fields
-          #TODO: use mapping metadata to handle temporal special case
-          if field_mapping['type'] == 'date' || field == 'temporal'
-            fields << "#{field}.before" << "#{field}.after"
+        field.subfields.each  do |subfield|
+          names << subfield.name
+          
+          # special handling for date ranges on this subfield's parent field name
+          if subfield.date?
+            if subfield.name =~ /\.end$/
+              names << field.name + '.after'
+            elsif subfield.name =~ /\.start$/
+              names << field.name + '.before'
+            end
           end
 
-          if field_mapping.has_key? 'properties'
-            field_mapping['properties'].each do |subfield, subfield_mapping|
-              fields << "#{field}.#{subfield}"
-
-              # support our custom $field.distance query param for all geo_point fields
-              if subfield_mapping['type'] == 'geo_point'
-                fields << "#{field}.distance"
-              end
-            end
+          if subfield.geo_point?
+            names << field.name + '.distance'
           end
         end
       end
-      fields
+      names
     end
 
   end

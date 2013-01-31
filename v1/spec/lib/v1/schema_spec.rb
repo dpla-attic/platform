@@ -34,7 +34,12 @@ module V1
                 'id' => { 'type' => 'string', 'facet' => true },
                 'title' => { 'type' => 'string' },
                 'description' => { 'type' => 'string' },
-                'created' => { 'type' => 'date', 'facet' => true },
+                'created' => {
+                  'properties' => {
+                    'start' => { 'type' => 'date', 'facet' => true },
+                    'end' => { 'type' => 'date', 'facet' => true }
+                  }
+                },
                 'temporal' => {
                   'properties' => {
                     'start' => { 'type' => 'date', 'facet' => true },
@@ -110,7 +115,13 @@ module V1
         end
 
         it "returns the mapping for a single field as requested" do
-          expect(subject.mapping('item', 'created')).to eq( {'type' => 'date', 'facet' => true } )
+          expect(subject.mapping('item', 'created'))
+            .to eq({
+                     'properties' => {
+                       'start' => { 'type' => 'date', 'facet' => true },
+                       'end' => { 'type' => 'date', 'facet' => true }
+                     }
+                   })
           expect(subject.mapping('collection', 'title')).to eq( {'type' => 'string'} )
         end
 
@@ -145,11 +156,9 @@ module V1
         it "includes an expected basic string field" do
           expect(queryable_fields).to include 'title'
         end
-        it "includes $field.before and $field.after for top-level date field" do
+        it "includes $field.before and $field.after for top-level date fields" do
           expect(queryable_fields).to include 'created.before'
           expect(queryable_fields).to include 'created.after'
-        end
-        it "handles the special case of temporal.before and temporal.after" do
           expect(queryable_fields).to include 'temporal.before'
           expect(queryable_fields).to include 'temporal.after'
         end

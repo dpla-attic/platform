@@ -23,7 +23,7 @@ When /^sort by pin "(.*?)"$/ do |arg1|
 end
 
 Then /^I should get http status code "(.*?)"$/ do |arg1|
-  item_query(@params)
+  item_query(@params, false)
   expect(page.status_code.to_s).to eq(arg1)
 end
 

@@ -30,29 +30,6 @@ module V1
         # end
       end
 
-      describe "#build_date_range_queries" do
-        # ["[2012-01-01 TO 2012-01-31]", {"fields"=>["created"]}]
-        it "handles closed date ranges" do
-          params = {'created.after' => '2012-01-01', 'created.before' => '2012-01-31'}
-          expect(
-                 subject.build_date_range_queries('created', params)
-                 ).to match_array ['[2012-01-01 TO 2012-01-31]', {'fields'=>['created']}]
-        end
-        
-        it "handles begin-only date ranges" do
-          params = {'created.after' => '2012-01-01'}
-          expect(
-                 subject.build_date_range_queries('created', params)
-                 ).to match_array ['[2012-01-01 TO *]', {'fields' => ['created']}]
-        end
-        it "handles end-only date ranges" do
-          params = {'created.before' => '2012-01-31'};
-          expect(
-                 subject.build_date_range_queries('created', params)
-                 ).to match_array ['[* TO 2012-01-31]', {'fields' => ['created']}]
-
-        end
-      end
 
       describe "#field_queries" do
         it "returns correct query string for a free text search" do
@@ -77,13 +54,10 @@ module V1
 
         it "handles 'created' as a normal field search" do
           params = {'created' => '1999-08-07'}
-          expect(subject.field_queries(params)).to match_array [['1999-08-07', {'fields' => ['created']}]]
-        end
-
-        it "delegates 'created.after' search to build_date_range_queries instead of normal field search" do
-          params = {'created.after' => '1999-08-07'}
-          subject.should_receive(:build_date_range_queries) { ['delegated'] }
-          expect(subject.field_queries(params)).to match_array [['delegated']]
+          expect(subject.field_queries(params))
+            .to match_array(
+                            [['1999-08-07', {'fields' => %w( created.start created.end )}]]
+                            )
         end
 
         it "handles an empty search correctly" do
@@ -92,11 +66,59 @@ module V1
         end
       end
 
-      describe "#temporal_queries" do
+      describe "#date_range_queries" do
+        it "handles closed date ranges (aka 'between')" do
+          params = {'temporal.after' => '1980', 'temporal.before' => '1990'}
+          expect(subject.date_range_queries(params))
+            .to match_array [["temporal.end", {:gte=>"1980"}], ["temporal.start", {:lte=>"1990"}]]
+        end
+
+        it "handles begin-only date ranges" do
+          params = {'temporal.after' => '1980'}
+          expect(subject.date_range_queries(params))
+            .to match_array [["temporal.end", {:gte=>"1980"}]]
+        end
+
+        it "handles end-only date ranges" do
+          params = {'temporal.before' => '1990'}
+          expect(subject.date_range_queries(params))
+            .to match_array [["temporal.start", {:lte=>"1990"}]]
+        end
+        
+        it "handles ranges correctly" do
+          params = {'temporal.after' => '1980', 'temporal.before' => '1990'}
+          expect(subject.date_range_queries(params))
+            .to match_array [["temporal.end", {:gte=>"1980"}], ["temporal.start", {:lte=>"1990"}]]
+        end
         it "returns an empty array when no temporal range params exist"
         it "returns correct range data for temporal.before"
         it "returns correct range data for temporal.before and temporal.after in same query"
       end
+
+
+      # describe "#build_date_range_queries" do
+      #   # ["[2012-01-01 TO 2012-01-31]", {"fields"=>["created"]}]
+      #   it "handles closed date ranges" do
+      #     params = {'created.after' => '2012-01-01', 'created.before' => '2012-01-31'}
+      #     expect(
+      #            subject.build_date_range_queries('created', params)
+      #            ).to match_array ['[2012-01-01 TO 2012-01-31]', {'fields'=>['created']}]
+      #   end
+        
+      #   it "handles begin-only date ranges" do
+      #     params = {'created.after' => '2012-01-01'}
+      #     expect(
+      #            subject.build_date_range_queries('created', params)
+      #            ).to match_array ['[2012-01-01 TO *]', {'fields' => ['created']}]
+      #   end
+      #   it "handles end-only date ranges" do
+      #     params = {'created.before' => '2012-01-31'};
+      #     expect(
+      #            subject.build_date_range_queries('created', params)
+      #            ).to match_array ['[* TO 2012-01-31]', {'fields' => ['created']}]
+
+      #   end
+      # end
 
     end
 

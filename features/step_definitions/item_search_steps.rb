@@ -24,7 +24,12 @@ When /^I search the "temporal" field for records with a date (before|after) "(.*
 end
 
 Then /^the API should return records? (.*?)$/ do |id_list|
-  json = item_query_to_json(@params)
+  json = item_query_to_json(@params, true)
+
+  if json.nil?
+    raise RSpec::Expectations::ExpectationNotMetError, "Query unexpectedly returned zero results for params: #{@params}"
+  end
+
   expect(
     json.map {|doc| doc['_id'] }
   ).to match_array id_list.split(/,\s*/)

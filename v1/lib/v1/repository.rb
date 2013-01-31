@@ -7,8 +7,7 @@ module V1
   module Repository
 
     def self.fetch(id_list)
-      # Accepts an array of id strings ["A,"1","item1"], a single string id "1"
-      # Or a comma separated string of ids "1,2,3"
+      # Accepts an array of ids or a string containing a comma separated list of ids
       id_list = id_list.split(/,\s*/) if id_list.is_a?(String)
       wrap_results(do_fetch(id_list))
     end

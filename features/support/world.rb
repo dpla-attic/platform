@@ -41,18 +41,25 @@ module CukeApiHelper
     source
   end
 
-  def item_query_to_json(params={})
-    item_query(params)['docs']
-  end
-
   def item_fetch(ids_string)
     visit("/api/v1/items/#{ ids_string }")
     JSON.parse(page.source) rescue nil
   end
 
-  def item_query(params={})
+  def item_query_to_json(params={}, expect_success=false)
+    item_query(params, true)['docs']
+  end
+
+  def item_query(params={}, expect_success=false)
     #    format = get_request_format(params)
     visit("/api/v1/items?#{ params.to_param }")
+
+    if expect_success && page.status_code != 200
+      puts "Query expected HTTP 200 but got #{page.status_code} with params: #{params}"
+      puts "page.source: #{page.source}"
+      raise Exception 
+    end
+
     JSON.parse(page.source) rescue nil
   end
 

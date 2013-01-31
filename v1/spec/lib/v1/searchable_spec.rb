@@ -441,9 +441,7 @@ module V1
       context "sorting" do
         it "sorts by field name if present" do
           params = {'q' => 'banana',  'sort_by' => 'title' }
-          V1::Schema.stub(:flapping) {
-            stub(:analyzed? => false, :name => 'foo', :geo_point? => false, :subfields? => false)
-          }
+          subject.stub(:validate_query_params)
           subject.should_receive(:build_sort_attributes).with(params) { [] } 
           mock_search.should_receive(:sort)
           subject.stub(:wrap_results)
