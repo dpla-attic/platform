@@ -170,8 +170,8 @@ module V1
         let(:resource) { 'item' }
 
         it "returns all facetable subfields for a non-facetable field" do
-          subfield = stub('sub', :facetable? => true, :name => 'somefield.sub2a')
-          field = stub('field', :facetable? => false, :name => 'somefield', :subfields => [subfield])
+          subfield = stub('sub', :facetable? => true, :name => 'somefield.sub2a', :geo_point? => false)
+          field = stub('field', :facetable? => false, :name => 'somefield', :subfields => [subfield], :geo_point? => false)
           V1::Schema.stub(:flapping).with(resource, 'somefield') { field }
           expect(
                  subject.expand_facet_fields(resource, %w( somefield ) )
@@ -184,6 +184,7 @@ module V1
                  subject.expand_facet_fields(resource, %w( id ) )
                  ).to match_array %w( id )
         end
+
         it "returns a non-facetable field with no facetable subfields" do
           field = stub('field', :facetable? => false, :name => 'description', :subfields => [])
           V1::Schema.stub(:flapping).with(resource, 'description') { field }
@@ -191,9 +192,21 @@ module V1
                  subject.expand_facet_fields(resource, %w( description ) )
                  ).to match_array %w( description )
         end
+
+
+        it "returns all facetable subfields for a non-facetable field" do
+          sub1 = stub('sub1', :facetable? => true, :name => 'somefield.sub2a', :geo_point? => false)
+          sub2 = stub('sub2', :facetable? => true, :name => 'somefield.sub2a_geo', :geo_point? => true)
+          field = stub('field', :facetable? => false, :name => 'somefield', :subfields => [sub1, sub2], :geo_point? => false)
+          V1::Schema.stub(:flapping).with(resource, 'somefield') { field }
+          expect(
+                 subject.expand_facet_fields(resource, %w( somefield ) )
+                 ).to match_array %w( somefield.sub2a )
+        end
+
         it "returns the correct values when called with a mix of fields" do
-          subfield = stub('sub', :facetable? => true, :name => 'somefield.sub2a')
-          somefield = stub('field', :facetable? => false, :name => 'somefield', :subfields => [subfield])
+          subfield = stub('sub', :facetable? => true, :name => 'somefield.sub2a', :geo_point? => false)
+          somefield = stub('field', :facetable? => false, :name => 'somefield', :subfields => [subfield], :geo_point? => false)
           V1::Schema.stub(:flapping).with(resource, 'somefield') { somefield }
 
           id_field = stub('field', :facetable? => true, :name => 'id', :subfields => [])

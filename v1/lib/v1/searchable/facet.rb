@@ -176,18 +176,15 @@ module V1
         #TODO: support wildcard facet '*'
         expanded = []
         names.each do |name|
-          field = V1::Schema.flapping(resource, name)
-
           new_facets = []
-          if field.nil?
-            # allow unmapped fields to pass through so they can be handled elsewhere
-            new_facets << name
-          else
+
+          field = V1::Schema.flapping(resource, name)
+          if field
             # top level field is facetable
             new_facets << name if field.facetable?
 
             field.subfields.each do |subfield|
-              new_facets << subfield.name if subfield.facetable?
+              new_facets << subfield.name if subfield.facetable? && !subfield.geo_point?
             end
           end
 
