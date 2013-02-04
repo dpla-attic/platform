@@ -11,10 +11,10 @@ module V1
           expect(subject::DATE_INTERVALS).to match_array( %w( year quarter month week day ) )
         end
         it "DEFAULT_FACET_SIZE has correct value" do
-          expect(subject::DEFAULT_FACET_SIZE).to eq 20
+          expect(subject::DEFAULT_FACET_SIZE).to eq 50
         end
         it "MAXIMUM_FACET_SIZE has correct value" do
-          expect(subject::MAXIMUM_FACET_SIZE).to eq 50
+          expect(subject::MAXIMUM_FACET_SIZE).to eq 200
         end
       end
       

@@ -20,8 +20,8 @@ module V1
       # suffix through and let ElasticSearch complain if it is not valid
       # ElasticSearch's built-in intervals
       DATE_INTERVALS = %w( year quarter month week day )
-      DEFAULT_FACET_SIZE = 20
-      MAXIMUM_FACET_SIZE = 50
+      DEFAULT_FACET_SIZE = 50
+      MAXIMUM_FACET_SIZE = 200
 
       def self.build_all(search, params, global=false)
         # Run facets from params['facets'] against the search object
