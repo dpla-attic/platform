@@ -246,6 +246,11 @@ module V1
         params = { "page_size" => huge_size }
         expect(subject.search_page_size(params)).to eq (Searchable::DEFAULT_MAX_PAGE_SIZE)
       end
+
+      it "supports page_size=0" do
+        params = { "page_size" => 0 }
+        expect(subject.search_page_size(params)).to eq 0
+      end
     end
 
     describe "#wrap_results" do

@@ -197,13 +197,15 @@ module V1
     end
 
     def search_page_size(params)
-      size = params["page_size"].to_i
-      if size == 0
+      size = params["page_size"]
+      if size.to_s == '0'
+        0
+      elsif size.to_i == 0
         DEFAULT_PAGE_SIZE
-      elsif size > DEFAULT_MAX_PAGE_SIZE
+      elsif size.to_i > DEFAULT_MAX_PAGE_SIZE
         DEFAULT_MAX_PAGE_SIZE
       else
-        size
+        size.to_i
       end
     end
 
