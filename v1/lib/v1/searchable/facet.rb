@@ -46,13 +46,8 @@ module V1
 
           type = facet_type(field)
 
-          options = facet_options(field)
+          options = facet_options(field, params)
 
-          # only facet type (that we support) that supports size attr
-          #TODO: fold into facet_options and base it on field.string?
-          options[:size] = facet_size(params) if type == 'terms'
-          options[:order] = 'count' unless field.geo_point?
-          
           # geo_distance facets get called differently than other types of facets
           if type == 'geo_distance'
             facet_params = [type, options]
@@ -93,9 +88,12 @@ module V1
         V1::Schema.flapping('item', *args)
       end
 
-      def self.facet_options(field)
+      def self.facet_options(field, params)
         # Returns options for variable facet types.
-        # Expects valid Field instance
+
+        # Tire requires the :interval key in options, if present, to be a symbol
+        options = {}
+        
         if field.geo_point?
           lat, long, bucket_size = field.facet_modifier.to_s.split(':')
           
@@ -109,27 +107,29 @@ module V1
             'unit' => bucket_size =~ /([a-z]{2})$/ ? $1 : 'mi'
           }
         elsif field.date?
-          # Grab interval from date facet if it looks like one
-          # Tire requires symbol keys in this hash
-
           # Tire defaults to 'day' too, but we set it here to improve testability
           default_interval = 'day'
           
           if field.facet_modifier
-            if DATE_INTERVALS.include?(field.facet_modifier)
-              #TODO: how do we want to handle timezones here?
-              options = {:interval => field.facet_modifier } 
-#              options[:pre_zone] = '-12:00'
-#              options[:pre_zone_adjust_large_interval] = true
-            else
+            if !DATE_INTERVALS.include?(field.facet_modifier)
               raise BadRequestSearchError, "Date facet '#{field.name}.#{field.facet_modifier}' has invalid interval"
             end
+
+            options = {:interval => field.facet_modifier} 
+            #TODO: how do we want to handle timezones here?
+            #              options[:pre_zone] = '-12:00'
+            #              options[:pre_zone_adjust_large_interval] = true
           else
             options = {:interval => default_interval } 
           end
+        elsif field.string?
+          # terms facet. No other facet type supports size attr
+          options = {:size => facet_size(params)}
         end
-
-        options || {}
+        
+        options[:order] = 'count' unless field.geo_point?
+        
+        options
       end
 
       def self.geo_facet_ranges(bucket_modifier)

@@ -262,25 +262,24 @@ module V1
         
         subject.stub(:format_results) { formatted_results }
         subject.stub(:format_facets) { facets }
-        params = stub()
+        params = stub
         V1::Searchable::Facet.stub(:facet_size)
 
-        expect(
-               subject.wrap_results(search, params)
-               ).to eq({
-                         'count' => 10,
-                         'limit' => 10,
-                         'start' => 0,
-                         'docs' => formatted_results,
-                         'facets' => facets
-                       })
+        expect(subject.wrap_results(search, params))
+          .to eq({
+                   'count' => 10,
+                   'limit' => 10,
+                   'start' => 0,
+                   'docs' => formatted_results,
+                   'facets' => facets
+                 })
       end
     end
 
     describe "#format_facets" do
       let(:facets) {
         {
-          "created.year" => {
+          "created.start.year" => {
             "_type" => "date_histogram",
             "entries" => [
                         {
@@ -308,6 +307,10 @@ module V1
         subject.should_receive(:format_date_facet).with(157784400000, 'year')
         subject.should_receive(:format_date_facet).with(946702800000, 'year')
         subject.format_facets(facets, nil)
+      end
+      it "sorts the date_histogram facet by count descending, by default" do
+        expect(subject.format_facets(facets, nil)['created.start.year']['entries'])
+          .to eq([{"time"=>"2000", "count"=>2}, {"time"=>"1975", "count"=>1}])
       end
       it "enforces facet_size limit" do
         # returned facets should all have 1 value hash in them

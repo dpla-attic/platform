@@ -60,8 +60,11 @@ module V1
 
       begin
         #verbose_debug(search)
-        #puts "CURL: #{search.to_curl}" if search.respond_to? :to_curl
+        if defined?(Rails)
+          Rails.logger.info "CURL: #{search.to_curl}" if search.respond_to? :to_curl
+        end
         #puts "JSON: #{search.to_json}" if search.respond_to? :to_json
+        
         return wrap_results(search, params)
       rescue Tire::Search::SearchRequestFailed => e
         error = JSON.parse(search.response.body)['error'] rescue nil
@@ -70,12 +73,13 @@ module V1
     end
 
     def build_sort_attributes(params)
-      #TODO: can also sort by multiple fields: sort { by [{'published_on' => 'desc'}, {'_score' => 'asc'}] } 
+      #TODO: can also sort by multiple fields: sort { by [{'published_on' => 'desc'}, {'_score' => 'asc'}] }
 
       sort_by_name = params['sort_by'].to_s
       return nil if sort_by_name == ""
 
       # Validate sort_order
+      #TODO: Should carp about invalid sort_order
       order = params['sort_order'].to_s.downcase
       if !( %w(asc desc).include?(order) )
         order = DEFAULT_SORT_ORDER 
@@ -145,18 +149,25 @@ module V1
       facets.each do |name, payload|
         type = payload['_type']
 
-        if facet_size
-          payload[facet_keys[type]] = payload[facet_keys[type]].first(facet_size.to_i)
-        end
-
         if type == 'date_histogram'
           # TODO: We probably need to be stricter about what is definitely a field and
           # what is probably an interval here.
+
+          # Fix backwards default sorting of date facets from ElasticSearch
+          payload['entries'] = payload['entries'].sort_by {|x| x['count']}.reverse
+
+          # Format date facet
           name =~ /(.+)\.(.*)$/
           payload['entries'].each do |value_hash|
             value_hash['time'] = format_date_facet(value_hash['time'], $2)
           end
         end
+
+        if facet_size
+          # trim this facet to the requested limit after it has been optionally re-sorted
+          payload[facet_keys[type]] = payload[facet_keys[type]].first(facet_size.to_i)
+        end
+
       end
     end
 

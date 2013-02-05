@@ -58,7 +58,7 @@ module V1
         it "raises an error for geo_point facet missing a lat/lon value" do
           field = stub(:name => 'spatial.coordinates', :geo_point? => true, :facet_modifier => nil)
           expect {
-            subject.facet_options(field)
+            subject.facet_options(field, {})
           }.to raise_error BadRequestSearchError, /Facet 'spatial.coordinates' missing lat\/lon modifiers/i
         end
         it "returns correct options for geo_point fields"  do
@@ -66,7 +66,7 @@ module V1
           geo_facet_stub = stub
           subject.stub(:geo_facet_ranges) { geo_facet_stub }
           expect(
-                 subject.facet_options(field)
+                 subject.facet_options(field, {})
                  ).to eq(
                          {
                            'spatial.coordinates' => '42,-71',
@@ -75,23 +75,29 @@ module V1
                          }
                          )
         end
-        it "returns correct options for date fields with an interval"  do
+        it "returns correct options for date b_histagram facet with an interval"  do
           field = stub(:name => 'created', :geo_point? => false, :date? => true, :facet_modifier => 'year')
-          expect(subject.facet_options(field)).to eq({:interval => 'year'})
+          expect(subject.facet_options(field, {})).to eq(
+                                                         {:interval => 'year', :order => 'count'}
+                                                         )
         end
         it "raises an error for an unrecognized interval on a date field" do
           field = stub(:name => 'created', :geo_point? => false, :date? => true, :facet_modifier => 'invalid_interval')
           expect {
-            subject.facet_options(field)
+            subject.facet_options(field, {})
           }.to raise_error BadRequestSearchError, /date facet 'created.invalid_interval' has invalid interval/i
         end
         it "returns correct default interval for date field with no interval"  do
           field = stub(:name => 'created', :geo_point? => false, :date? => true, :facet_modifier => nil)
-          expect(subject.facet_options(field)).to eq({:interval => 'day'})
+          expect(subject.facet_options(field, {})).to eq(
+                                                         { :interval => 'day', :order => 'count' }
+                                                         )
         end
-        it "returns empty hash for anything else" do
-          field = stub(:geo_point? => false, :date? => false)
-          expect(subject.facet_options(field)).to eq({})
+        it "returns empty hash for terms filter" do
+          field = stub(:geo_point? => false, :date? => false, :string? => true)
+          expect(subject.facet_options(field, {})).to eq(
+                                                         { :size => 50, :order => 'count' }
+                                                         )
         end
       end
 
