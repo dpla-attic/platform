@@ -19,9 +19,11 @@ module V1
       #TODO: Add support for integer and integer+unit(h|d|w) intervals or just let any
       # suffix through and let ElasticSearch complain if it is not valid
       # ElasticSearch's built-in intervals
-      DATE_INTERVALS = %w( year quarter month week day )
+      DATE_INTERVALS = %w( century decade year month week day )
       DEFAULT_FACET_SIZE = 50
       MAXIMUM_FACET_SIZE = 200
+      DEFAULT_GEO_DISTANCE_MILES = 100
+      DEFAULT_GEO_BUCKETS = 20
 
       def self.build_all(search, params, global=false)
         # Run facets from params['facets'] against the search object
@@ -40,27 +42,30 @@ module V1
             raise BadRequestSearchError, "Invalid field(s) specified in facets param: #{name}"
           end
           
-          # date facets with intervals retain the interval as part of their facet name
-          facet_name = field.name
-          facet_name += ".#{field.facet_modifier}" if field.date? && field.facet_modifier
-
           type = facet_type(field)
-
-          options = facet_options(field, params)
+          options = facet_options(type, field, params)
 
           # geo_distance facets get called differently than other types of facets
           if type == 'geo_distance'
             facet_params = [type, options]
           else
-            facet_params = [type, facet_field(field), options]
+            facet_params = [type, facet_field_name(field), options]
           end
 
-          search.facet(facet_name, :global => global) do |faceter|
+          search.facet(facet_display_name(field), :global => global) do |faceter|
             faceter.send(*facet_params)
           end
         end
 
         requested.any?
+      end
+
+      def self.facet_display_name(field)
+        if field.date? && field.facet_modifier
+          field.name + ".#{field.facet_modifier}"
+        else
+          field.name
+        end
       end
 
       def self.facet_size(params)
@@ -88,80 +93,107 @@ module V1
         V1::Schema.flapping('item', *args)
       end
 
-      def self.facet_options(field, params)
+      def self.facet_options(type, field, params)
         # Returns options for variable facet types.
 
-        # Tire requires the :interval key in options, if present, to be a symbol
+        # NOTE: Tire requires the :interval key in options, if present, to be a symbol
         options = {}
         
-        if field.geo_point?
+        if type == 'geo_distance'
           lat, long, bucket_size = field.facet_modifier.to_s.split(':')
-          
           if lat.nil? or long.nil?
             raise BadRequestSearchError, "Facet '#{field.name}' missing lat/lon modifiers"
           end
-          
+
+          #TODO: use one regex
+          range_size = bucket_size =~ /^(\d+)/ ? $1 : DEFAULT_GEO_DISTANCE_MILES
           options = {
             field.name => "#{lat},#{long}",
-            'ranges' => geo_facet_ranges(bucket_size),
+            'ranges' => facet_ranges(range_size, range_size, DEFAULT_GEO_BUCKETS, true),
             'unit' => bucket_size =~ /([a-z]{2})$/ ? $1 : 'mi'
           }
-        elsif field.date?
-          # Tire defaults to 'day' too, but we set it here to improve testability
-          default_interval = 'day'
-          
-          if field.facet_modifier
-            if !DATE_INTERVALS.include?(field.facet_modifier)
-              raise BadRequestSearchError, "Date facet '#{field.name}.#{field.facet_modifier}' has invalid interval"
-            end
-
-            options = {:interval => field.facet_modifier} 
-            #TODO: how do we want to handle timezones here?
-            #              options[:pre_zone] = '-12:00'
-            #              options[:pre_zone_adjust_large_interval] = true
-          else
-            options = {:interval => default_interval } 
+        elsif type == 'date'
+          if field.facet_modifier && !DATE_INTERVALS.include?(field.facet_modifier)
+            raise BadRequestSearchError, "Date facet '#{field.name}.#{field.facet_modifier}' has invalid interval"
           end
-        elsif field.string?
+
+          #TODO: how do we want to handle timezones here?
+          #              options[:pre_zone] = '-12:00'
+          #              options[:pre_zone_adjust_large_interval] = true
+
+          # Tire defaults to 'day' too, but we set it here to improve testability
+          options = {
+            :interval => field.facet_modifier || 'day',
+            :order => 'count'
+          }
+        elsif type == 'range'
+          # Each range covers 2000 years and ends on 2100, which is arbitrary
+          end_year = 2100
+
+          if field.facet_modifier == 'decade'
+            size = 10
+            range_count = 200
+          elsif field.facet_modifier == 'century'
+            size = 100
+            range_count = 20
+          else
+            #TODO: is this even possible
+            raise BadRequestSearchError, "Invalid range modifier '#{field.facet_modifier}'"
+          end
+
+          range_start = end_year - size * range_count
+          options = {
+            'field' => field.name,
+            'ranges' => facet_ranges(range_start, size, range_count, false)
+          }
+        elsif type == 'terms'
           # terms facet. No other facet type supports size attr
-          options = {:size => facet_size(params)}
+          options = {
+            :size => facet_size(params),
+            :order => 'count'
+          }
         end
-        
-        options[:order] = 'count' unless field.geo_point?
         
         options
       end
 
-      def self.geo_facet_ranges(bucket_modifier)
-        # Generate ranges (or "buckets") with default values, for geo_facets
-        # Arbitrary number of buckets to generate. Should be dictated by system tuning
-        max_buckets = 8
-        # Arbitrary bucket size.
-        default_bucket_size = 100
-        
-        bucket_modifier =~ /^(\d+)/
-        size = ($1 || default_bucket_size).to_i
+      def self.facet_ranges(start, size, count, endcaps=false)
+        start = start.to_i
+        count = count.to_i
+        size = size.to_i
 
-        ranges = 1.upto(max_buckets).map do |i|
-          { 'from' => i * size, 'to' => i * size + size }
+        ranges = []
+        count.times do |i|
+          lower = start + (i * size)
+          ranges << { 'from' => lower, 'to' => lower + size }
         end
 
-        [ { 'to' => size }, *ranges, { 'from' => max_buckets * size + size } ]
+        if endcaps
+          # open ended ranges
+          to = ranges.map {|range| range['from']}.min
+          from = ranges.map {|range| range['to']}.max
+          ranges = [ { 'to' => to }, *ranges, { 'from' => from } ]
+        end
+
+        # ElasticSearch needs to see string type data for date range facets to work
+        ranges.each {|hash| hash.each {|k,v| hash[k] = v.to_s} }
       end
 
       def self.facet_type(field)
-        # Returns correct facet type based on field type. Defaults to terms.
-        # Expects valid Field instance
-        types = {
-          'geo_point' => 'geo_distance',
-          'date' => 'date'
-        }
-        types[field.type] || 'terms'
+        # Returns correct facet type based on field type.
+        if field.geo_point?
+          'geo_distance'
+        elsif field.date? && %w( decade century ).include?(field.facet_modifier)
+          'range'
+        elsif field.date?
+          'date'
+        else
+          'terms'
+        end
       end
 
-      def self.facet_field(field)
+      def self.facet_field_name(field)
         # Determines what field (not name) to tell ElasticSearch to use for a facet on this field
-        # Expects valid Field instance
         if field.multi_fields.any? {|mf| (mf.name == field.name + '.raw') && mf.facetable?}
           # facetable multi_field with our standard .raw subfield
           field.name + '.raw'
@@ -173,7 +205,6 @@ module V1
       def self.expand_facet_fields(resource, names)
         # Expands a list of names into all facetables names and those names' facetable subnames
         # Passes unrecognized facet names through un-touched so they can be handled elsewhere
-        #TODO: support wildcard facet '*'
         expanded = []
         names.each do |name|
           new_facets = []

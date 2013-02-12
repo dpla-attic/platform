@@ -282,36 +282,112 @@ module V1
           "created.start.year" => {
             "_type" => "date_histogram",
             "entries" => [
-                        {
-                          "time" => 157784400000,
-                          "count" => 1
-                        },
-                        {
-                          "time" => 946702800000,
-                          "count" => 2
-                        }
+                          {
+                            "time" => 157784400000,
+                            "count" => 1
+                          },
+                          {
+                            "time" => 946702800000,
+                            "count" => 2
+                          }
+                         ]
+          },
+          "created.start.century" => {
+            "_type"=>"range",
+            "ranges"=> [
+                        {"from"=>946684800000.0,
+                          "from_str"=>"2000",
+                          "to"=>4102444800000.0,
+                          "to_str"=>"2100",
+                          "count"=>1,
+                          "min"=>959817600000.0,
+                          "max"=>959817600000.0,
+                          "total_count"=>1,
+                          "total"=>959817600000.0,
+                          "mean"=>959817600000.0},
+                        {"from"=>-2208988800000.0,
+                          "from_str"=>"1900",
+                          "to"=>946684800000.0,
+                          "to_str"=>"2000",
+                          "count"=>9,
+                          "min"=>104025600000.0,
+                          "max"=>378691200000.0,
+                          "total_count"=>9,
+                          "total"=>2818022400000.0,
+                          "mean"=>313113600000.0}
+                       ]
+          },
+          "created.start.decade" => {
+            "_type"=>"range",
+            "ranges"=> [
+                        {"from"=>0.0,
+                          "from_str"=>"1970",
+                          "to"=>315532800000.0,
+                          "to_str"=>"1980",
+                          "count"=>3,
+                          "min"=>104025600000.0,
+                          "max"=>252460800000.0,
+                          "total_count"=>3,
+                          "total"=>577411200000.0,
+                          "mean"=>192470400000.0},
+                        {"from"=>315532800000.0,
+                          "from_str"=>"1980",
+                          "to"=>631152000000.0,
+                          "to_str"=>"1990",
+                          "count"=>6,
+                          "min"=>347155200000.0,
+                          "max"=>378691200000.0,
+                          "total_count"=>6,
+                          "total"=>2240611200000.0,
+                          "mean"=>373435200000.0},
+                        {"from"=>631152000000.0,
+                          "from_str"=>"1990",
+                          "to"=>946684800000.0,
+                          "to_str"=>"2000",
+                          "count"=>0,
+                          "total_count"=>0,
+                          "total"=>0.0,
+                          "mean"=>0.0}
                        ]
           },
           "subject.name" => {
             "_type" => "terms",
             "terms" => [
-                      {
-                        "term" => "Noodle Bar",
-                        "count" => 1
-                      }
-                     ]
+                        {
+                          "term" => "Noodle Bar",
+                          "count" => 1
+                        }
+                       ]
           }
         }
       }
+      
       it "formats date facets" do
         subject.should_receive(:format_date_facet).with(157784400000, 'year')
         subject.should_receive(:format_date_facet).with(946702800000, 'year')
         subject.format_facets(facets, nil)
       end
+      
       it "sorts the date_histogram facet by count descending, by default" do
         expect(subject.format_facets(facets, nil)['created.start.year']['entries'])
           .to eq([{"time"=>"2000", "count"=>2}, {"time"=>"1975", "count"=>1}])
       end
+      
+      it "identifies date facets with century interval as _type: 'date_histogram'" do
+        expect(subject.format_facets(facets, nil)['created.start.century']['_type'])
+          .to eq 'date_histogram'
+      end
+
+      it "formats and sorts date facets with century interval like native date_histogram facets" do
+        expect(subject.format_facets(facets, nil)['created.start.century']['entries'])
+          .to eq([{"time"=>"1900", "count"=>9}, {"time"=>"2000", "count"=>1}])
+      end
+
+      it "formats and sorts date facets with decade interval like native date_histogram facets" do
+        expect(subject.format_facets(facets, nil)['created.start.decade']['entries'])
+          .to eq([{"time"=>"1980", "count"=>6}, {"time"=>"1970", "count"=>3}])
+      end
+      
       it "enforces facet_size limit" do
         # returned facets should all have 1 value hash in them
         formatted = subject.format_facets(facets, 1)
@@ -325,34 +401,24 @@ module V1
     end
 
     describe "#format_date_facet" do
-      let(:epoch) { 946702800000 }
+      let(:date_in_milli) { 946702800000 }
 
       it "defaults to YYYY-MM-DD" do
-        expect(subject.format_date_facet(epoch)).to eq '2000-01-01'
+        expect(subject.format_date_facet(date_in_milli)).to eq '2000-01-01'
       end
 
       it "formats day facets correctly" do
-        expect(subject.format_date_facet(epoch, 'day')).to eq '2000-01-01'
+        expect(subject.format_date_facet(date_in_milli, 'day')).to eq '2000-01-01'
       end
         
       it "formats month facets correctly" do
-        expect(subject.format_date_facet(epoch, 'month')).to eq '2000-01'
+        expect(subject.format_date_facet(date_in_milli, 'month')).to eq '2000-01'
       end
         
       it "formats year facets correctly" do
-        expect(subject.format_date_facet(epoch, 'year')).to eq '2000'
+        expect(subject.format_date_facet(date_in_milli, 'year')).to eq '2000'
       end
         
-      it "formats decade facets correctly" do
-        date1993 = Date.new(1993,1,1).to_time.to_i * 1000
-        expect(subject.format_date_facet(date1993, 'decade')).to eq '1990'
-      end
-        
-      it "formats century facets correctly" do
-        date1993 = Date.new(1993,1,1).to_time.to_i * 1000
-        expect(subject.format_date_facet(date1993, 'century')).to eq '1900'
-      end
-
       it "returns input value unchanged when interval is not recognized" do
         date1993 = Date.new(1993,1,1).to_time.to_i * 1000
         expect(subject.format_date_facet(date1993, 'fake-interval')).to eq '1993-01-01'

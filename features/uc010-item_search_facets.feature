@@ -32,28 +32,28 @@ Feature: Search the DPLA using facets (UC010)
     Then the API returns the "subject.name" facets
       And the "subject.name" terms facets contains items for every unique field within the search index
 
-  Scenario: Retrieve date facet
+  Scenario: Retrieve date_histogram facet
     When I make an empty search
       And request the "created.start" facet
     Then the API returns the "created.start" facets
       And the "created.start" date facet contains items for every unique field within the search index
 
-  Scenario: Retrieve date facet with an interval
+  Scenario: Retrieve date_histogram facet
+    When I make an empty search
+      And request the "created.end" facet
+    Then the API returns the "created.end" facets
+      And the "created.end" date facet contains items for every unique field within the search index
+
+  Scenario: Retrieve date_histogram facet with an interval
     When I make an empty search
       And request the "created.start.year" facet
     Then the API returns the "created.start.year" facets
       And I should get http status code "200"
 
-  Scenario: Retrieve date facet on the temporal field with an interval
+  Scenario: Retrieve date_histogram facet on the temporal field with an interval
     When I make an empty search
       And request the "temporal.start.year" facet
     Then the API returns the "temporal.start.year" facets
-      And I should get http status code "200"
-
-  Scenario: Retrieve date facet for date subfield 
-    When I make an empty search
-      And request the "temporal.end" facet
-    Then the API returns the "temporal.end" facets
       And I should get http status code "200"
 
   Scenario: Retrieve geo_distance facet
@@ -94,3 +94,17 @@ Feature: Search the DPLA using facets (UC010)
       And request facet size of "2"
     Then the API returns the "created.start" facets
       And the "created.start" date facets contains the requested number of facets
+
+  #TODO: test content
+  Scenario: Retrieve date_histogram facet with a custom century interval
+    When I make an empty search
+      And request the "created.start.century" facet
+    Then the API returns the "created.start.century" facets
+      And I should get http status code "200"
+
+  #TODO: test content
+  Scenario: Retrieve date_histogram facet with a custom decade interval
+    When I make an empty search
+      And request the "created.start.decade" facet
+    Then the API returns the "created.start.decade" facets
+      And I should get http status code "200"

@@ -8,13 +8,19 @@ module V1
 
       describe "CONSTANTS" do
         it "DATE_INTERVALS has the correct value" do
-          expect(subject::DATE_INTERVALS).to match_array( %w( year quarter month week day ) )
+          expect(subject::DATE_INTERVALS).to match_array( %w( century decade year month week day ) )
         end
         it "DEFAULT_FACET_SIZE has correct value" do
           expect(subject::DEFAULT_FACET_SIZE).to eq 50
         end
         it "MAXIMUM_FACET_SIZE has correct value" do
           expect(subject::MAXIMUM_FACET_SIZE).to eq 200
+        end
+        it "DEFAULT_GEO_DISTANCE_MILES has correct value" do
+          expect(subject::DEFAULT_GEO_DISTANCE_MILES).to eq 100
+        end
+        it "DEFAULT_GEO_BUCKETS has correct value" do
+          expect(subject::DEFAULT_GEO_BUCKETS).to eq 20
         end
       end
       
@@ -58,117 +64,191 @@ module V1
         it "raises an error for geo_point facet missing a lat/lon value" do
           field = stub(:name => 'spatial.coordinates', :geo_point? => true, :facet_modifier => nil)
           expect {
-            subject.facet_options(field, {})
+            subject.facet_options('geo_distance', field, {})
           }.to raise_error BadRequestSearchError, /Facet 'spatial.coordinates' missing lat\/lon modifiers/i
         end
-        it "returns correct options for geo_point fields"  do
-          field = stub(:name => 'spatial.coordinates', :geo_point? => true, :facet_modifier => '42:-71:50mi')
+        it "returns correct options for geo_point fields with no range"  do
+          field = stub(:name => 'spatial.coordinates', :facet_modifier => '42:-71')
           geo_facet_stub = stub
-          subject.stub(:geo_facet_ranges) { geo_facet_stub }
-          expect(
-                 subject.facet_options(field, {})
-                 ).to eq(
-                         {
-                           'spatial.coordinates' => '42,-71',
-                           'ranges' => geo_facet_stub,
-                           'unit' => 'mi'
-                         }
-                         )
+          subject.should_receive(:facet_ranges)
+            .with(
+                  subject::DEFAULT_GEO_DISTANCE_MILES,
+                  subject::DEFAULT_GEO_DISTANCE_MILES,
+                  subject::DEFAULT_GEO_BUCKETS,
+                  true
+                  ) { geo_facet_stub }
+          expect(subject.facet_options('geo_distance', field, {}))
+            .to eq(
+                   {
+                     'spatial.coordinates' => '42,-71',
+                     'ranges' => geo_facet_stub,
+                     'unit' => 'mi'
+                   }
+                   )
         end
-        it "returns correct options for date b_histagram facet with an interval"  do
-          field = stub(:name => 'created', :geo_point? => false, :date? => true, :facet_modifier => 'year')
-          expect(subject.facet_options(field, {})).to eq(
-                                                         {:interval => 'year', :order => 'count'}
-                                                         )
+        it "returns correct options for geo_point fields with explicit range"  do
+          field = stub(:name => 'spatial.coordinates', :facet_modifier => '42:-71:50mi')
+          geo_facet_stub = stub
+          subject.stub(:facet_ranges) { geo_facet_stub }
+          expect(subject.facet_options('geo_distance', field, {}))
+            .to eq(
+                   {
+                     'spatial.coordinates' => '42,-71',
+                     'ranges' => geo_facet_stub,
+                     'unit' => 'mi'
+                   }
+                   )
         end
-        it "raises an error for an unrecognized interval on a date field" do
-          field = stub(:name => 'created', :geo_point? => false, :date? => true, :facet_modifier => 'invalid_interval')
+        it "returns correct options for date_histogram facet with a native interval"  do
+          field = stub(:name => 'created', :facet_modifier => 'year')
+          expect(subject.facet_options('date', field, {}))
+            .to eq(
+                   {:interval => 'year', :order => 'count'}
+                   )
+        end
+        it "raises an error for an unrecognized interval on a date_histogram facet" do
+          field = stub(:name => 'created', :facet_modifier => 'invalid_interval')
           expect {
-            subject.facet_options(field, {})
+            subject.facet_options('date', field, {})
           }.to raise_error BadRequestSearchError, /date facet 'created.invalid_interval' has invalid interval/i
         end
-        it "returns correct default interval for date field with no interval"  do
-          field = stub(:name => 'created', :geo_point? => false, :date? => true, :facet_modifier => nil)
-          expect(subject.facet_options(field, {})).to eq(
-                                                         { :interval => 'day', :order => 'count' }
-                                                         )
+        it "returns correct default interval for date_histogram facet with no interval"  do
+          field = stub(:name => 'created', :facet_modifier => nil)
+          expect(subject.facet_options('date', field, {}))
+            .to eq(
+                   { :interval => 'day', :order => 'count' }
+                   )
         end
-        it "returns empty hash for terms filter" do
-          field = stub(:geo_point? => false, :date? => false, :string? => true)
-          expect(subject.facet_options(field, {})).to eq(
-                                                         { :size => 50, :order => 'count' }
-                                                         )
+        it "returns correct hash for decade date range facet"  do
+          field = stub(:name => 'created', :facet_modifier => 'decade')
+          ranges_stub = stub
+          subject.stub(:facet_ranges).with(100, 10, 200, false) { ranges_stub}
+          expect(subject.facet_options('range', field, {}))
+            .to eq(
+                   options = {
+                     'field' => 'created',
+                     'ranges' => ranges_stub
+                   }
+                   )
+        end
+        it "returns correct hash for century date range facet"  do
+          field = stub(:name => 'created', :facet_modifier => 'century')
+          ranges_stub = stub
+          subject.stub(:facet_ranges).with(100, 100, 20, false) { ranges_stub}
+          expect(subject.facet_options('range', field, {}))
+            .to eq(
+                   options = {
+                     'field' => 'created',
+                     'ranges' => ranges_stub
+                   }
+                   )
+        end
+        it "returns size and order hash for terms filter" do
+          field = stub(:string? => true)
+          expect(subject.facet_options('terms', field, {}))
+            .to eq(
+                   { :size => 50, :order => 'count' }
+                   )
         end
       end
 
-      describe "#geo_facet_ranges" do
-        it "creates the correct buckets with the default bucket" do
-          expect(subject.geo_facet_ranges(nil))
+      describe "#facet_ranges" do
+        it "created correct ranges, starting from zero, with no endcaps" do
+          expect(subject.facet_ranges(0, 100, 4, false))
             .to match_array(
                             [
-                             {"to"=>100},
-                             {"from"=>100, "to"=>200},
-                             {"from"=>200, "to"=>300},
-                             {"from"=>300, "to"=>400},
-                             {"from"=>400, "to"=>500},
-                             {"from"=>500, "to"=>600},
-                             {"from"=>600, "to"=>700},
-                             {"from"=>700, "to"=>800},
-                             {"from"=>800, "to"=>900},
-                             {"from"=>900}
+                             {"from"=>"0", "to"=>"100"},
+                             {"from"=>"100", "to"=>"200"},
+                             {"from"=>"200", "to"=>"300"},
+                             {"from"=>"300", "to"=>"400"}
                             ]
                             )
         end
-        it "creates the correct buckets with a user-supplied bucket" do
-          expect(subject.geo_facet_ranges('50mi'))
+        it "created correct ranges, starting from non-zero, with no endcaps" do
+          expect(subject.facet_ranges(50, 100, 4, false))
             .to match_array(
                             [
-                             {"to"=>50},
-                             {"from"=>50, "to"=>100},
-                             {"from"=>100, "to"=>150},
-                             {"from"=>150, "to"=>200},
-                             {"from"=>200, "to"=>250},
-                             {"from"=>250, "to"=>300},
-                             {"from"=>300, "to"=>350},
-                             {"from"=>350, "to"=>400},
-                             {"from"=>400, "to"=>450},
-                             {"from"=>450}
+                             {"from"=>"50", "to"=>"150"},
+                             {"from"=>"150", "to"=>"250"},
+                             {"from"=>"250", "to"=>"350"},
+                             {"from"=>"350", "to"=>"450"}
                             ]
                             )
+        end
+        it "creates the correct ranges, starting from zero, with endcaps" do
+          expect(subject.facet_ranges(0, 100, 4, true))
+            .to match_array(
+                            [
+                             {"to"=>"0"},
+                             {"from"=>"0", "to"=>"100"},
+                             {"from"=>"100", "to"=>"200"},
+                             {"from"=>"200", "to"=>"300"},
+                             {"from"=>"300", "to"=>"400"},
+                             {"from"=>"400"}
+                            ]
+                            )
+        end
+        it "creates the correct ranges, starting from non-zero, with endcaps" do
+          expect(subject.facet_ranges(50, 100, 4, true))
+            .to match_array(
+                            [
+                             {"to"=>"50"},
+                             {"from"=>"50", "to"=>"150"},
+                             {"from"=>"150", "to"=>"250"},
+                             {"from"=>"250", "to"=>"350"},
+                             {"from"=>"350", "to"=>"450"},
+                             {"from"=>"450"}
+                            ]
+                            )
+        end
+        it "goes ok" do
+          subject.facet_ranges(10, 10, 20, true)
         end
       end
 
       describe "#facet_type" do
         it "returns 'geo_distance' for geo_point type fields" do
-          field = stub('spatial.coordinates', :type => 'geo_point')
+          field = stub('spatial.coordinates', :geo_point? => true)
           expect(subject.facet_type(field)).to eq 'geo_distance'
         end
         
-        it "returns 'date' for date type fields" do
-          field = stub('created', :type => 'date')
+        it "returns 'date' for date type field with no interval" do
+          field = stub('created', :geo_point? => false, :date? => true, :facet_modifier => nil)
           expect(subject.facet_type(field)).to eq 'date'
         end
         
+        it "returns 'date' for date type field with a date_histogram interval" do
+          field = stub('created', :geo_point? => false, :date? => true, :facet_modifier => 'year')
+          expect(subject.facet_type(field)).to eq 'date'
+        end
+        
+        it "returns 'range' for date type field with a custom range interval" do
+          field = stub('created', :geo_point? => false, :date? => true, :facet_modifier => 'century')
+          expect(subject.facet_type(field)).to eq 'range'
+          field = stub('created', :geo_point? => false, :date? => true, :facet_modifier => 'decade')
+          expect(subject.facet_type(field)).to eq 'range'
+        end
+        
         it "returns 'terms' for string type fields" do
-          field = stub('format', :type => 'string')
+          field = stub('created', :geo_point? => false, :date? => false, :facet_modifier => nil)
           expect(subject.facet_type(field)).to eq 'terms'
         end
       end
 
-      describe "#facet_field" do
+      describe "#facet_field_name" do
         it "handles a top level field" do
           field = stub(:name => 'title', :multi_fields => [])
-          expect(subject.facet_field(field)).to eq field.name
+          expect(subject.facet_field_name(field)).to eq field.name
         end
         it "handles a multi_field field with a .raw subfield" do
           multi1 = stub(:name => 'isPartOf.name.name', :facetable? => false)
           multi2 = stub(:name => 'isPartOf.name.raw', :facetable? => true)
           field = stub(:name => 'isPartOf.name', :multi_fields => [multi1, multi2])
-          expect(subject.facet_field(field)).to eq 'isPartOf.name.raw'
+          expect(subject.facet_field_name(field)).to eq 'isPartOf.name.raw'
         end
         it "handles a date field with an interval" do
           field = stub(:name => 'created', :facet_modifier => 'year', :multi_fields => [])
-          expect(subject.facet_field(field)).to eq 'created'
+          expect(subject.facet_field_name(field)).to eq 'created'
         end
       end
 
@@ -223,6 +303,17 @@ module V1
                  ).to match_array %w( somefield.sub2a id )
         end
 
+      end
+
+      describe "#facet_display_name" do
+        it "returns correct value for non-modified date facets" do
+          field = stub(:name => 'somename', :date? => false )
+          expect(subject.facet_display_name(field)).to eq 'somename'
+        end
+        it "returns correct value for date facets with a facet modifier" do
+          field = stub(:name => 'somename', :date? => true, :facet_modifier => 'modified' )
+          expect(subject.facet_display_name(field)).to eq 'somename.modified'
+        end
       end
 
       describe "#facet_size" do
