@@ -33,7 +33,7 @@ end
 
 Then /^the "(.*?)" terms facets contains items for every unique field within the (search index|results set)$/ do |facet_list, junk|
   @facets = facet_list.split(/,\s*/)
-  @source = compute_facets(@facets, @query_string)
+  @source = compute_facet_counts(@facets, @query_string)
   @facets.each do |facet|
     expect(
            @results['facets'][facet]['terms'].map {|f| f['term'] }
@@ -43,7 +43,7 @@ end
 
 Then /^the "(.*?)" date facet contains items for every unique field within the (search index|results set)$/ do |facet_list, junk|
   @facets = facet_list.split(/,\s*/)
-  @source = compute_facets(@facets, @query_string)
+  @source = compute_facet_counts(@facets, @query_string)
 
   @facets.each do |facet_name|
     # Simplify structure of this facet, from the results set
@@ -70,8 +70,9 @@ end
 Then /^the API returns items that contain the query string$/ do
   # Admittedly, a fairly loose test.
   results = item_query(@params)
+
   results['docs'].each do |doc|
-    expect(doc.values.any? {|value| value =~ /#{@query_string}/} ).to be_true
+    expect( doc.to_s =~ /#{@query_string}/i ).to be_true
   end
 end
 

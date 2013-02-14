@@ -3,16 +3,16 @@ Feature: Standard test dataset
     Given the dataset exists
 
   Scenario: Valid JSON dataset syntax
-    When I have valid JSON in the test dataset
+    When I load the test dataset
     Then I should not get a dataset error
 
   Scenario: Count Item records matching metadata fields
-    And there are 1 items that contain the word "banana" in the "title"
-    And there are 2 items that contain the word "perplexed" in the "description"
-    And there are 0 items that contain the word "perplexed" in the "title"
+    And there are 1 items with "banana" in the "aggregatedCHO.title" field
+    And there are 2 items with "perplexed" in the "aggregatedCHO.description" field
+    And there are 0 items with "perplexed" in the "aggregatedCHO.title" field
    
   Scenario: Confirm Items with Metadata 
-    And there is a metadata record "F" with "1973-04-19" in the "created.start" field 
+    And there is a metadata record "F" with "1973-04-19" in the "aggregatedCHO.date.begin" field 
     # And there is a metadata record "A" with "June 1, 1950" in the "temporal" field 
     # And there is a metadata record "B" with "July 1, 1955 - July 30, 1955" in the "temporal" field
     # And there is a metadata record "C" with "1970 - 1979 CE" in the "temporal" field

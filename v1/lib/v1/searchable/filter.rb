@@ -1,4 +1,5 @@
-require 'active_support/core_ext'
+require 'v1/schema'
+require 'v1/search_error'
 
 module V1
 
@@ -6,26 +7,40 @@ module V1
 
     module Filter
 
-      # Default spatial.distance "range" value
-      DEFAULT_SPATIAL_DISTANCE = '20mi'
+      # Default geo.distance "range" value
+      DEFAULT_GEO_DISTANCE = '20mi'
 
       def self.build_all(search, params)
         # Returns boolean for "did we run any filters?"
-        spatial_filter = spatial_coordinates_filter(params)
-        if spatial_filter
-          search.filter(*spatial_filter)
+        geo_filter = geo_coordinates_filter(params)
+        if geo_filter
+          search.filter(*geo_filter)
           true
         end
         false
       end
       
-      def self.spatial_coordinates_filter(params)
-        return nil unless params['spatial.coordinates'].present?
-        
-        coordinates = params['spatial.coordinates']
-        distance = params['spatial.distance'].presence || DEFAULT_SPATIAL_DISTANCE
+      def self.geo_coordinates_filter(params)
+        params.each do |name, value|
+          field = V1::Schema.field('item', name)
+          if field && field.geo_point?
+            coordinates = value
+            distance_name = name.gsub(/^(.+)\.(.+)$/, '\1.distance')
 
-        ['geo_distance', 'spatial.coordinates' => coordinates, 'distance' => distance]
+            if params[distance_name].to_s != ''
+              if params[distance_name] !~ /(mi|km)$/
+                raise BadRequestSearchError, "Missing or invalid units for #{distance_name}"
+              end
+              distance = params[distance_name]
+            else
+              distance = DEFAULT_GEO_DISTANCE
+            end
+            
+            #TODO: set _cache => true and test behavior
+            return ['geo_distance', name => coordinates, 'distance' => distance]
+          end
+        end
+        return nil
       end
 
     end

@@ -1,48 +1,57 @@
 module CukeApiHelper
 
-  def compute_facets(facets, query_string=nil)
+  def compute_facet_counts(facets, query_string=nil)
     # Delicately massage query results facets structure into something more testable
-    #TODO: Should probably be named compute_facet_counts
+    # This method has similar hash traversal logic as V1::Schema.field()
+    # NOTE: Only matches ElasticSearch results for not_analyzed fields
     dataset = JSON.parse(load_dataset)
     source = {}
-    # for each facet we want to test
-    facets.each do |facet|
-      (field, subfield) = facet.split('.')
 
-      # NOTE: Only matches ElasticSearch results for not_analyzed fields
+    facets.each do |facet|
+      field_names = facet.split('.')
+      first_name = field_names.shift
+
       dataset.each do |doc|
-        if subfield
-          # that regex is a harmless no-op if query_string is nil
-          if doc[field]
-            if doc[field].is_a?(Hash) && doc[field][subfield].present? && doc.values.any? {|value| value =~ /#{query_string}/}
-              facet_value = doc[field][subfield]
-              source[facet] ||= {}
-              source[facet][facet_value] ||= 0
-              source[facet][facet_value] += 1
-            elsif doc[field].is_a?(Array) && doc[field].any?
-              # need to get values for doc[field].each foo[subfield]
-              doc[field].each do |facethash|
-                facet_value = facethash[subfield]
-                source[facet] ||= {}
-                source[facet][facet_value] ||= 0
-                source[facet][facet_value] += 1
-              end
-            end
-          end
-        else
-          if doc[field] && doc.values.any? {|value| value =~ /#{query_string}/}
-            source[facet] ||= {}
-            source[facet][doc[field]] ||= 0
-            source[facet][doc[field]] += 1
+        next unless doc.to_s =~ /#{query_string}/i
+        next unless doc[first_name]  #we need to have the top level field at least
+        
+        source[facet] ||= {}
+        current = doc[first_name]
+
+        # traverse the doc hash, handling the common "hash containing a hash" case
+        # as well as array values at the bottom level of the hash
+        field_names.each do |word|
+          next if current.nil?  #this doc doesnt have this subfield
+          
+          # get the values at this level of the doc hash
+          if current.is_a? Hash
+            current = current[word]
+          elsif current.is_a? Array
+            current = current.map {|c| c[word]}
           end
         end
+
+        if current.is_a?(String)
+          # count the value
+          facet_value = current
+          source[facet][facet_value] ||= 0
+          source[facet][facet_value] += 1
+        elsif current.is_a?(Array) && current.any?
+          # count each value p
+          current.each do |string|
+            facet_value = string
+            source[facet][facet_value] ||= 0
+            source[facet][facet_value] += 1
+          end
+        end
+
       end
     end
     source
   end
 
   def item_fetch(ids_string)
-    visit("/api/v1/items/#{ ids_string }")
+    visit("/v2/items/#{ ids_string }")
     JSON.parse(page.source) rescue nil
   end
 
@@ -52,7 +61,7 @@ module CukeApiHelper
 
   def item_query(params={}, expect_success=false)
     #    format = get_request_format(params)
-    visit("/api/v1/items?#{ params.to_param }")
+    visit("/v2/items?#{ params.to_param }")
 
     if expect_success && page.status_code != 200
       puts "Query expected HTTP 200 but got #{page.status_code} with params: #{params}"

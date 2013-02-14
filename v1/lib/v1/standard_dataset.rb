@@ -64,7 +64,11 @@ module V1
 
       Tire.index(V1::Config::SEARCH_INDEX) do |tire|
         tire.delete
-        tire.create V1::Schema::ELASTICSEARCH_MAPPING
+        tire.create( { 'mappings' => V1::Schema::ELASTICSEARCH_MAPPING } )
+        if tire.response.code != 200
+          delete_result = JSON.parse(tire.response.body)
+          raise "ERROR: #{ delete_result['error'] }" 
+        end
       end
     end
 

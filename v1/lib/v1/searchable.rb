@@ -86,7 +86,7 @@ module V1
       end
 
       # Validate sort_by
-      sort_by = V1::Schema.flapping('item', sort_by_name)
+      sort_by = V1::Schema.field('item', sort_by_name)
       if sort_by.nil?
         raise BadRequestSearchError, "Invalid field(s) specified in sort_by parameter: #{sort_by_name}"
       end
@@ -98,6 +98,7 @@ module V1
       if sort_by.sort == 'field'
         [ {sort_by.name => order} ]
       elsif sort_by.sort == 'script'
+        # script sort to work around ElasticSearch not supporting sort by array value fields
         [{
            '_script' => {
              'script' => "s='';foreach(val : doc['#{sort_by.name}'].values) {s += val + ' '} s",

@@ -38,25 +38,38 @@ module V1
         end
         
         it "returns correct query string for field search" do
-          params = {'title' => 'some title'}
-          expect(subject.field_queries(params)).to match_array [['some title', {'fields' => ['title']}]]
+          name = 'aggregatedCHO.title'
+          field = stub(:name => name, :geo_point? => false, :subfields? => false)
+          V1::Schema.stub(:field).with('item', name) { field }
+          params = {name => 'some title'}
+          expect(subject.field_queries(params)).to match_array [['some title', {'fields' => [name]}]]
         end
 
-        it "ignores unknown query params" do
-          params = {'title' => 'some title', 'page_size' => 2}
-          expect(subject.field_queries(params)).to match_array [['some title', {'fields' => ['title']}]]
+        it "handles 'aggregatedCHO.spatial.state' as a normal field search" do
+          name = 'aggregatedCHO.spatial.state'
+          field = stub(:name => name, :geo_point? => false, :subfields? => false)
+          V1::Schema.stub(:field).with('item', name) { field }
+          params = {name => 'MA'}
+          expect(subject.field_queries(params)).to match_array [['MA', {'fields' => [name]}]]
         end
 
-        it "handles 'spatial.state' as a normal field search" do
-          params = {'spatial.state' => 'MA'}
-          expect(subject.field_queries(params)).to match_array [['MA', {'fields' => ['spatial.state']}]]
+
+        it "ignores geo_point field" do
+          name = 'aggregatedCHO.spatial.coordinates'
+          field = stub(:name => name, :geo_point? => true)
+          V1::Schema.stub(:field).with('item', name) { field }
+          params = {name => '42,-71'}
+          expect(subject.field_queries(params)).to match_array []
         end
 
-        it "handles 'created' as a normal field search" do
-          params = {'created' => '1999-08-07'}
+        it "searches all subfields of 'aggregatedCHO.date'" do
+          name = 'aggregatedCHO.date'
+          field = stub(:name => name, :geo_point? => false, :subfields? => true)
+          V1::Schema.stub(:field).with('item', name) { field }
+          params = {name => '1999-08-07'}
           expect(subject.field_queries(params))
             .to match_array(
-                            [['1999-08-07', {'fields' => %w( created.start created.end )}]]
+                            [['1999-08-07', {'fields' => ['aggregatedCHO.date.*'] }]]
                             )
         end
 
@@ -70,55 +83,29 @@ module V1
         it "handles closed date ranges (aka 'between')" do
           params = {'temporal.after' => '1980', 'temporal.before' => '1990'}
           expect(subject.date_range_queries(params))
-            .to match_array [["temporal.end", {:gte=>"1980"}], ["temporal.start", {:lte=>"1990"}]]
+            .to match_array [
+                             ["temporal.end", {:gte => "1980", :lt => '9999'}],
+                             ["temporal.begin", {:lte => "1990", :gt => '-9999'}]
+                            ]
         end
 
         it "handles begin-only date ranges" do
           params = {'temporal.after' => '1980'}
           expect(subject.date_range_queries(params))
-            .to match_array [["temporal.end", {:gte=>"1980"}]]
+            .to match_array [["temporal.end", {:gte => "1980", :lt => '9999'}]]
         end
 
         it "handles end-only date ranges" do
           params = {'temporal.before' => '1990'}
           expect(subject.date_range_queries(params))
-            .to match_array [["temporal.start", {:lte=>"1990"}]]
+            .to match_array [["temporal.begin", {:lte => "1990", :gt => '-9999'}]]
         end
-        
-        it "handles ranges correctly" do
-          params = {'temporal.after' => '1980', 'temporal.before' => '1990'}
-          expect(subject.date_range_queries(params))
-            .to match_array [["temporal.end", {:gte=>"1980"}], ["temporal.start", {:lte=>"1990"}]]
+
+        it "returns an empty array when no date range params exist" do
+          params = {'q' => 'banana'}
+          expect(subject.date_range_queries(params)).to eq []
         end
-        it "returns an empty array when no temporal range params exist"
-        it "returns correct range data for temporal.before"
-        it "returns correct range data for temporal.before and temporal.after in same query"
       end
-
-
-      # describe "#build_date_range_queries" do
-      #   # ["[2012-01-01 TO 2012-01-31]", {"fields"=>["created"]}]
-      #   it "handles closed date ranges" do
-      #     params = {'created.after' => '2012-01-01', 'created.before' => '2012-01-31'}
-      #     expect(
-      #            subject.build_date_range_queries('created', params)
-      #            ).to match_array ['[2012-01-01 TO 2012-01-31]', {'fields'=>['created']}]
-      #   end
-        
-      #   it "handles begin-only date ranges" do
-      #     params = {'created.after' => '2012-01-01'}
-      #     expect(
-      #            subject.build_date_range_queries('created', params)
-      #            ).to match_array ['[2012-01-01 TO *]', {'fields' => ['created']}]
-      #   end
-      #   it "handles end-only date ranges" do
-      #     params = {'created.before' => '2012-01-31'};
-      #     expect(
-      #            subject.build_date_range_queries('created', params)
-      #            ).to match_array ['[* TO 2012-01-31]', {'fields' => ['created']}]
-
-      #   end
-      # end
 
     end
 

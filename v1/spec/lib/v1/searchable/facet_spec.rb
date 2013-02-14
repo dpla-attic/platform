@@ -33,30 +33,30 @@ module V1
       end
 
       describe "#parse_facet_name" do
-        it "returns the result of V1::Schema.flapping" do
+        it "returns the result of V1::Schema.field" do
           field = stub
-          V1::Schema.should_receive(:flapping).with('item', 'format') { field }
+          V1::Schema.should_receive(:field).with('item', 'format') { field }
           expect(subject.parse_facet_name('format')).to eq field
         end
         it "parses geo_distance facet name with no modifier" do
-          V1::Schema.should_receive(:flapping).with('item', 'spatial.coordinates')
+          V1::Schema.should_receive(:field).with('item', 'spatial.coordinates')
           subject.parse_facet_name('spatial.coordinates')
         end
         it "parses geo_distance facet name with modifier" do
-          V1::Schema.should_receive(:flapping).with('item', 'spatial.coordinates', '42.3:-71:20mi')
+          V1::Schema.should_receive(:field).with('item', 'spatial.coordinates', '42.3:-71:20mi')
           subject.parse_facet_name('spatial.coordinates:42.3:-71:20mi')
         end
         it "parses date facet name with no modifier" do
-          V1::Schema.should_receive(:flapping).with('item', 'created')
-          subject.parse_facet_name('created')
+          V1::Schema.should_receive(:field).with('item', 'date')
+          subject.parse_facet_name('date')
         end
         it "parses date facet name with modifier" do
-          V1::Schema.should_receive(:flapping).with('item', 'created', 'year')
-          subject.parse_facet_name('created.year')
+          V1::Schema.should_receive(:field).with('item', 'date', 'year')
+          subject.parse_facet_name('date.year')
         end
         it "parses date facet subfield name with modifier" do
-          V1::Schema.should_receive(:flapping).with('item', 'temporal.start', 'year')
-          subject.parse_facet_name('temporal.start.year')
+          V1::Schema.should_receive(:field).with('item', 'temporal.begin', 'year')
+          subject.parse_facet_name('temporal.begin.year')
         end
       end
 
@@ -100,45 +100,45 @@ module V1
                    )
         end
         it "returns correct options for date_histogram facet with a native interval"  do
-          field = stub(:name => 'created', :facet_modifier => 'year')
+          field = stub(:name => 'date', :facet_modifier => 'year')
           expect(subject.facet_options('date', field, {}))
             .to eq(
                    {:interval => 'year', :order => 'count'}
                    )
         end
         it "raises an error for an unrecognized interval on a date_histogram facet" do
-          field = stub(:name => 'created', :facet_modifier => 'invalid_interval')
+          field = stub(:name => 'date', :facet_modifier => 'invalid_interval')
           expect {
             subject.facet_options('date', field, {})
-          }.to raise_error BadRequestSearchError, /date facet 'created.invalid_interval' has invalid interval/i
+          }.to raise_error BadRequestSearchError, /date facet 'date.invalid_interval' has invalid interval/i
         end
         it "returns correct default interval for date_histogram facet with no interval"  do
-          field = stub(:name => 'created', :facet_modifier => nil)
+          field = stub(:name => 'date', :facet_modifier => nil)
           expect(subject.facet_options('date', field, {}))
             .to eq(
                    { :interval => 'day', :order => 'count' }
                    )
         end
         it "returns correct hash for decade date range facet"  do
-          field = stub(:name => 'created', :facet_modifier => 'decade')
+          field = stub(:name => 'date', :facet_modifier => 'decade')
           ranges_stub = stub
           subject.stub(:facet_ranges).with(100, 10, 200, false) { ranges_stub}
           expect(subject.facet_options('range', field, {}))
             .to eq(
                    options = {
-                     'field' => 'created',
+                     'field' => 'date',
                      'ranges' => ranges_stub
                    }
                    )
         end
         it "returns correct hash for century date range facet"  do
-          field = stub(:name => 'created', :facet_modifier => 'century')
+          field = stub(:name => 'date', :facet_modifier => 'century')
           ranges_stub = stub
           subject.stub(:facet_ranges).with(100, 100, 20, false) { ranges_stub}
           expect(subject.facet_options('range', field, {}))
             .to eq(
                    options = {
-                     'field' => 'created',
+                     'field' => 'date',
                      'ranges' => ranges_stub
                    }
                    )
@@ -153,7 +153,7 @@ module V1
       end
 
       describe "#facet_ranges" do
-        it "created correct ranges, starting from zero, with no endcaps" do
+        it "creates correct ranges, starting from zero, with no endcaps" do
           expect(subject.facet_ranges(0, 100, 4, false))
             .to match_array(
                             [
@@ -164,7 +164,7 @@ module V1
                             ]
                             )
         end
-        it "created correct ranges, starting from non-zero, with no endcaps" do
+        it "creates correct ranges, starting from non-zero, with no endcaps" do
           expect(subject.facet_ranges(50, 100, 4, false))
             .to match_array(
                             [
@@ -213,24 +213,24 @@ module V1
         end
         
         it "returns 'date' for date type field with no interval" do
-          field = stub('created', :geo_point? => false, :date? => true, :facet_modifier => nil)
+          field = stub('date', :geo_point? => false, :date? => true, :facet_modifier => nil)
           expect(subject.facet_type(field)).to eq 'date'
         end
         
         it "returns 'date' for date type field with a date_histogram interval" do
-          field = stub('created', :geo_point? => false, :date? => true, :facet_modifier => 'year')
+          field = stub('date', :geo_point? => false, :date? => true, :facet_modifier => 'year')
           expect(subject.facet_type(field)).to eq 'date'
         end
         
         it "returns 'range' for date type field with a custom range interval" do
-          field = stub('created', :geo_point? => false, :date? => true, :facet_modifier => 'century')
+          field = stub('date', :geo_point? => false, :date? => true, :facet_modifier => 'century')
           expect(subject.facet_type(field)).to eq 'range'
-          field = stub('created', :geo_point? => false, :date? => true, :facet_modifier => 'decade')
+          field = stub('date', :geo_point? => false, :date? => true, :facet_modifier => 'decade')
           expect(subject.facet_type(field)).to eq 'range'
         end
         
         it "returns 'terms' for string type fields" do
-          field = stub('created', :geo_point? => false, :date? => false, :facet_modifier => nil)
+          field = stub('date', :geo_point? => false, :date? => false, :facet_modifier => nil)
           expect(subject.facet_type(field)).to eq 'terms'
         end
       end
@@ -247,8 +247,8 @@ module V1
           expect(subject.facet_field_name(field)).to eq 'isPartOf.name.raw'
         end
         it "handles a date field with an interval" do
-          field = stub(:name => 'created', :facet_modifier => 'year', :multi_fields => [])
-          expect(subject.facet_field_name(field)).to eq 'created'
+          field = stub(:name => 'date', :facet_modifier => 'year', :multi_fields => [])
+          expect(subject.facet_field_name(field)).to eq 'date'
         end
       end
 
@@ -258,14 +258,14 @@ module V1
         it "returns all facetable subfields for a non-facetable field" do
           subfield = stub('sub', :facetable? => true, :name => 'somefield.sub2a', :geo_point? => false)
           field = stub('field', :facetable? => false, :name => 'somefield', :subfields => [subfield], :geo_point? => false)
-          V1::Schema.stub(:flapping).with(resource, 'somefield') { field }
+          V1::Schema.stub(:field).with(resource, 'somefield') { field }
           expect(
                  subject.expand_facet_fields(resource, %w( somefield ) )
                  ).to match_array %w( somefield.sub2a )
         end
         it "returns a facetable field with no subfields" do
           field = stub('field', :facetable? => true, :name => 'id', :subfields => [])
-          V1::Schema.stub(:flapping).with(resource, 'id') { field }
+          V1::Schema.stub(:field).with(resource, 'id') { field }
           expect(
                  subject.expand_facet_fields(resource, %w( id ) )
                  ).to match_array %w( id )
@@ -273,7 +273,7 @@ module V1
 
         it "returns a non-facetable field with no facetable subfields" do
           field = stub('field', :facetable? => false, :name => 'description', :subfields => [])
-          V1::Schema.stub(:flapping).with(resource, 'description') { field }
+          V1::Schema.stub(:field).with(resource, 'description') { field }
           expect(
                  subject.expand_facet_fields(resource, %w( description ) )
                  ).to match_array %w( description )
@@ -284,7 +284,7 @@ module V1
           sub1 = stub('sub1', :facetable? => true, :name => 'somefield.sub2a', :geo_point? => false)
           sub2 = stub('sub2', :facetable? => true, :name => 'somefield.sub2a_geo', :geo_point? => true)
           field = stub('field', :facetable? => false, :name => 'somefield', :subfields => [sub1, sub2], :geo_point? => false)
-          V1::Schema.stub(:flapping).with(resource, 'somefield') { field }
+          V1::Schema.stub(:field).with(resource, 'somefield') { field }
           expect(
                  subject.expand_facet_fields(resource, %w( somefield ) )
                  ).to match_array %w( somefield.sub2a )
@@ -293,10 +293,10 @@ module V1
         it "returns the correct values when called with a mix of fields" do
           subfield = stub('sub', :facetable? => true, :name => 'somefield.sub2a', :geo_point? => false)
           somefield = stub('field', :facetable? => false, :name => 'somefield', :subfields => [subfield], :geo_point? => false)
-          V1::Schema.stub(:flapping).with(resource, 'somefield') { somefield }
+          V1::Schema.stub(:field).with(resource, 'somefield') { somefield }
 
           id_field = stub('field', :facetable? => true, :name => 'id', :subfields => [])
-          V1::Schema.stub(:flapping).with(resource, 'id') { id_field }
+          V1::Schema.stub(:field).with(resource, 'id') { id_field }
 
           expect(
                  subject.expand_facet_fields(resource, %w( somefield id  ) )

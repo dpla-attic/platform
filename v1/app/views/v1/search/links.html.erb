@@ -16,51 +16,51 @@
   </tr>
   <tr>
     <td>UC002</td> 
-    <td><%= link_to nil, v1_api.items_path('title' => 'banana') %> </td>
+    <td><%= link_to nil, v1_api.items_path('aggregatedCHO.title' => 'banana') %> </td>
     <td>Field-specific search</td>
     </tr>
   <tr>
     <td>UC002</td> 
-    <td><%= link_to nil, v1_api.items_path('description' => 'notfound OR three', 'subject' => '*doodle') %>
+    <td><%= link_to nil, v1_api.items_path('aggregatedCHO.description' => 'notfound OR three', 'aggregatedCHO.subject' => '*doodle') %>
     <td>Field-specific boolean search, field-specific wildcard search (because it is not_analyzed)</td>
   </tr>
   <tr>
     <td>UC002</td>
-    <td><%= link_to nil, v1_api.items_path('description' => 'banana') %></td>
+    <td><%= link_to nil, v1_api.items_path('aggregatedCHO.description' => 'banana') %></td>
     <td>(zero results)</td>
   <tr>
     <td>UC003</td>
-    <td><%= link_to nil, v1_api.items_path('temporal.after' => '1950-01-01') %></td>
+    <td><%= link_to nil, v1_api.items_path('aggregatedCHO.temporal.after' => '1950-01-01') %></td>
     <td>(A, B, C)</td>
   </tr>
   <tr>
     <td>UC003</td>
-    <td><%= link_to nil, v1_api.items_path('temporal.before' => '1955-07-15', 'callback' => 'jsPhunktion') %></td>
+    <td><%= link_to nil, v1_api.items_path('aggregatedCHO.temporal.before' => '1955-07-15', 'callback' => 'jsPhunktion') %></td>
     <td>(A, B, D as JSONP)</td>
   </tr>
   <tr>
     <td>UC003</td>
-    <td><%= link_to nil, v1_api.items_path('temporal.after' => '1800-01-01', 'temporal.before' => '1850-12-31') %></td>
+    <td><%= link_to nil, v1_api.items_path('aggregatedCHO.temporal.after' => '1800-01-01', 'aggregatedCHO.temporal.before' => '1850-12-31') %></td>
     <td>(temporal date range, zero results)</td>
   </tr>
   <tr>
     <td>UC004</td>
-    <td><%= link_to nil, v1_api.items_path('spatial' => 'Cambridge') %></td>
+    <td><%= link_to nil, v1_api.items_path('aggregatedCHO.spatial' => 'Cambridge') %></td>
     <td>M (spatial search, auto-expanded to search all spatial subfields)</td>
   </tr>
   <tr>
     <td>UC004</td>
-    <td><%= link_to nil, v1_api.items_path('spatial.city' => 'Cambridge') %></td>
+    <td><%= link_to nil, v1_api.items_path('aggregatedCHO.spatial.city' => 'Cambridge') %></td>
     <td>M </td>
   </tr>
   <tr>
     <td>UC004</td>
-    <td><%= link_to nil, v1_api.items_path('spatial.coordinates' => '42.3,-71') %></td>
+    <td><%= link_to nil, v1_api.items_path('aggregatedCHO.spatial.coordinates' => '42.3,-71') %></td>
     <td>M (default range)</td>
   </tr>
   <tr>
     <td>UC004</td>
-    <td><%= link_to nil, v1_api.items_path('spatial.coordinates' => '41,-71', 'spatial.distance' => '100mi') %></td>
+    <td><%= link_to nil, v1_api.items_path('aggregatedCHO.spatial.coordinates' => '41,-71', 'aggregatedCHO.spatial.distance' => '100mi') %></td>
     <td>M (specific range expressed in miles)</td>
   </tr>
   <tr>
@@ -85,27 +85,27 @@
   </tr>
   <tr>
     <td>#2789</td>
-    <td><%= link_to nil, v1_api.items_path('sort_by' => 'created.start', 'page_size' => 99) %></td>
-    <td>Sort: by 'created.start' date field (w/large page size, for effect)</td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'aggregatedCHO.date.begin', 'page_size' => 99) %></td>
+    <td>Sort: by 'date.begin' date field (w/large page size, for effect)</td>
   </tr>
   <tr>
     <td>#3382</td>
-    <td><%= link_to nil, v1_api.items_path('sort_by' => 'title') %></td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'aggregatedCHO.title') %></td>
     <td>Sort: by (analyzed) 'title' field using _script sort under the hood </td>
   </tr>
   <tr>
     <td>#3382</td>
-    <td><%= link_to nil, v1_api.items_path('sort_by' => 'subject.name') %></td>
-    <td>Sort: by (multi-valued) 'subject.name' field using _script sort under the hood </td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'aggregatedCHO.subject.name') %></td>
+    <td>Sort: by (multi-valued) 'aggregatedCHO.subject.name' field using _script sort under the hood </td>
   </tr>
   <tr>
     <td>#2789</td>
-    <td><%= link_to nil, v1_api.items_path('sort_by' => 'description') %></td>
-    <td>Sort: by 'description' field, (HTTP 400 error: non-sortable field) </td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'aggregatedCHO.description') %></td>
+    <td>Sort: by 'aggregatedCHO.description' field, (HTTP 400 error: non-sortable field) </td>
   </tr>
   <tr>
     <td>#2789</td>
-    <td><%= link_to nil, v1_api.items_path('sort_by' => 'spatial.coordinates', 'sort_by_pin' => '41.3,-71') %></td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'aggregatedCHO.spatial.coordinates', 'sort_by_pin' => '41.3,-71') %></td>
     <td>Geo-Sort: Sort by distance from a "sort_by_pin" of 41.3,-71 (Harvard, New Hampshire, Maine) </td>
   </tr>
   <tr>
@@ -116,7 +116,7 @@
   <tr>
     <td>#2890</td>
     <td><%= link_to nil, v1_api.items_path('some_invalid_field' => 'banana') %></td>
-    <td>Invalid field in query</td> 
+    <td>Invalid field in query, (HTTP 400 error: invalid field) </td></td> 
   </tr>
   <tr>
     <td>#2890</td>
@@ -125,7 +125,7 @@
   </tr>
   <tr>
     <td>#2790</td>
-    <td><%= link_to nil, v1_api.items_path('fields' => 'title,description') %></td>
+    <td><%= link_to nil, v1_api.items_path('fields' => 'aggregatedCHO.title,aggregatedCHO.description') %></td>
     <td>Specify fields in results</td>
   </tr>
   <tr>
@@ -150,67 +150,70 @@
   </tr>
   <tr>
     <td>UC010</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'created.start', 'page_size' => 0) %></td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'aggregatedCHO.date.begin', 'page_size' => 0) %></td>
     <td>page_size = 0 to request only facets</td>
   </tr>
   <tr>
     <td>#2973</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'created.start') %></td>
-    <td>Date facet on created.start</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'aggregatedCHO.date.begin') %></td>
+    <td>Date facet on aggregatedCHO.date.begin</td>
   </tr>
   <tr>
     <td>#2973</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'created.start.year') %></td>
-    <td>Date facet on created.start.year (interval)</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'aggregatedCHO.date.begin.year') %></td>
+    <td>Date facet on aggregatedCHO.date.begin.year (interval)</td>
   </tr>
   <tr>
     <td>#2973</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'created.start.decade') %></td>
-    <td>Date facet on created.start.decade (interval)</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'aggregatedCHO.date.begin.decade') %></td>
+    <td>Date facet on aggregatedCHO.date.begin.decade (interval)</td>
   </tr>
   <tr>
     <td>#2973</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'created.start.century') %></td>
-    <td>Date facet on created.start.century (interval)</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'aggregatedCHO.date.begin.century') %></td>
+    <td>Date facet on aggregatedCHO.date.begin.century (interval)</td>
   </tr>
   <tr>
     <td>#2973</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'temporal.start') %></td>
-    <td>Date facet on temporal.start</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'aggregatedCHO.temporal.begin') %></td>
+    <td>Date facet on aggregatedCHO.temporal.begin</td>
+  </tr>
+  <tr>
+    <td>#2973</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'aggregatedCHO.temporal.begin.year') %></td>
+    <td>Date facet on aggregatedCHO.temporal.begin.year (interval)</td>
   </tr>
   <tr>
     <td>#2974</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'spatial.coordiantes:42.3:-71') %></td>
-    <td>Geo-distance facet typo (HTTP 400 error)</td>
-  </tr>
-  <tr>
-    <td>#2974</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'spatial.coordinates:42.3:-71') %></td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'aggregatedCHO.spatial.coordinates:42.3:-71') %></td>
     <td>Geo-distance facet with default range size</td>
   </tr>
   <tr>
     <td>#2974</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'spatial.coordinates:42.3:-71:12km') %></td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'aggregatedCHO.spatial.coordinates:42.3:-71:12km') %></td>
     <td>Geo-distance facet with specific range value and range units</td>
   </tr>
   <tr>
     <td>#2975</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'dplaContributor') %></td>
-    <td>Facet on dplaContributor (auto-expanded)</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'provider') %></td>
+    <td>Facet on provider (auto-expanded)</td>
   </tr>
   <tr>
     <td>#2975</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'dplaContributor,isPartOf') %></td>
-    <td>Facet on dplaContributor, isPartOf (multiple auto-expanded)</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'provider,isPartOf') %></td>
+    <td>Facet on provider, isPartOf (multiple auto-expanded)</td>
   </tr>
   <tr>
     <td>#2977</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'subject.name', 'facet_size' => '2') %></td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'aggregatedCHO.subject.name', 'facet_size' => '2') %></td>
     <td>Limit number of facets returned to 2</td>
   </tr>
   <tr>
     <td>#2977</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'subject.name', 'facet_size' => 'max') %></td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'aggregatedCHO.subject.name', 'facet_size' => 'max') %></td>
     <td>Limit number of facets returned to max system setting</td>
   </tr>
 </table>
+
+<br />
+<br />

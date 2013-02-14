@@ -9,25 +9,25 @@ Feature: Search for items by keyword (UC002)
       And the default test dataset is loaded
 
   Scenario: Basic keyword search of title field
-    When I search for "banana" in the "title" field
+    When I search for "banana" in the "aggregatedCHO.title" field
     Then the API should return 1 items with "banana"
     
   Scenario: Basic keyword search of dotted field name
-    When I search for "Cambridge" in the "spatial.city" field
+    When I search for "Cambridge" in the "aggregatedCHO.spatial.city" field
     Then the API should return 1 items with "Cambridge"
     
   Scenario: Basic keyword search of description field
-    When I search for "perplexed" in the "description" field
+    When I search for "perplexed" in the "aggregatedCHO.description" field
     Then the API should return 2 items with "perplexed"
 
   @wip
   Scenario: Basic keyword search of format field
-    When I search for "text/xml" in the "format" field
+    When I search for "text/xml" in the "aggregatedCHO.physicalMedium" field
     Then the API should return 1 items with "text/xml"
 
   Scenario: Complex field-specific search with boolean operators
-    When I search for "notfound OR three" in the "description" field
-    And  I search for "*doodle*" in the "subject" field
+    When I search for "notfound OR three" in the "aggregatedCHO.description" field
+    And  I search for "*doodle*" in the "aggregatedCHO.subject" field
     Then the API should return record 3
 
 

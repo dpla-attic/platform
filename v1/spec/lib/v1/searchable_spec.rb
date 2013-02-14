@@ -144,7 +144,7 @@ module V1
       it "returns correct array values for geo_point types" do
         params = {'sort_by' => 'coordinates', 'sort_by_pin' => '41,-71', 'order' => 'asc'}
         field = stub(:sort => 'geo_distance', :sortable? => true, :name => 'coordinates')
-        V1::Schema.stub(:flapping) { field }
+        V1::Schema.stub(:field) { field }
         expect(
                subject.build_sort_attributes(params)
                ).to eq [ {'_geo_distance' => { 'coordinates' => '41,-71', 'order' => 'asc' } } ]
@@ -153,7 +153,7 @@ module V1
       it "returns correct array for script sort" do
         params = {'sort_by' => 'title'}
         field = stub(:sort => 'script', :sortable? => true, :name => 'title')
-        V1::Schema.stub(:flapping) { field }
+        V1::Schema.stub(:field) { field }
         expect(
                subject.build_sort_attributes(params)
                ).to eq( 
@@ -177,7 +177,7 @@ module V1
 
       it "raises a BadRequestSearchError on a non-sortable sort_by param" do
         params = {'sort_by' => 'some_analyzed_field'}
-        V1::Schema.stub(:flapping) { stub(:sortable? => false, :name => 'foo') }
+        V1::Schema.stub(:field) { stub(:sortable? => false, :name => 'foo') }
         expect  { 
           subject.build_sort_attributes(params)
         }.to raise_error BadRequestSearchError, /non-sortable field.* sort_by parameter: some_analyzed_field/i
@@ -279,7 +279,7 @@ module V1
     describe "#format_facets" do
       let(:facets) {
         {
-          "created.start.year" => {
+          "date.begin.year" => {
             "_type" => "date_histogram",
             "entries" => [
                           {
@@ -292,7 +292,7 @@ module V1
                           }
                          ]
           },
-          "created.start.century" => {
+          "date.begin.century" => {
             "_type"=>"range",
             "ranges"=> [
                         {"from"=>946684800000.0,
@@ -317,7 +317,7 @@ module V1
                           "mean"=>313113600000.0}
                        ]
           },
-          "created.start.decade" => {
+          "date.begin.decade" => {
             "_type"=>"range",
             "ranges"=> [
                         {"from"=>0.0,
@@ -369,22 +369,22 @@ module V1
       end
       
       it "sorts the date_histogram facet by count descending, by default" do
-        expect(subject.format_facets(facets, nil)['created.start.year']['entries'])
+        expect(subject.format_facets(facets, nil)['date.begin.year']['entries'])
           .to eq([{"time"=>"2000", "count"=>2}, {"time"=>"1975", "count"=>1}])
       end
       
       it "identifies date facets with century interval as _type: 'date_histogram'" do
-        expect(subject.format_facets(facets, nil)['created.start.century']['_type'])
+        expect(subject.format_facets(facets, nil)['date.begin.century']['_type'])
           .to eq 'date_histogram'
       end
 
       it "formats and sorts date facets with century interval like native date_histogram facets" do
-        expect(subject.format_facets(facets, nil)['created.start.century']['entries'])
+        expect(subject.format_facets(facets, nil)['date.begin.century']['entries'])
           .to eq([{"time"=>"1900", "count"=>9}, {"time"=>"2000", "count"=>1}])
       end
 
       it "formats and sorts date facets with decade interval like native date_histogram facets" do
-        expect(subject.format_facets(facets, nil)['created.start.decade']['entries'])
+        expect(subject.format_facets(facets, nil)['date.begin.decade']['entries'])
           .to eq([{"time"=>"1980", "count"=>6}, {"time"=>"1970", "count"=>3}])
       end
       

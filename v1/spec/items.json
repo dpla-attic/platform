@@ -1,439 +1,475 @@
 [
-  {
-    "_id": "1",
-    "id": "1",
-    "title": "banana one",
-    "description": "description one",
-    "dplaContributor": null,
-    "creator": "",
-    "publisher": "",
-    "created": {
-      "start": "1977-01-01",
-      "end": "1977-01-01"
+    {
+        "_id": "1",
+        "id": "1",
+        "aggregatedCHO": {
+            "title": "banana one",
+            "description": "description one",
+            "creator": "",
+            "publisher": "",
+            "date": {
+                "begin": "1977-01-01",
+                "end": "1977-01-01"
+            },
+            "type": "",
+            "physicalMedium": "",
+            "rights": "",
+            "relation": "",
+            "source": "",
+            "contributor": ""
+        }
     },
-    "type": "",
-    "format": "",
-    "rights": "",
-    "relation": "",
-    "source": "",
-    "contributor": ""
-  },
-  {
-    "_id": "2",
-    "id": "2",
-    "title": "title two",
-    "description": "perplexed two",
-    "dplaContributor": null,
-    "creator": "",
-    "publisher": "",
-    "created": {
-      "start": "1978-01-01",
-      "end": "1979-01-01"
+    {
+        "_id": "2",
+        "id": "2",
+        "aggregatedCHO": {
+            "title": "title two",
+            "description": "perplexed two",
+            "creator": "",
+            "publisher": "",
+            "date": {
+                "begin": "1978-01-01",
+                "end": "1979-01-01"
+            },
+            "type": "",
+            "physicalMedium": "",
+            "rights": "",
+            "relation": "",
+            "source": "",
+            "contributor": ""
+        }
     },
-    "type": "",
-    "format": "",
-    "rights": "",
-    "relation": "",
-    "source": "",
-    "contributor": ""
-  },
-  {
-    "_id": "3",
-    "id": "3",
-    "title": "title three",
-    "description": "perplexed three",
-    "dplaContributor": null,
-    "creator": "",
-    "publisher": "",
-    "created": {
-      "start": "2000-06-01",
-      "end": "2001-01-01"
+    {
+        "_id": "3",
+        "id": "3",
+        "aggregatedCHO": {
+            "title": "title three",
+            "description": "perplexed three",
+            "creator": "",
+            "publisher": "",
+            "date": {
+                "begin": "2000-06-01",
+                "end": "2001-01-01"
+            },
+            "subject": {
+                "name": "perplexed subject3 doodle"
+            },
+            "type": "",
+            "physicalMedium": "text/xml",
+            "rights": "",
+            "relation": "",
+            "source": "",
+            "contributor": ""
+        }
     },
-    "subject": {
-      "name": "perplexed subject3 doodle"
+    {
+        "_id": "P",
+        "id": "P",
+        "aggregatedCHO": {
+            "title": ["title phunk1", "title phunk2"],
+            "description": "facettest, coll-P, contrib 42",
+            "creator": "",
+            "physicalMedium": ["image/jpeg", "Manuscripts"],
+            "language": {
+                "name": "English",
+                "iso639": "eng"
+            },
+            "subject": {
+                "@id": "http://lccn.loc.gov/sh85140205",
+                "@type": "LCSH"
+            },
+            "isPartOf": {
+                "@id": "http://dp.la/api/collections/coll-P",
+                "name": "Civil War-Era Letters of the Neves Family of Greenville County" 
+            }
+        },
+        "provider": {
+            "@id": "http://dp.la/api/contributor/42",
+            "name": "South Carolina Digital Library"
+        }
     },
-    "type": "",
-    "format": "text/xml",
-    "rights": "",
-    "relation": "",
-    "source": "",
-    "contributor": ""
-  },
-  {
-    "_id": "P",
-    "id": "P",
-    "title": ["title phunk1", "title phunk2"],
-    "description": "facettest, coll-P, contrib 42",
-    "dplaContributor": {
-      "@id": "http://dp.la/api/contributor/42",
-      "name": "South Carolina Digital Library"
+    {
+        "_id": "P2",
+        "id": "P2",
+        "aggregatedCHO": {
+            "title": "P2 title",
+            "description": "facettest, coll-P, contrib 42",
+            "subject": {
+            },
+            "isPartOf": {
+                "@id": "http://dp.la/api/collections/coll-P",
+                "name": "Civil War-Era Letters of the Neves Family of Greenville County" 
+            }
+        },
+        "provider": {
+            "@id": "http://dp.la/api/contributor/42",
+            "name": "South Carolina Digital Library"
+        }
     },
-    "creator": "",
-    "format": ["image/jpeg", "Manuscripts"],
-    "language": {
-      "name": "English",
-      "iso639": "eng"
+    {
+        "_id": "P3",
+        "id": "P3",
+        "aggregatedCHO": {
+            "title": "P3 title",
+            "description": "facettest, coll-P, contrib 13",
+            "subject": {
+            },
+            "isPartOf": {
+                "@id": "http://dp.la/api/collections/coll-P",
+                "name": "Civil War-Era Letters of the Neves Family of Greenville County" 
+            }
+        },
+        "provider": {
+            "@id": "http://dp.la/api/contributor/13",
+            "name": "South Carolina Digital Library"
+        }
     },
-    "subject": {
-      "@id": "http://lccn.loc.gov/sh85140205",
-      "@type": "LCSH"
+    {
+        "_id": "P2-A",
+        "id": "P2-A",
+        "aggregatedCHO": {
+            "title": "title P2-A",
+            "description": "mouse",
+            "spatial": [
+                {
+                    "city": "SLC",
+                    "state": "UT"
+                },
+                {
+                    "city": "Some City",
+                    "state": "WY"
+                }
+            ]
+        }
     },
-    "isPartOf": {
-      "@id": "http://dp.la/api/collections/coll-P",
-      "name": "Civil War-Era Letters of the Neves Family of Greenville County" 
+    {
+        "_id": "P2-B",
+        "id":"P2-B",
+
+        "aggregatedCHO": {
+            "title": "title P2-B",
+            "description": "",
+            "spatial": [
+                {
+                    "state": "UT"
+                },
+                {
+                    "city": "SLC"
+                }
+            ]
+        }
+    },
+    {
+        "_id": "P3-temporal-1",
+        "id": "P3-temporal-1",
+        "aggregatedCHO": {
+            "title": "P3-temporal-1",
+            "description": "bookend temporal ranges"
+        }
+    },
+    {
+        "_id": "A",
+        "id": "aaa",
+        "aggregatedCHO": {
+            "title": "title A",
+            "description": "",
+            "creator": "",
+            "publisher": "",
+            "type": "",
+            "physicalMedium": "",
+            "rights": "",
+            "temporal": {
+                "begin": "1950-06-01",
+                "end": "1950-06-01"
+            },
+            "relation": "",
+            "source": "",
+            "contributor": ""
+        }
+    },
+    {
+        "_id": "B",
+        "id": "bbb",
+        "aggregatedCHO": {
+            "title": "title B",
+            "description": "",
+            "creator": "",
+            "publisher": "",
+            "type": "",
+            "physicalMedium": "",
+            "rights": "",
+            "temporal": {
+                "begin": "1955-07-01",
+                "end": "1955-07-30"
+            },
+            "relation": "",
+            "source": "",
+            "contributor": ""
+        }
+    },
+    {
+        "_id": "C",
+        "id": "C",
+        "aggregatedCHO": {
+            "title": "title C",
+            "description": "",
+            "creator": "",
+            "publisher": "",
+            "type": "",
+            "physicalMedium": "",
+            "rights": "",
+            "temporal": {
+                "begin": "1970",
+                "end": "1979"
+            },
+            "relation": "",
+            "source": "",
+            "contributor": ""
+        }
+    },
+    {
+        "_id": "D",
+        "id": "D",
+        "aggregatedCHO": {
+            "title": "title D",
+            "description": "",
+            "creator": "",
+            "publisher": "",
+            "type": "",
+            "physicalMedium": "",
+            "rights": "",
+            "temporal": [
+                {
+                    "begin": "1200",
+                    "end": "1250"
+                },
+                {
+                    "begin": "1270",
+                    "end": "1300"
+                }
+            ],
+            "relation": "",
+            "source": "",
+            "contributor": ""
+        }
+    },
+    {
+        "_id": "F",
+        "id": "F",
+        "aggregatedCHO": {
+            "title": "title F",
+            "description": "",
+            "creator": "",
+            "publisher": "",
+            "date": {
+                "begin": "1973-04-19",
+                "end": "1973-04-19"
+            },
+            "type": "",
+            "physicalMedium": "",
+            "rights": "",
+            "spatial": null,
+            "temporal": {
+                "begin": "1988-03-01",
+                "end": "1988-05-01"
+            },
+            "relation": "",
+            "source": "",
+            "contributor": ""
+        }
+    },
+    {
+        "_id": "M",
+        "id": "M",
+        "aggregatedCHO": {
+            "title": "title M",
+            "description": "",
+            "creator": "",
+            "publisher": "",
+            "type": "",
+            "physicalMedium": "",
+            "rights": "",
+            "spatial": [
+                {
+                    "name": "Harvard Town",
+                    "coordinates": "42.373611,-71.110556",
+                    "state": "MA",
+                    "city": "Cambridge",
+                    "iso3166-2" : "US-SC"                                          
+                },
+                {
+                    "state": "Massachusetts"
+                }
+            ],
+            "relation": "",
+            "source": "",
+            "contributor": ""
+        }
+    },
+    {
+        "_id": "Doppel1",
+        "id": "Doppel1",
+        "aggregatedCHO": {
+            "title": "doppelganger title1",
+            "description": "description ganger",
+            "temporal": {
+                "begin": "1988-03-01",
+                "end": "1988-03-01"
+            }
+        },
+        "provider": {
+            "@id": "http://dp.la/api/contributor/101",
+            "name": "ContribName OneOhOne"
+        }
+    },
+    {
+        "_id": "Doppel2",
+        "id": "Doppel2",
+        "title": "doppelganger title2",
+        "aggregatedCHO": {
+            "description": "description ganger",
+            "temporal": {
+                "begin": "1988-03-01",
+                "end": "1988-03-01"
+            }
+        },
+        "provider": {
+            "@id": "http://dp.la/api/contributor/102",
+            "name": "ContribName OneOhTwo"
+        }
+    },
+    {
+        "_id": "GeoDistance1",
+        "id": "GeoDistance1",
+        "aggregatedCHO": {
+            "spatial": {
+                "name": "geo_distance1",
+                "coordinates": "43,-71",
+                "state": "NH",
+                "city": "Exeter"
+            }
+        }
+    },
+    {
+        "_id": "GeoDistance2",
+        "id": "GeoDistance2",
+        "aggregatedCHO": {
+            "spatial": {
+                "name": "geo_distance2",
+                "coordinates": "45,-71",
+                "state": "ME",
+                "city": "Errol"
+            }
+        }
+    },
+    {
+        "_id": "one.two.three",
+        "id": "one.two.three",
+        "aggregatedCHO": {
+            "title": "dotted id test"
+        }
+    },
+    {
+        "_id": "S1",
+        "id": "S1",
+        "aggregatedCHO": {
+            "subject": {
+                "name": "Tone"
+            },
+            "type": "Tone",
+            "date": {
+                "begin": "1981-01-01",
+                "end": "1981-01-01"
+            }
+        }
+    },
+    {
+        "_id": "S2",
+        "id": "S2",
+        "aggregatedCHO": {
+            "subject": {
+                "name": "Ttwo"
+            },
+            "type": "Ttwo",
+            "date": {
+                "begin": "1982-01-01",
+                "end": "1982-01-01"
+            }
+        }
+    },
+    {
+        "_id": "S3",
+        "id": "S3",
+        "aggregatedCHO": {
+            "subject": {
+                "name": "Ttwo"
+            },
+            "type": "Ttwo",
+            "date": {
+                "begin": "1982-01-01",
+                "end": "1982-01-01"
+            }
+        }
+    },
+    {
+        "_id": "S4",
+        "id": "S4",
+        "aggregatedCHO": {
+            "subject": {
+                "name": "Tthree"
+            },
+            "type": "Tthree",
+            "date": {
+                "begin": "1982-01-01",
+                "end": "1982-01-01"
+            }
+        }
+    },
+    {
+        "_id": "S5",
+        "id": "S5",
+        "aggregatedCHO": {
+            "subject": {
+                "name": "Tthree"
+            },
+            "type": "Tthree",
+            "date": {
+                "begin": "1982-01-01",
+                "end": "1982-01-01"
+            }
+        }
+    },
+    {
+        "_id": "S6",
+        "id": "S6",
+        "aggregatedCHO": {
+            "subject": {
+                "name": "Tthree"
+            },
+            "type": "Tthree",
+            "date": {
+                "begin": "1982-01-01",
+                "end": "1982-01-01"
+            }
+        }
+    },
+    {
+        "_id": "R8",
+        "id": "R8",
+        "aggregatedCHO": {
+            "title": "peanut",
+            "description": "Testing script sort on not_analyzed fields with array values",
+            "subject": [
+                {
+                    "name": "subname1"
+                },
+                {
+                    "name": "subname2"
+                },
+                {
+                    "name": "subname3"
+                }
+            ]
+        }
     }
-  },
-  {
-    "_id": "P2",
-    "id": "P2",
-    "title": "P2 title",
-    "description": "facettest, coll-P, contrib 42",
-    "subject": {
-    },
-    "dplaContributor": {
-      "@id": "http://dp.la/api/contributor/42",
-      "name": "South Carolina Digital Library"
-    },
-    "isPartOf": {
-      "@id": "http://dp.la/api/collections/coll-P",
-      "name": "Civil War-Era Letters of the Neves Family of Greenville County" 
-    }
-  },
-  {
-    "_id": "P3",
-    "id": "P3",
-    "title": "P3 title",
-    "description": "facettest, coll-P, contrib 13",
-    "subject": {
-    },
-    "dplaContributor": {
-      "@id": "http://dp.la/api/contributor/13",
-      "name": "South Carolina Digital Library"
-    },
-    "isPartOf": {
-      "@id": "http://dp.la/api/collections/coll-P",
-      "name": "Civil War-Era Letters of the Neves Family of Greenville County" 
-    }
-  },
-  {
-    "_id": "P2-A",
-    "id": "P2-A",
-    "title": "title P2-A",
-    "description": "mouse",
-    "spatial": [
-      {
-        "city": "SLC",
-        "state": "UT"
-      },
-      {
-        "city": "Some City",
-        "state": "WY"
-      }
-    ]
-  },
-  {
-    "_id": "P2-B",
-    "id":"P2-B",
-    "title": "title P2-B",
-    "description": "",
-    "spatial": [
-      {
-        "state": "UT"
-      },
-      {
-        "city": "SLC"
-      }
-    ]
-  },
-  {
-    "_id": "P3-temporal-1",
-    "id": "P3-temporal-1",
-    "title": "P3-temporal-1",
-    "description": "bookend temporal ranges"
-  },
-  {
-    "_id": "A",
-    "id": "aaa",
-    "title": "title A",
-    "description": "",
-    "dplaContributor": null,
-    "creator": "",
-    "publisher": "",
-    "type": "",
-    "format": "",
-    "rights": "",
-    "temporal": {
-      "start": "1950-06-01",
-      "end": "1950-06-01"
-    },
-    "relation": "",
-    "source": "",
-    "contributor": ""
-  },
-  {
-    "_id": "B",
-    "id": "bbb",
-    "title": "title B",
-    "description": "",
-    "dplaContributor": null,
-    "creator": "",
-    "publisher": "",
-    "type": "",
-    "format": "",
-    "rights": "",
-    "temporal": {
-      "start": "1955-07-01",
-      "end": "1955-07-30"
-    },
-    "relation": "",
-    "source": "",
-    "contributor": ""
-  },
-  {
-    "_id": "C",
-    "id": "C",
-    "title": "title C",
-    "description": "",
-    "dplaContributor": null,
-    "creator": "",
-    "publisher": "",
-    "type": "",
-    "format": "",
-    "rights": "",
-    "temporal": {
-      "start": "1970",
-      "end": "1979"
-    },
-    "relation": "",
-    "source": "",
-    "contributor": ""
-  },
-  {
-    "_id": "D",
-    "id": "D",
-    "title": "title D",
-    "description": "",
-    "dplaContributor": null,
-    "creator": "",
-    "publisher": "",
-    "type": "",
-    "format": "",
-    "rights": "",
-    "temporal": [
-      {
-        "start": "1200",
-        "end": "1250"
-      },
-      {
-        "start": "1270",
-        "end": "1300"
-      }
-    ],
-    "relation": "",
-    "source": "",
-    "contributor": ""
-  },
-  {
-    "_id": "F",
-    "id": "F",
-    "title": "title F",
-    "description": "",
-    "dplaContributor": null,
-    "creator": "",
-    "publisher": "",
-    "created": {
-      "start": "1973-04-19",
-      "end": "1973-04-19"
-    },
-    "type": "",
-    "format": "",
-    "rights": "",
-    "spatial": null,
-    "temporal": {
-      "start": "1988-03-01",
-      "end": "1988-05-01"
-    },
-    "relation": "",
-    "source": "",
-    "contributor": ""
-  },
-  {
-    "_id": "M",
-    "id": "M",
-    "title": "title M",
-    "description": "",
-    "dplaContributor": null,
-    "creator": "",
-    "publisher": "",
-    "type": "",
-    "format": "",
-    "rights": "",
-    "spatial": [
-      {
-        "name": "Harvard Town",
-        "coordinates": "42.373611,-71.110556",
-        "state": "MA",
-        "city": "Cambridge",
-        "iso3166-2" : "US-SC"                                          
-      },
-      {
-        "state": "Massachusetts"
-      }
-    ],
-    "relation": "",
-    "source": "",
-    "contributor": ""
-  },
-  {
-    "_id": "Doppel1",
-    "id": "Doppel1",
-    "title": "doppelganger title1",
-    "description": "description ganger",
-    "dplaContributor": {
-      "@id": "http://dp.la/api/contributor/101",
-      "name": "ContribName OneOhOne"
-    },
-    "temporal": {
-      "start": "1988-03-01",
-      "end": "1988-03-01"
-    }
-  },
-  {
-    "_id": "Doppel2",
-    "id": "Doppel2",
-    "title": "doppelganger title2",
-    "description": "description ganger",
-    "dplaContributor": {
-      "@id": "http://dp.la/api/contributor/102",
-      "name": "ContribName OneOhTwo"
-    },
-    "temporal": {
-      "start": "1988-03-01",
-      "end": "1988-03-01"
-    }
-  },
-  {
-    "_id": "GeoDistance1",
-    "id": "GeoDistance1",
-    "spatial": {
-        "name": "geo_distance1",
-        "coordinates": "43,-71",
-        "state": "NH",
-        "city": "Exeter"
-    }
-  },
-  {
-    "_id": "GeoDistance2",
-    "id": "GeoDistance2",
-    "spatial": {
-        "name": "geo_distance2",
-        "coordinates": "45,-71",
-        "state": "ME",
-        "city": "Errol"
-    }
-  },
-  {
-    "_id": "one.two.three",
-    "id": "one.two.three",
-    "title": "dotted id test"
-  },
-  {
-    "_id": "S1",
-    "id": "S1",
-    "subject": {
-      "name": "Tone"
-    },
-    "type": "Tone",
-    "created": {
-      "start": "1981-01-01",
-      "end": "1981-01-01"
-    }
-  },
-  {
-    "_id": "S2",
-    "id": "S2",
-    "subject": {
-      "name": "Ttwo"
-    },
-    "type": "Ttwo",
-    "created": {
-      "start": "1982-01-01",
-      "end": "1982-01-01"
-    }
-  },
-  {
-    "_id": "S3",
-    "id": "S3",
-    "subject": {
-      "name": "Ttwo"
-    },
-    "type": "Ttwo",
-    "created": {
-      "start": "1982-01-01",
-      "end": "1982-01-01"
-    }
-  },
-  {
-    "_id": "S4",
-    "id": "S4",
-    "subject": {
-      "name": "Tthree"
-    },
-    "type": "Tthree",
-    "created": {
-      "start": "1982-01-01",
-      "end": "1982-01-01"
-    }
-  },
-  {
-    "_id": "S5",
-    "id": "S5",
-    "subject": {
-      "name": "Tthree"
-    },
-    "type": "Tthree",
-    "created": {
-      "start": "1982-01-01",
-      "end": "1982-01-01"
-    }
-  },
-  {
-    "_id": "S6",
-    "id": "S6",
-    "subject": {
-      "name": "Tthree"
-    },
-    "type": "Tthree",
-    "created": {
-      "start": "1982-01-01",
-      "end": "1982-01-01"
-    }
-  },
-  {
-    "_id": "R8",
-    "id": "R8",
-    "title": "peanut",
-    "description": "Testing script sort on not_analyzed fields with array values",
-    "subject": [
-      {
-        "name": "subname1"
-      },
-      {
-        "name": "subname2"
-      },
-      {
-        "name": "subname3"
-      }
-    ]
-  },
-  {
-    "_id": "R9",
-    "id": "R9",
-    "title": "peanut",
-    "description": "Nuts!",
-    "subject": 
-      {
-        "name": "xcalibur"
-      }
-  }
 ]

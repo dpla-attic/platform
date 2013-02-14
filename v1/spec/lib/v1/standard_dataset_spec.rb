@@ -31,9 +31,10 @@ module V1
 
       it "re-creates the search index with correct name and mapping" do
         tire = mock
+        tire.stub_chain(:response, :code) { 200 }
         Tire.should_receive(:index).with(V1::Config::SEARCH_INDEX).and_yield(tire)
         tire.should_receive(:delete)
-        tire.should_receive(:create).with(V1::Schema::ELASTICSEARCH_MAPPING)
+        tire.should_receive(:create).with( { 'mappings' => V1::Schema::ELASTICSEARCH_MAPPING } )
         subject.should_not_receive(:import_test_dataset)
         subject.recreate_index!
       end

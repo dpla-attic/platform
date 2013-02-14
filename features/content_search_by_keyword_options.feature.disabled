@@ -5,8 +5,6 @@ Feature: Search for content by keyword with options (UC001)
   And navigate through the data
   API users should be able to search for content using free text search
   And request a specific set of fields to be returned
-  And view different pages of results
-  And retrive facets for faceted search
                   
   Background:
     Given that I have have a valid API key
@@ -15,7 +13,7 @@ Feature: Search for content by keyword with options (UC001)
 
   Scenario: Basic keyword search returning specific fields
     When I search for "banana"
-      And request the fields "title" and "description"
+      And request the fields "aggregatedCHO.title" and "aggregatedCHO.description"
     Then the API should return all records with "banana" in the title
       And return the records in JSON format
       And only include the "id", "title", and "description" fields in the records returned

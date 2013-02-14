@@ -5,7 +5,7 @@ Dpla::Application.routes.draw do
 
   root :to => "home#index"
 
-  mount V1::Engine => "/api/v1"
+  mount V1::Engine => "/v2"
   mount Contentqa::Engine => "/qa"
 
 end

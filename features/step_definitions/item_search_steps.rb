@@ -19,8 +19,8 @@ When /^I search the "(.*?)" field for records with a date between "(.*?)" and "(
   }
 end
 
-When /^I search the "temporal" field for records with a date (before|after) "(.*?)"$/ do |modifier, target_date|
-  @params = { "temporal.#{modifier}" => target_date }
+When /^I search the "(.*?)" field for records with a date (before|after) "(.*?)"$/ do |field, modifier, target_date|
+  @params = { "#{field}.#{modifier}" => target_date }
 end
 
 Then /^the API should return records? (.*?)$/ do |id_list|
@@ -41,12 +41,15 @@ Then /^the API should return no records$/ do
 end
 
 Given /^the default search radius for location search is (\d+) miles$/ do |arg1|
-  expect(V1::Searchable::Filter::DEFAULT_SPATIAL_DISTANCE).to eq "#{arg1}mi"
+  expect(V1::Searchable::Filter::DEFAULT_GEO_DISTANCE).to eq "#{arg1}mi"
 end
 
-When /^I search for records with location near coordinates "(.*?)"( with a range of (\d+) miles)?$/ do |lat_long, junk, distance|
-  @params = {'spatial.coordinates' => lat_long}
-  @params['spatial.distance'] = distance + 'mi' if distance
+When /^I search for records with "(.*?)" near coordinates "(.*?)"( with a range of (\d+) miles)?$/ do |field, lat_long, junk, distance|
+  @params = {field => lat_long}
+  if distance
+    distance_field = field.gsub(/^(.+)\.(.+)$/, '\1.distance')
+    @params[distance_field] = distance + 'mi'
+  end
 end
 
 Then /^the API should not return record (.+)$/ do |id|

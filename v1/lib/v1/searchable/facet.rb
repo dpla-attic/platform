@@ -90,7 +90,7 @@ module V1
           args = [$1, $2]
         end
         # the gist here is that args may contain a facet_modifier
-        V1::Schema.flapping('item', *args)
+        V1::Schema.field('item', *args)
       end
 
       def self.facet_options(type, field, params)
@@ -209,7 +209,7 @@ module V1
         names.each do |name|
           new_facets = []
 
-          field = V1::Schema.flapping(resource, name)
+          field = V1::Schema.field(resource, name)
           if field
             # top level field is facetable
             new_facets << name if field.facetable?
