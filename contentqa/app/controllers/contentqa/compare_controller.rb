@@ -4,35 +4,33 @@ module Contentqa
   class CompareController < ApplicationController
 
     def index
-      baseuri = request.protocol+request.host_with_port()
-      fetch = HTTParty.get(baseuri+v1_api.items_path('page_size' => '1'))
-      @total = fetch.parsed_response['count'] 
+      fetch = item_search({'page_size' => '0'})  #HTTParty.get(baseuri+v1_api.items_path('page_size' => '0'))
+      @total = fetch['count']
       @id = params[:id]
 
       if @id
-        fetch = HTTParty.get(baseuri+v1_api.items_path()+'/'+@id)
-
-        if fetch.success?
-          doc = fetch.parsed_response['docs'].first
-        else
+        begin
+          fetch = item_fetch(@id)  #HTTParty.get(baseuri+v1_api.items_path()+'/'+@id)
+          doc = fetch['docs'].first
+        rescue V1::NotFoundSearchError
           raise Exception, "ElasticSearch fetch returned 404 for: #{@id}"
         end
       else
-        doc = get_random_doc(baseuri, fetch.parsed_response['count'])
+        doc = get_random_doc(baseuri, fetch['count'])
      end
       
-      @original = JSON.pretty_generate(doc['dplaSourceRecord'])
-      doc.delete_if { |key,_| ['dplaSourceRecord','@context','_rev','_id'].include? key}
+      @original = JSON.pretty_generate(doc['originalRecord'] || {})
+      doc.delete_if { |key,_| %w[ score originalRecord @context _rev _id ].include? key}
       @twisted = JSON.pretty_generate(doc)
-      @link = baseuri+v1_api.items_path()+'/'+doc['id']
-      @next = get_random_doc(baseuri, fetch.parsed_response['count'])['id']
+      @link = item_fetch_link(doc['id'])
+      @next = get_random_doc(baseuri, fetch['count'])['id']
     end
 
     def get_random_doc(baseuri, count)
       @page = rand(count)
-      fetch = HTTParty.get(baseuri+v1_api.items_path('page_size' => '1', 'page' => @page))
+      fetch = item_search({'page_size' => '1', 'page' => @page})
 
-      doc = fetch.parsed_response['docs'].first
+      fetch['docs'].first
     end
 
   end

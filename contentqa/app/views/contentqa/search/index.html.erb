@@ -63,7 +63,8 @@
     <% @facets.each do |key,value| %>
     <h4><%= key %></h4>
     <% value['terms'].each do |term| %>
-      <%= link_to term['term'], params.merge({key.sub(/\..*$/,"").to_sym => term['term']}) %> (<%= term['count'] %>)<br/>
+      <% next if term['term'] == ''%>
+      <%= link_to term['term'] , params.merge({key.to_sym => term['term']}) %> (<%= term['count'] %>)<br/>
     <% end %>    
     <% end %>
   </div>

@@ -1,28 +1,25 @@
 require_dependency "contentqa/application_controller"
-require "httparty"
 
 module Contentqa
   class SearchController < ApplicationController
-    include HTTParty
-    PARAMETERS = %w[title description creator type publisher format rights contributor created spatial temporal.after temporal.before isPartOf source id q page_size page subject.name]
-    DISPLAY = %w[id title description creator type publisher format rights contributor created spatial temporal source subject ingestDate isPartOf]
-    SEARCH = %w[id title description creator type publisher format rights contributor spatial temporal.after temporal.before subject.name isPartOf]
-    FACETS = %w[type format language.name spatial.name spatial.state spatial.city subject.name isPartOf.name dplaContributor.name contributor]
+
+    PARAMETERS = %w[aggregatedCHO.title aggregatedCHO.description aggregatedCHO.creator aggregatedCHO.publisher aggregatedCHO.physicalMedium aggregatedCHO.rights aggregatedCHO.type aggregatedCHO.contributor aggregatedCHO.date.before aggregatedCHO.date.after aggregatedCHO.spatial.name aggregatedCHO.spatial.state aggregatedCHO.temporal.after aggregatedCHO.temporal.before isPartOf id q page_size facet_size page aggregatedCHO.subject.name]
+    DISPLAY = %w[id aggregatedCHO.title aggregatedCHO.description aggregatedCHO.creator aggregatedCHO.type aggregatedCHO.publisher aggregatedCHO.physicalMedium aggregatedCHO.rights aggregatedCHO.contributor aggregatedCHO.date aggregatedCHO.spatial aggregatedCHO.temporal aggregatedCHO.subject aggregatedCHO.ingestDate isPartOf]
+    SEARCH = %w[id aggregatedCHO.title aggregatedCHO.description aggregatedCHO.creator aggregatedCHO.type aggregatedCHO.publisher aggregatedCHO.physicalMedium aggregatedCHO.rights aggregatedCHO.contributor aggregatedCHO.spatial aggregatedCHO.temporal.after aggregatedCHO.temporal.before aggregatedCHO.subject.name isPartOf]
+    FACETS = %w[aggregatedCHO.type aggregatedCHO.physicalMedium aggregatedCHO.language.name aggregatedCHO.spatial.name aggregatedCHO.spatial.state aggregatedCHO.spatial.city aggregatedCHO.subject.name isPartOf.name aggregatedCHO.contributor]
 
     def index
-      baseuri = request.protocol+request.host_with_port() 
-      api_params = params.delete_if { |key,value| !PARAMETERS.include? key}
+      api_params = params.delete_if { |key,value| PARAMETERS.exclude? key}
       api_params = api_params.delete_if { |key,value| value.nil? || value.empty?}
       api_params = api_params.merge({'facets' => FACETS.join(",")})
 
-      json = self.class.get(baseuri+v1_api.items_path(api_params)).body
-      search_result = JSON.parse(json)
+      search_result = item_search(api_params)
 
-      @count, @start,  @limit = search_result['count'], search_result['start'], search_result['limit']
+      @count, @start, @limit = search_result['count'], search_result['start'], search_result['limit']
       @results = search_result['docs']
       @display_fields = DISPLAY
       @search_fields = SEARCH
-      @page_size = params['page_size'].nil? || params['page_size'] == 0 ? 10 : params['page_size'].to_i
+      @page_size = params['page_size'].to_i == 0 ? 10 : params['page_size'].to_i
       @page_list = paginate(@count, @start, @limit, @page_size )
       @page_count = get_page_count(@count, @page_size)
       @facets = search_result['facets']
