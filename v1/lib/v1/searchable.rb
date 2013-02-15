@@ -27,7 +27,7 @@ module V1
       # Raises exception if any unrecognized search params are present. Query-based 
       # extensions (e.g: spatial.distance) are added here as well. Does not examine
       # contents of fields containing field names, such as sorting, facets, etc.
-      invalid = params.keys - (BASE_QUERY_PARAMS + V1::Schema.queryable_fields)
+      invalid = params.keys - (BASE_QUERY_PARAMS + V1::Schema.queryable_field_names)
       if invalid.any?
         raise BadRequestSearchError, "Invalid field(s) specified in query: #{invalid.join(',')}"
       end
@@ -218,7 +218,7 @@ module V1
     end
 
     def validate_field_params(params)
-      invalid = params['fields'].to_s.split(/,\s*/) - V1::Schema.queryable_fields
+      invalid = params['fields'].to_s.split(/,\s*/) - V1::Schema.queryable_field_names
       if invalid.any?  
         raise BadRequestSearchError, "Invalid field(s) specified for fields parameter: #{invalid.join(',')}" 
       end

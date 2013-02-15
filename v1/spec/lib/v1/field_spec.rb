@@ -37,6 +37,16 @@ module V1
             }
           }
         },
+        'level1' => {
+          'properties' => {
+            'level2' => {
+              'properties' => {
+                'level3A' => { 'type' => 'string'},
+                'level3B' => { 'type' => 'string'}
+              }
+            }
+          }
+        },
         'field1' => {
           'properties' => {
             'name' => {
@@ -163,7 +173,40 @@ module V1
         expect(field.subfields.map(&:name)).to match_array %w( isPartOf.@id isPartOf.name )
       end
     end
-    
+
+    describe "#subfields_deep" do
+      it "handles field with no subfields" do
+        f = V1::Field.new(
+                        'item',
+                        'spatial.city',
+                        item_mapping['spatial']['properties']['city']
+                        )
+
+        expect(f.subfields_deep.map(&:name))
+          .to match_array( %w( spatial.city ) )
+      end
+      it "handles 1 level of depth" do
+        f = V1::Field.new(
+                        'item',
+                        'spatial',
+                        item_mapping['spatial']
+                        )
+
+        expect(f.subfields_deep.map(&:name))
+          .to match_array( %w( spatial spatial.city spatial.iso3166-2 spatial.coordinates ) )
+      end
+      it "handles >1 levels of depth" do
+        f = V1::Field.new(
+                        'item',
+                        'level1',
+                        item_mapping['level1']
+                        )
+
+        expect(f.subfields_deep.map(&:name))
+          .to match_array( %w( level1 level1.level2 level1.level2.level3A level1.level2.level3B ) )
+      end
+    end
+
     describe "#subfields?" do
       it "returns false when there are no subfields" do
         field = V1::Field.new(resource, 'title', item_mapping['title'])

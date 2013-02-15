@@ -123,43 +123,74 @@ module V1
         stub_const("V1::Schema::ELASTICSEARCH_MAPPING", mock_mapping)
       end
 
-      describe "#queryable_fields" do
-        let(:queryable_fields) { V1::Schema.queryable_fields }
-
+      describe "#all_fields" do
+        let(:all_field_names) { V1::Schema.all_fields('item').map(&:name) }
+        it "returns the expected list of fields" do
+          expect(all_field_names)
+            .to match_array(%w(
+                              id
+                              aggregatedCHO
+                              aggregatedCHO.title
+                              aggregatedCHO.description
+                              aggregatedCHO.date
+                              aggregatedCHO.date.displayDate
+                              aggregatedCHO.date.begin
+                              aggregatedCHO.date.end
+                              aggregatedCHO.level1
+                              aggregatedCHO.level1.level2
+                              aggregatedCHO.level1.level2.level3A
+                              aggregatedCHO.level1.level2.level3B
+                              aggregatedCHO.temporal
+                              aggregatedCHO.temporal.begin
+                              aggregatedCHO.temporal.end
+                              aggregatedCHO.spatial
+                              aggregatedCHO.spatial.city
+                              aggregatedCHO.spatial.iso3166-2
+                              aggregatedCHO.spatial.coordinates
+                              aggregatedCHO.isPartOf
+                              aggregatedCHO.isPartOf.@id
+                              aggregatedCHO.isPartOf.name
+                              aggregatedCHO.field1
+                              aggregatedCHO.field1.name
+                              aggregatedCHO.field2
+                              aggregatedCHO.field2.sub2a
+                              aggregatedCHO.field2.sub2b
+                              aggregatedCHO.field3
+                              aggregatedCHO.field3.sub3a
+                              aggregatedCHO.field3.sub3b
+                              dataProvider
+                              ))
+        end
         it "includes an expected basic string field" do
-          expect(queryable_fields).to include 'aggregatedCHO.title'
-        end
-        it "includes $field.before and $field.after for top-level date fields" do
-          expect(queryable_fields).to include 'aggregatedCHO.date.before'
-          expect(queryable_fields).to include 'aggregatedCHO.date.after'
-          expect(queryable_fields).to include 'aggregatedCHO.temporal.before'
-          expect(queryable_fields).to include 'aggregatedCHO.temporal.after'
-        end
-        it "includes $field.distance for a geo_point field" do
-          expect(queryable_fields).to include 'aggregatedCHO.spatial.distance'
+          expect(all_field_names).to include 'aggregatedCHO.title'
         end
         it "excludes $field where 'enabled' is false" do
-          expect(queryable_fields).not_to include 'someBlob'
+          expect(all_field_names).not_to include 'someBlob'
         end
+        it "does not contain any duplicate fields" do
+          expect(all_field_names).to match_array all_field_names.uniq
+        end
+      end
+
+      describe "#queryable_field_names" do
+        let(:queryable_field_names) { V1::Schema.queryable_field_names }
+
+        it "includes $field.before and $field.after for top-level date fields" do
+          expect(queryable_field_names).to include 'aggregatedCHO.date.before'
+          expect(queryable_field_names).to include 'aggregatedCHO.date.after'
+          expect(queryable_field_names).to include 'aggregatedCHO.temporal.before'
+          expect(queryable_field_names).to include 'aggregatedCHO.temporal.after'
+        end
+        it "includes $field.distance for a geo_point field" do
+          expect(queryable_field_names).to include 'aggregatedCHO.spatial.distance'
+        end
+        it "does not contain any duplicate fields" do
+          expect(queryable_field_names).to match_array queryable_field_names.uniq
+        end
+
       end
       describe "#field" do
         let(:item_mapping) { mock_mapping['item']['properties'] }
-
-        #TODO: move to field_spec once its schema is updated
-        describe "#subdeep" do
-          it "is right" do
-            f = V1::Field.new(
-                              'item',
-                              'aggregatedCHO.level1',
-                              item_mapping['aggregatedCHO']['properties']['level1']
-                              )
-
-            expect(f.subfields_deep.map(&:name))
-              .to match_array(
-                              %w( aggregatedCHO.level1 aggregatedCHO.level1.level2 aggregatedCHO.level1.level2.level3A aggregatedCHO.level1.level2.level3B )
-                              )
-          end
-        end
 
         it "raises an exception for an invalid resource" do
           expect {

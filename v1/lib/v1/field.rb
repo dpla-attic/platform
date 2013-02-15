@@ -37,12 +37,12 @@ module V1
     end
 
     def subfields
-      # handles normal fields and multi_field types
-
       @subfields ||= mapping_to_fields(@mapping['properties'])
     end
 
     def subfields_deep
+      # Note: As a side-effect of the recursive design this will always return self
+      # for a field with no subfields
       [self] + subfields.map {|sf| sf.subfields_deep}.flatten
     end
 

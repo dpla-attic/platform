@@ -2,17 +2,20 @@ require_dependency "contentqa/application_controller"
 
 module Contentqa
   class SearchController < ApplicationController
+    include Contentqa::SearchHelper
 
-    PARAMETERS = %w[aggregatedCHO.title aggregatedCHO.description aggregatedCHO.creator aggregatedCHO.publisher aggregatedCHO.physicalMedium aggregatedCHO.rights aggregatedCHO.type aggregatedCHO.contributor aggregatedCHO.date.before aggregatedCHO.date.after aggregatedCHO.spatial.name aggregatedCHO.spatial.state aggregatedCHO.temporal.after aggregatedCHO.temporal.before isPartOf id q page_size facet_size page aggregatedCHO.subject.name]
-    DISPLAY = %w[id aggregatedCHO.title aggregatedCHO.description aggregatedCHO.creator aggregatedCHO.type aggregatedCHO.publisher aggregatedCHO.physicalMedium aggregatedCHO.rights aggregatedCHO.contributor aggregatedCHO.date aggregatedCHO.spatial aggregatedCHO.temporal aggregatedCHO.subject aggregatedCHO.ingestDate isPartOf]
+    DISPLAY = %w[id aggregatedCHO.title aggregatedCHO.description aggregatedCHO.creator aggregatedCHO.type aggregatedCHO.publisher aggregatedCHO.physicalMedium aggregatedCHO.rights aggregatedCHO.contributor aggregatedCHO.date aggregatedCHO.spatial aggregatedCHO.temporal aggregatedCHO.subject aggregatedCHO.ingestDate isPartOf aggregatedCHO.language.name]
     SEARCH = %w[id aggregatedCHO.title aggregatedCHO.description aggregatedCHO.creator aggregatedCHO.type aggregatedCHO.publisher aggregatedCHO.physicalMedium aggregatedCHO.rights aggregatedCHO.contributor aggregatedCHO.spatial aggregatedCHO.temporal.after aggregatedCHO.temporal.before aggregatedCHO.subject.name isPartOf]
     FACETS = %w[aggregatedCHO.type aggregatedCHO.physicalMedium aggregatedCHO.language.name aggregatedCHO.spatial.name aggregatedCHO.spatial.state aggregatedCHO.spatial.city aggregatedCHO.subject.name isPartOf.name aggregatedCHO.contributor]
 
+    # add facets to PARAMETERS because anything facetable should also be searchable. Dupes are harmless here
+    PARAMETERS = FACETS + %w[aggregatedCHO.title aggregatedCHO.description aggregatedCHO.creator aggregatedCHO.type aggregatedCHO.publisher aggregatedCHO.physicalMedium aggregatedCHO.rights  aggregatedCHO.contributor aggregatedCHO.date.before aggregatedCHO.date.after aggregatedCHO.spatial.name aggregatedCHO.spatial.state aggregatedCHO.temporal.after aggregatedCHO.temporal.before isPartOf id q page_size facet_size page aggregatedCHO.subject.name]
+
     def index
       api_params = params.delete_if { |key,value| PARAMETERS.exclude? key}
-      api_params = api_params.delete_if { |key,value| value.nil? || value.empty?}
+      api_params = api_params.delete_if { |key,value| value.to_s == '' }
       api_params = api_params.merge({'facets' => FACETS.join(",")})
-
+      logger.debug "PHUNKSEARCH: Sending these to search(): #{api_params}"
       search_result = item_search(api_params)
 
       @count, @start, @limit = search_result['count'], search_result['start'], search_result['limit']
@@ -42,7 +45,6 @@ module Contentqa
       end
 
     end
-      
 
   end
 end

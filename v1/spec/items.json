@@ -154,7 +154,7 @@
                     "state": "UT"
                 },
                 {
-                    "city": "SLC"
+                    "city": "Salt Lake City"
                 }
             ]
         }
@@ -164,7 +164,10 @@
         "id": "P3-temporal-1",
         "aggregatedCHO": {
             "title": "P3-temporal-1",
-            "description": "bookend temporal ranges"
+            "description": "bookend temporal ranges",
+            "spatial": {
+                "city": "Salt Lake City"
+            }
         }
     },
     {

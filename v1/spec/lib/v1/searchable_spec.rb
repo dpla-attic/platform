@@ -47,8 +47,8 @@ module V1
       before(:each) do
         stub_const("V1::Searchable::BASE_QUERY_PARAMS", %w( q controller action ) )
       end
-      it "compares against both BASE_QUERY_PARAMS and queryable_fields" do
-        Schema.stub(:queryable_fields) { %w( title description ) }
+      it "compares against both BASE_QUERY_PARAMS and queryable_field_names" do
+        Schema.stub(:queryable_field_names) { %w( title description ) }
 
         expect {
           SearchableItem.validate_query_params({'q' => 'banana'})
@@ -186,14 +186,14 @@ module V1
 
     describe "#validate_field_params" do
       it "raises BadRequestSearchError if invalid field was sent" do
-        V1::Schema.stub(:queryable_fields) { %w( title ) }
+        V1::Schema.stub(:queryable_field_names) { %w( title ) }
         params = {'fields' => 'some_invalid_field'}
         expect  { 
           subject.validate_field_params(params) 
         }.to raise_error BadRequestSearchError, /fields parameter/
       end
       it "does not raise an error when all fields are valid" do
-        V1::Schema.stub(:queryable_fields) { %w( title description ) }
+        V1::Schema.stub(:queryable_field_names) { %w( title description ) }
         params = {'fields' => 'title,description'}
         expect {
           subject.validate_field_params(params)

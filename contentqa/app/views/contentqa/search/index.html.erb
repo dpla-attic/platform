@@ -64,7 +64,7 @@
     <h4><%= key %></h4>
     <% value['terms'].each do |term| %>
       <% next if term['term'] == ''%>
-      <%= link_to term['term'] , params.merge({key.to_sym => term['term']}) %> (<%= term['count'] %>)<br/>
+      <%= link_to term['term'] , params.merge({key.to_sym => '"' + term['term'] + '"'}) %> (<%= term['count'] %>)<br/>
     <% end %>    
     <% end %>
   </div>
@@ -73,16 +73,14 @@
 
     <% @results.each do |record| %>
     <% @display_fields.each do |f| %>
-    <% if record.key? f %>
-    <% [record.fetch(f)].flatten.each do |row| %>
-       <strong><%= f %></strong>
-       <%= row %>
-       <br/>
-       <% end %>
-       <% end %>
+      <% if dotted_hash_value(record, f).to_s != ''  %>
+        <% [dotted_hash_value(record, f)].flatten.each do |row| %>
+          <strong><%= f %></strong> <%= row %> <br/>
+        <% end %>
+      <% end %>
     <% end %>
     <% if record.key? 'id' %>
-    <%=  link_to("Compare with ingested record", {:controller => "compare", :id => record.fetch('id')}, :class => 'btn') %>
+      <%=  link_to("Compare with ingested record", {:controller => "compare", :id => record.fetch('id')}, :class => 'btn') %>
     <% end %>
     <hr/>
     <% end %>

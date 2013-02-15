@@ -130,59 +130,48 @@ module V1
       return V1::Field.new(resource, name, current_mapping, modifier) if current_mapping
     end
 
-    def self.queryable_fields
-      # Renders mapping into a list of fields and $field.subfields
-      resource = 'item'
-      names = []
+    def self.all_fields(resource)
+      # Renders mapping into a list of fields and $field.subfields. This will include
+      # every node in the mapping, meaning level1 will be included even if
+      # it has subfields.
+      names = {}
       top_level_names = ELASTICSEARCH_MAPPING[resource]['properties'].keys
       
-      top_level_names.each do |name|
+      top_level_names.map do |name|
         field = V1::Schema.field(resource, name)
         next unless field.enabled?
 
-        names << field.name
+        names[field.name] = field
 
         field.subfields_deep.each do |subfield|
-          names << subfield.name
-          
-          # special handling for date ranges on this subfield's parent field name
-          if subfield.date?
-            names << subfield.name.gsub(/\.end$/, '.after')
-            names << subfield.name.gsub(/\.begin$/, '.before')
-          elsif subfield.geo_point?
-            names << subfield.name.gsub(/^(.+)\.(.+)$/, '\1.distance')
-          end
+          names[subfield.name] = subfield
+        end
+      end
+      names.values
+    end
+
+    def self.queryable_field_names
+      # it has subfields. This works because the API will auto-expand level1.level2
+      # into its subfields where appropriate
+      resource = 'item'
+      names = []
+      all_fields(resource).each do |field|
+        names << field.name
+        # special handling for date ranges on this subfield's parent field name
+        if field.date?
+          names << field.name.sub(/\.end$/, '.after') if field.name =~ /\.end$/
+          names << field.name.sub(/\.begin$/, '.before') if field.name =~ /\.begin$/
+        elsif field.geo_point?
+          names << field.name.sub(/^(.+)\.(.+)$/, '\1.distance')
         end
       end
       names
     end
 
-    # def self.mapping(resource=nil, field=nil)
-    #   #TODO: DEPRECATED
-    #   # A "resource" is a top-level DPLA resource: 'item', 'collection', 'creator'
-    #   base = ELASTICSEARCH_MAPPING
-
-    #   # Standardize on strings
-    #   resource = resource.to_s if resource
-    #   field = field.to_s if field
-
-    #   if resource.nil?
-    #     # mapping for all resources
-    #     base
-    #   elsif field.nil?
-    #     # mapping for a single resource
-    #     base[resource]['properties'] rescue nil
-    #   elsif field =~ /(.+)\.(.+)/
-    #     # mapping for a dotted field name: e.g. "spatial.city"
-    #     base[resource]['properties'][$1]['properties'][$2] rescue nil
-    #   else
-    #     # mapping for a single field within a single resource
-    #     base[resource]['properties'][field] rescue nil
-    #   end
-    # end
-
-
-
+    def self.facetable_fields(resource)
+      #TODO
+    end
+    
   end
 
 end
