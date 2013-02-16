@@ -4,17 +4,12 @@ module Contentqa
   class CompareController < ApplicationController
 
     def index
-      fetch = item_search({'page_size' => '0'})  #HTTParty.get(baseuri+v1_api.items_path('page_size' => '0'))
+      fetch = item_search({'page_size' => '0'})
       @total = fetch['count']
       @id = params[:id]
 
       if @id
-        begin
-          fetch = item_fetch(@id)  #HTTParty.get(baseuri+v1_api.items_path()+'/'+@id)
-          doc = fetch['docs'].first
-        rescue V1::NotFoundSearchError
-          raise Exception, "ElasticSearch fetch returned 404 for: #{@id}"
-        end
+        doc = item_fetch(@id)['docs'].first
       else
         doc = get_random_doc(baseuri, fetch['count'])
      end
