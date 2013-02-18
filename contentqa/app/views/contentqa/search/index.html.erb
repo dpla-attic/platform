@@ -64,7 +64,9 @@
     <h4><%= key %></h4>
     <% value['terms'].each do |term| %>
       <% next if term['term'] == ''%>
-      <%= link_to term['term'] , params.merge({key.to_sym => '"' + term['term'] + '"'}) %> (<%= term['count'] %>)<br/>
+      <% new_params = params.merge({key.to_sym => '"' + term['term'] + '"'}) %>
+      <% new_params.delete 'page' %>
+      <%= link_to term['term'], new_params %> (<%= term['count'] %>)<br/>
     <% end %>    
     <% end %>
   </div>
