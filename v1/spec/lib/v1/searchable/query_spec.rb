@@ -34,7 +34,11 @@ module V1
       describe "#field_queries" do
         it "returns correct query string for a free text search" do
           params = {'q' => 'something'}
-          expect(subject.field_queries(params)).to match_array [['something', {"fields"=>["_all"]}]]
+          expect(subject.field_queries(params))
+            .to match_array(
+                            
+                            [['something', {"fields"=>["_all"]}]]
+                            )
         end
         
         it "returns correct query string for field search" do
@@ -42,7 +46,11 @@ module V1
           field = stub(:name => name, :geo_point? => false, :subfields? => false)
           V1::Schema.stub(:field).with('item', name) { field }
           params = {name => 'some title'}
-          expect(subject.field_queries(params)).to match_array [['some title', {'fields' => [name]}]]
+          expect(subject.field_queries(params))
+            .to match_array(
+                            
+                            [['some title', {'fields' => [name], 'lenient' => true}]]
+                            )
         end
 
         it "handles 'aggregatedCHO.spatial.state' as a normal field search" do
@@ -50,7 +58,11 @@ module V1
           field = stub(:name => name, :geo_point? => false, :subfields? => false)
           V1::Schema.stub(:field).with('item', name) { field }
           params = {name => 'MA'}
-          expect(subject.field_queries(params)).to match_array [['MA', {'fields' => [name]}]]
+          expect(subject.field_queries(params))
+            .to match_array(
+                            
+                            [['MA', {'fields' => [name], 'lenient' => true}]]
+                            )
         end
 
 
@@ -69,7 +81,8 @@ module V1
           params = {name => '1999-08-07'}
           expect(subject.field_queries(params))
             .to match_array(
-                            [['1999-08-07', {'fields' => ['aggregatedCHO.date.*'] }]]
+                            
+                            [['1999-08-07', {'fields' => ['aggregatedCHO.date.*'],'lenient' => true }]]
                             )
         end
 
