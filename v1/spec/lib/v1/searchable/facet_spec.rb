@@ -14,7 +14,7 @@ module V1
           expect(subject::DEFAULT_FACET_SIZE).to eq 50
         end
         it "MAXIMUM_FACET_SIZE has correct value" do
-          expect(subject::MAXIMUM_FACET_SIZE).to eq 200
+          expect(subject::MAXIMUM_FACET_SIZE).to eq 2000
         end
         it "DEFAULT_GEO_DISTANCE_MILES has correct value" do
           expect(subject::DEFAULT_GEO_DISTANCE_MILES).to eq 100

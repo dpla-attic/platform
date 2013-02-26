@@ -21,7 +21,7 @@ module V1
       # ElasticSearch's built-in intervals
       DATE_INTERVALS = %w( century decade year month week day )
       DEFAULT_FACET_SIZE = 50
-      MAXIMUM_FACET_SIZE = 200
+      MAXIMUM_FACET_SIZE = 2000
       DEFAULT_GEO_DISTANCE_MILES = 100
       DEFAULT_GEO_BUCKETS = 20
 
