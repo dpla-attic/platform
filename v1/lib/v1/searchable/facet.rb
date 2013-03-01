@@ -19,24 +19,23 @@ module V1
       #TODO: Add support for integer and integer+unit(h|d|w) intervals or just let any
       # suffix through and let ElasticSearch complain if it is not valid
       # ElasticSearch's built-in intervals
-      DATE_INTERVALS = %w( century decade year month week day )
+      DATE_INTERVALS = %w( century decade year month day )
       DEFAULT_FACET_SIZE = 50
       MAXIMUM_FACET_SIZE = 2000
       DEFAULT_GEO_DISTANCE_MILES = 100
       DEFAULT_GEO_BUCKETS = 20
 
-      def self.build_all(search, params, global=false)
+      def self.build_all(resource, search, params, global=false)
         # Run facets from params['facets'] against the search object
         # Returns boolean for "did we create any facets?"
-
         requested = params['facets'].to_s.split(/,\s*/)
         return false if requested.empty?
 
-        requested = expand_facet_fields('item', requested)
+        requested = expand_facet_fields(resource, requested)
 
         requested.each do |name|
           # Strip any modifiers from geo_distance or date facets
-          field = parse_facet_name(name)
+          field = parse_facet_name(resource, name)
 
           if field.nil?
             raise BadRequestSearchError, "Invalid field(s) specified in facets param: #{name}"
@@ -61,6 +60,8 @@ module V1
       end
 
       def self.facet_display_name(field)
+        # Retrail the facet_modifier string for date fields to better support date_histogram
+        # intervals in the facet payload returned to the client
         if field.date? && field.facet_modifier
           field.name + ".#{field.facet_modifier}"
         else
@@ -79,7 +80,7 @@ module V1
         end
       end
 
-      def self.parse_facet_name(name)
+      def self.parse_facet_name(resource, name)
         # Handles logic of parsing different types of facets and their optional modifier suffixes
         args = [name]
         if name =~ /^(.+?):(.*)$/
@@ -90,7 +91,7 @@ module V1
           args = [$1, $2]
         end
         # the gist here is that args may contain a facet_modifier
-        V1::Schema.field('item', *args)
+        V1::Schema.field(resource, *args)
       end
 
       def self.facet_options(type, field, params)

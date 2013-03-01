@@ -20,32 +20,24 @@ module V1
     # Default sort order for search results
     DEFAULT_SORT_ORDER = 'asc'
 
-    # General query params that are not type-specific
+    # General query params that are not resource-specific
     BASE_QUERY_PARAMS = %w( q controller action sort_by sort_by_pin sort_order page page_size facets facet_size fields callback ).freeze
-    
-    def validate_query_params(params)
-      # Raises exception if any unrecognized search params are present. Query-based 
-      # extensions (e.g: spatial.distance) are added here as well. Does not examine
-      # contents of fields containing field names, such as sorting, facets, etc.
-      invalid = params.keys - (BASE_QUERY_PARAMS + V1::Schema.queryable_field_names)
-      if invalid.any?
-        raise BadRequestSearchError, "Invalid field(s) specified in query: #{invalid.join(',')}"
-      end
+
+    def resource
+      raise "Modules extending Searchable must define resource() method"
     end
 
     def search(params={})
       validate_query_params(params)
       validate_field_params(params)
 
-      #, :search_type => 'count' (on an empty search) would just return total count
-      # params['title'] = 'peanut'
-      # params['fields'] = 'id,subject.name,scriptfield'
-      search = Tire.search(V1::Config::SEARCH_INDEX) do |search|
+      search = Tire.search(V1::Config::SEARCH_INDEX + '/' + resource) do |search|
         queries_ran = []
-        queries_ran << V1::Searchable::Query.build_all(search, params)
-        queries_ran << V1::Searchable::Filter.build_all(search, params)
-        V1::Searchable::Facet.build_all(search, params, !queries_ran.any?)
-        
+        queries_ran << V1::Searchable::Query.build_all(resource, search, params)
+        queries_ran << V1::Searchable::Filter.build_all(resource, search, params)
+        V1::Searchable::Facet.build_all(resource, search, params, !queries_ran.any?)
+
+        #TODO: move sorting to its own module
         sort_attrs = build_sort_attributes(params)
         search.sort { by(*sort_attrs) } if sort_attrs
 
@@ -64,7 +56,7 @@ module V1
           Rails.logger.info "CURL: #{search.to_curl}" if search.respond_to? :to_curl
         end
         #puts "JSON: #{search.to_json}" if search.respond_to? :to_json
-        
+
         return wrap_results(search, params)
       rescue Tire::Search::SearchRequestFailed => e
         error = JSON.parse(search.response.body)['error'] rescue nil
@@ -76,7 +68,7 @@ module V1
       #TODO: can also sort by multiple fields: sort { by [{'published_on' => 'desc'}, {'_score' => 'asc'}] }
 
       sort_by_name = params['sort_by'].to_s
-      return nil if sort_by_name == ""
+      return nil if sort_by_name == ''
 
       # Validate sort_order
       #TODO: Should carp about invalid sort_order
@@ -86,7 +78,7 @@ module V1
       end
 
       # Validate sort_by
-      sort_by = V1::Schema.field('item', sort_by_name)
+      sort_by = V1::Schema.field(resource, sort_by_name)
       if sort_by.nil?
         raise BadRequestSearchError, "Invalid field(s) specified in sort_by parameter: #{sort_by_name}"
       end
@@ -96,7 +88,9 @@ module V1
       end
 
       if sort_by.sort == 'field'
-        [ {sort_by.name => order} ]
+        [{
+           sort_by.name => order
+         }]
       elsif sort_by.sort == 'script'
         # script sort to work around ElasticSearch not supporting sort by array value fields
         [{
@@ -110,7 +104,9 @@ module V1
         if params['sort_by_pin'].to_s == ''
           raise BadRequestSearchError, "Missing required sort_by_pin parameter when sorting on #{sort_by.name}"
         end
-        [ {'_geo_distance' => { sort_by.name => params['sort_by_pin'], 'order' => order } } ]
+        [{
+           '_geo_distance' => { sort_by.name => params['sort_by_pin'], 'order' => order }
+         }]
       end
     end
 
@@ -217,8 +213,18 @@ module V1
       date.strftime(format)
     end
 
+    def validate_query_params(params)
+      # Raises exception if any unrecognized search params are present. Query-based 
+      # extensions (e.g: spatial.distance) are added here as well. Does not examine
+      # contents of fields containing field names, such as sorting, facets, etc.
+      invalid = params.keys - (BASE_QUERY_PARAMS + V1::Schema.queryable_field_names(resource))
+      if invalid.any?
+        raise BadRequestSearchError, "Invalid field(s) specified in query: #{invalid.join(',')}"
+      end
+    end
+
     def validate_field_params(params)
-      invalid = params['fields'].to_s.split(/,\s*/) - V1::Schema.queryable_field_names
+      invalid = params['fields'].to_s.split(/,\s*/) - V1::Schema.queryable_field_names(resource)
       if invalid.any?  
         raise BadRequestSearchError, "Invalid field(s) specified for fields parameter: #{invalid.join(',')}" 
       end
@@ -247,13 +253,15 @@ module V1
       doc_ids = []
       missing_ids = []
       #TODO: use search.ids() method, or add logic for it in search()
+      #TODO: allow string or array $ids arg, like Repository.fetch
+
       ids.each do |id|
         result = search({'id' => id})
         
-        if result["count"] == 1
+        if result['count'] == 1
           #Save the doc's '_id' if search returned a single 'id' match
-          doc_ids << result["docs"].first["_id"]
-        elsif result["count"] == 0
+          doc_ids << result['docs'].first['_id']
+        elsif result['count'] == 0
           #Save the 'id' as missing if search did not find the doc 
           missing_ids << id 
         end
@@ -264,12 +272,12 @@ module V1
       end
 
       results = V1::Repository.fetch(doc_ids)
-      #TODO: what if search finds an ID, but the fetch does not find that ID
+      #TODO: handle exception for search hit but fetch miss
  
       if missing_ids.any?
         results['docs'].concat( missing_ids.map { |id| { 'id' => id, 'error' => '404'} } )
       end
-      #TODO: Make sure we only return public IDs in this results set (for missing or found docs)
+
       results
     end
 

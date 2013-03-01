@@ -59,12 +59,9 @@ module V1
     end
 
     def mapping_to_fields(mapping)
-      if mapping
-        mapping.map do |name, mapping|
-          self.class.new(@resource, "#{@name}.#{name}", mapping)
-        end
-      else
-        []
+      return [] unless mapping
+      mapping.map do |name, mapping|
+        self.class.new(@resource, "#{@name}.#{name}", mapping)
       end
     end
 

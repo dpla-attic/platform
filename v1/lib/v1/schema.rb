@@ -10,8 +10,6 @@ module V1
         'properties' => {
           'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
           '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
-          '@context' => { 'type' => 'object', 'enabled' => false },
-          'admin' => { 'type' => 'object', 'enabled' => false },
           'aggregatedCHO' => {
             'properties' => {
               'contributor' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
@@ -98,13 +96,17 @@ module V1
               'rights' => { 'type' => 'string', 'index' => 'not_analyzed' }
             }
           },
-          'originalRecord' => { 'type' => 'object', 'enabled' => false },
           'provider' => {
             'properties' => {
               '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
               'name' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true }
             }
-          }
+          },
+          '@context' => { 'type' => 'object', 'enabled' => false },
+          'admin' => { 'type' => 'object', 'enabled' => false },
+          'originalRecord' => { 'type' => 'object', 'enabled' => false },
+          'ingestType' => { 'type' => 'string', 'include_in_all' => false },
+          'ingestDate' => { 'type' => 'date', 'include_in_all' => false },
         }
       }
     }.freeze
@@ -119,6 +121,7 @@ module V1
       field_names = name.split('.')
       first_name = field_names.shift
 
+      #TODO: skip shift and just start current_mapping at ...[resource].
       #init starting point for the mapping traversal.
       current_mapping = ELASTICSEARCH_MAPPING[resource]['properties'][first_name]
 
@@ -150,10 +153,10 @@ module V1
       names.values
     end
 
-    def self.queryable_field_names
-      # it has subfields. This works because the API will auto-expand level1.level2
-      # into its subfields where appropriate
-      resource = 'item'
+    def self.queryable_field_names(resource)
+      # Renders mapping into a list of fields, $field.subfields, AND any additional
+      # query params that can be extrapolated from certain field types.
+
       names = []
       all_fields(resource).each do |field|
         names << field.name
@@ -168,10 +171,6 @@ module V1
       names
     end
 
-    def self.facetable_fields(resource)
-      #TODO
-    end
-    
   end
 
 end

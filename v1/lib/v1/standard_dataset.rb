@@ -7,32 +7,27 @@ module V1
 
   module StandardDataset
 
-    # NOTE: References to "items" in JSON returned by ElasticSearch are un-related to
-    # the "item" resource DPLA defines. It's just a coincidence that the names are the same.
-    
     SEARCH_RIVER_NAME = 'dpla_river'
     ITEMS_JSON_FILE = File.expand_path("../../../spec/items.json", __FILE__)
+    COLLECTIONS_JSON_FILE = File.expand_path("../../../spec/collections.json", __FILE__)
 
     def self.recreate_env!
       recreate_index!
       import_test_dataset
+      puts "ElasticSearch docs: #{ doc_count }"
       recreate_river!
     end
 
     def self.doc_count
-      # Quick hack intended for rake tasks
       url = V1::Config.search_endpoint + '/' + V1::Config::SEARCH_INDEX + '/' + '_status'
-      json = HTTParty.get url
-      json['indices'][V1::Config::SEARCH_INDEX]['docs']['num_docs'] rescue 'ERROR'
+      HTTParty.get(url)['indices'][V1::Config::SEARCH_INDEX]['docs']['num_docs'] rescue 'ERROR'
     end
 
-    def self.process_input_file(resource=nil, json_file)
+    def self.process_input_file(json_file, inject_type)
       # Load and pre-process docs from the json file
       begin        
         docs = JSON.load( File.read(json_file) )
-        if resource
-          docs.each {|item| item['_type'] = resource}
-        end
+        docs.map {|doc| doc['_type'] = doc['ingestType']} if inject_type
         return docs
       rescue JSON::ParserError => e
         # Try to output roughly 1 test doc so they can see the error.
@@ -41,16 +36,14 @@ module V1
     end
 
     def self.import_test_dataset
-      import_data_file('item', ITEMS_JSON_FILE)
+      import_data_file(ITEMS_JSON_FILE)
+      import_data_file(COLLECTIONS_JSON_FILE)
     end
 
-    def self.import_data_file(resource, file)
-      # imports a single file into ES
+    def self.import_data_file(file)
       import_result = nil
-      input_json = process_input_file(resource, file)
-
       Tire.index(V1::Config::SEARCH_INDEX) do |tire|
-        import_result = tire.import(input_json)
+        import_result = tire.import(process_input_file(file, true))
         tire.refresh
       end
 
@@ -62,14 +55,18 @@ module V1
       #TODO: add production env check
       endpoint_config_check
 
+      delete_river!
+      sleep 1
+
       Tire.index(V1::Config::SEARCH_INDEX) do |tire|
         tire.delete
         tire.create( { 'mappings' => V1::Schema::ELASTICSEARCH_MAPPING } )
         if tire.response.code != 200
-          delete_result = JSON.parse(tire.response.body)
-          raise "ERROR: #{ delete_result['error'] }" 
+          raise "ERROR: #{ JSON.parse(tire.response.body)['error'] }" 
         end
       end
+
+      recreate_river!
     end
 
     def self.endpoint_config_check
@@ -80,11 +77,14 @@ module V1
     end
 
     def self.display_import_result(import_result)
+      # NOTE: References to 'items' in this method are un-related to the "item" resource
+      # that DPLA defines. It's just a coincidence that the names are the same.
+
       result = JSON.load(import_result.body)
       failures = result['items'].select {|item| !item['index']['error'].nil? }
-      result_count = result['items'].size
 
       if failures.any?
+        result_count = result['items'].size
         puts "Imported #{result_count - failures.size}/#{result_count} docs OK"
         puts "\nERROR: The following docs failed to import correctly:"
         failures.each do |item|
@@ -95,60 +95,79 @@ module V1
     end
 
     def self.recreate_river!
-      endpoint_config_check
-      delete_river!
-      # pause long enough to let ElasticSearch actually shut the river down
-      sleep 3
+      # Pause after a successful delete to give ElasticSearch a chance to actually 
+      # shut down and delete the existing river.
+      sleep 3 if delete_river!.code == 200
+
       create_river
     end
 
     def self.create_river
-      endpoint_config_check
-
+      # To delete a doc: https://github.com/elasticsearch/elasticsearch-river-couchdb/issues/7
       repository_uri = URI.parse(V1::Repository.endpoint)
-      # TODO: to copy couchdb field into different ES field via the river:
-      # (under the couchdb section):     "script" : "ctx.doc._type = ctx.doc.dplaTypeField"
-      # We may have to ref this for deletes:
-      # https://github.com/wotifgroup/elasticsearch-river-couchdb/commit/325cb69963e42e252dcfc596c766ab4f12538428
-      # and https://github.com/elasticsearch/elasticsearch-river-couchdb/issues/7
       river_payload = {
-        type: "couchdb",
-        couchdb: {
-          host: repository_uri.host,
-          port: repository_uri.port,
-          db: V1::Config::REPOSITORY_DATABASE,
-          user: V1::Config.dpla['read_only_user']['username'],
-          password: V1::Config.dpla['read_only_user']['password'],
-          filter: nil
+        'type' => 'couchdb',
+        'couchdb' => {
+          'host' => repository_uri.host,
+          'port' => repository_uri.port,
+          'db' => V1::Config::REPOSITORY_DATABASE,
+          'user' => V1::Config.dpla['read_only_user']['username'],
+          'password' => V1::Config.dpla['read_only_user']['password'],
+          'script' => "ctx._type = ctx.doc.ingestType"
         },
-        index: {
-          index: V1::Config::SEARCH_INDEX,
-          type: 'item'
+        'index' => {
+          'index' => V1::Config::SEARCH_INDEX
         }
       }
 
       response = Tire::Configuration.client.put(
-                                                "#{Tire::Configuration.url}/_river/#{SEARCH_RIVER_NAME}/_meta",
+                                                "#{river_endpoint}/_meta",
                                                 river_payload.to_json
                                                 )
 
       create_result = JSON.parse(response.body)
-      if !create_result['ok']
-        puts "Problem creating river: #{create_result.inspect}"
+
+      if response.code == 200 || response.code == 201
+        # Sleep a bit to let creation process finish on elasticsearch server
+        sleep 1
+        
+        # Verify that the river was actually created successfully. ElasticSearch's initial response
+        # in $create_result won't report if there was a deeper problem with the river we tried to
+        # create. (This has happened before, due to the use of the script field.)
+        real_status = JSON.parse(river_status)
+        if real_status['_source'] && real_status['_source']['error']
+          node = real_status['_source']['node']['name']
+          error = real_status['_source']['error']
+          raise "Error creating river on node '#{node}': #{error}"
+        else
+          puts "River created OK"
+        end
+      else
+        raise "Problem creating river: #{create_result.inspect}"
       end
     end
 
     def self.delete_river!
-      response = Tire::Configuration.client.delete("#{V1::Config.search_endpoint}/_river/#{SEARCH_RIVER_NAME}")
-      #delete_result = JSON.parse(response.body)
-      #puts "ERROR: #{ delete_result['error'] }" if response.code != 200
+      Tire::Configuration.client.delete(river_endpoint)
     end
 
-    def self.search_status
+    def self.river_status
       begin
-        return HTTParty.get(V1::Config.search_endpoint).body
+        HTTParty.get("#{river_endpoint}/_status").body
       rescue Exception => e
-        return "Error: #{e}"
+        "Error: #{e}"
+      end
+    end
+
+    def self.river_endpoint
+      "#{V1::Config.search_endpoint}/_river/#{SEARCH_RIVER_NAME}"
+    end
+
+    def self.service_status
+      begin
+        HTTParty.get(V1::Config.search_endpoint).body
+      rescue Exception => e
+        "Error: #{e}"
       end
     end
 
@@ -157,9 +176,9 @@ module V1
       uri += "/#{resource}" if resource
       uri += '/_mapping?pretty'
       begin
-        return HTTParty.get(uri).body
+        HTTParty.get(uri).body
       rescue Exception => e
-        return "Error: #{e}"
+        "Error: #{e}"
       end
     end
 

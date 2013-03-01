@@ -7,9 +7,9 @@ module V1
 
     module Query
 
-      def self.build_all(search, params)
+      def self.build_all(resource, search, params)
         # Returns boolean for "did we run any queries?"
-        field_queries = field_queries(params)
+        field_queries = field_queries(resource, params)
         date_range_queries = date_range_queries(params)
 
         # Only call search.query.boolean if we have some queries to pass it.
@@ -36,7 +36,7 @@ module V1
         true
       end
 
-      def self.field_queries(params)
+      def self.field_queries(resource, params)
         # Only handles 'q' and basic field/subfield searches
 
         query_strings = []
@@ -48,7 +48,7 @@ module V1
           if name == 'q'
             query_strings << [value, 'fields' => ['_all']]
           else
-            field = V1::Schema.field('item', name)
+            field = V1::Schema.field(resource, name)
 
             # it probably has some kind of modifier that we do not handle here
             next if field.nil?

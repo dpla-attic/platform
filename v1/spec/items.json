@@ -2,6 +2,7 @@
     {
         "_id": "1",
         "id": "1",
+        "ingestType": "item",
         "aggregatedCHO": {
             "title": "banana one",
             "description": "description one",
@@ -11,7 +12,6 @@
                 "begin": "1977-01-01",
                 "end": "1977-01-01"
             },
-            "type": "",
             "physicalMedium": "",
             "rights": "",
             "relation": "",
@@ -22,6 +22,7 @@
     {
         "_id": "2",
         "id": "2",
+        "ingestType": "item",
         "aggregatedCHO": {
             "title": "title two",
             "description": "perplexed two",
@@ -31,7 +32,6 @@
                 "begin": "1978-01-01",
                 "end": "1979-01-01"
             },
-            "type": "",
             "physicalMedium": "",
             "rights": "",
             "relation": "",
@@ -42,6 +42,7 @@
     {
         "_id": "3",
         "id": "3",
+        "ingestType": "item",
         "aggregatedCHO": {
             "title": "title three",
             "description": "perplexed three",
@@ -54,7 +55,6 @@
             "subject": {
                 "name": "perplexed subject3 doodle"
             },
-            "type": "",
             "physicalMedium": "text/xml",
             "rights": "",
             "relation": "",
@@ -65,6 +65,7 @@
     {
         "_id": "P",
         "id": "P",
+        "ingestType": "item",
         "aggregatedCHO": {
             "title": ["title phunk1", "title phunk2"],
             "description": "facettest, coll-P, contrib 42",
@@ -91,6 +92,7 @@
     {
         "_id": "P2",
         "id": "P2",
+        "ingestType": "item",
         "aggregatedCHO": {
             "title": "P2 title",
             "description": "facettest, coll-P, contrib 42",
@@ -109,6 +111,7 @@
     {
         "_id": "P3",
         "id": "P3",
+        "ingestType": "item",
         "aggregatedCHO": {
             "title": "P3 title",
             "description": "facettest, coll-P, contrib 13",
@@ -127,6 +130,7 @@
     {
         "_id": "P2-A",
         "id": "P2-A",
+        "ingestType": "item",
         "aggregatedCHO": {
             "title": "title P2-A",
             "description": "mouse",
@@ -145,7 +149,7 @@
     {
         "_id": "P2-B",
         "id":"P2-B",
-
+        "ingestType": "item",
         "aggregatedCHO": {
             "title": "title P2-B",
             "description": "",
@@ -162,6 +166,7 @@
     {
         "_id": "P3-temporal-1",
         "id": "P3-temporal-1",
+        "ingestType": "item",
         "aggregatedCHO": {
             "title": "P3-temporal-1",
             "description": "bookend temporal ranges",
@@ -173,12 +178,12 @@
     {
         "_id": "A",
         "id": "aaa",
+        "ingestType": "item",
         "aggregatedCHO": {
             "title": "title A",
             "description": "",
             "creator": "",
             "publisher": "",
-            "type": "",
             "physicalMedium": "",
             "rights": "",
             "temporal": {
@@ -193,12 +198,12 @@
     {
         "_id": "B",
         "id": "bbb",
+        "ingestType": "item",
         "aggregatedCHO": {
             "title": "title B",
             "description": "",
             "creator": "",
             "publisher": "",
-            "type": "",
             "physicalMedium": "",
             "rights": "",
             "temporal": {
@@ -213,12 +218,12 @@
     {
         "_id": "C",
         "id": "C",
+        "ingestType": "item",
         "aggregatedCHO": {
             "title": "title C",
             "description": "",
             "creator": "",
             "publisher": "",
-            "type": "",
             "physicalMedium": "",
             "rights": "",
             "temporal": {
@@ -233,12 +238,12 @@
     {
         "_id": "D",
         "id": "D",
+        "ingestType": "item",
         "aggregatedCHO": {
             "title": "title D",
             "description": "",
             "creator": "",
             "publisher": "",
-            "type": "",
             "physicalMedium": "",
             "rights": "",
             "temporal": [
@@ -259,6 +264,7 @@
     {
         "_id": "F",
         "id": "F",
+        "ingestType": "item",
         "aggregatedCHO": {
             "title": "title F",
             "description": "",
@@ -268,7 +274,6 @@
                 "begin": "1973-04-19",
                 "end": "1973-04-19"
             },
-            "type": "",
             "physicalMedium": "",
             "rights": "",
             "spatial": null,
@@ -284,12 +289,12 @@
     {
         "_id": "M",
         "id": "M",
+        "ingestType": "item",
         "aggregatedCHO": {
             "title": "title M",
             "description": "",
             "creator": "",
             "publisher": "",
-            "type": "",
             "physicalMedium": "",
             "rights": "",
             "spatial": [
@@ -312,6 +317,7 @@
     {
         "_id": "Doppel1",
         "id": "Doppel1",
+        "ingestType": "item",
         "aggregatedCHO": {
             "title": "doppelganger title1",
             "description": "description ganger",
@@ -328,6 +334,7 @@
     {
         "_id": "Doppel2",
         "id": "Doppel2",
+        "ingestType": "item",
         "title": "doppelganger title2",
         "aggregatedCHO": {
             "description": "description ganger",
@@ -344,6 +351,7 @@
     {
         "_id": "GeoDistance1",
         "id": "GeoDistance1",
+        "ingestType": "item",
         "aggregatedCHO": {
             "spatial": {
                 "name": "geo_distance1",
@@ -356,6 +364,7 @@
     {
         "_id": "GeoDistance2",
         "id": "GeoDistance2",
+        "ingestType": "item",
         "aggregatedCHO": {
             "spatial": {
                 "name": "geo_distance2",
@@ -368,6 +377,7 @@
     {
         "_id": "one.two.three",
         "id": "one.two.three",
+        "ingestType": "item",
         "aggregatedCHO": {
             "title": "dotted id test"
         }
@@ -375,6 +385,7 @@
     {
         "_id": "S1",
         "id": "S1",
+        "ingestType": "item",
         "aggregatedCHO": {
             "subject": {
                 "name": "Tone"
@@ -389,6 +400,7 @@
     {
         "_id": "S2",
         "id": "S2",
+        "ingestType": "item",
         "aggregatedCHO": {
             "subject": {
                 "name": "Ttwo"
@@ -403,6 +415,7 @@
     {
         "_id": "S3",
         "id": "S3",
+        "ingestType": "item",
         "aggregatedCHO": {
             "subject": {
                 "name": "Ttwo"
@@ -417,6 +430,7 @@
     {
         "_id": "S4",
         "id": "S4",
+        "ingestType": "item",
         "aggregatedCHO": {
             "subject": {
                 "name": "Tthree"
@@ -431,6 +445,7 @@
     {
         "_id": "S5",
         "id": "S5",
+        "ingestType": "item",
         "aggregatedCHO": {
             "subject": {
                 "name": "Tthree"
@@ -445,6 +460,7 @@
     {
         "_id": "S6",
         "id": "S6",
+        "ingestType": "item",
         "aggregatedCHO": {
             "subject": {
                 "name": "Tthree"
@@ -459,6 +475,7 @@
     {
         "_id": "R8",
         "id": "R8",
+        "ingestType": "item",
         "aggregatedCHO": {
             "title": "peanut",
             "description": "Testing script sort on not_analyzed fields with array values",

@@ -29,4 +29,8 @@ Feature: Search for items by keyword (UC002)
     When I search for "banana" in the "aggregatedCHO.date" field
     Then I should get http status code "200"
     
+  Scenario: Basic keyword item-search of title field that omits hits outside the 'item' resource
+    When I search for "orange" in the "aggregatedCHO.title" field
+    Then the API should return no records
+
 

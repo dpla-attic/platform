@@ -4,11 +4,12 @@ module V1
 
   module Searchable
 
-    describe Facet do      
+    describe Facet do
+      let(:resource) { 'test_resource' }
 
       describe "CONSTANTS" do
         it "DATE_INTERVALS has the correct value" do
-          expect(subject::DATE_INTERVALS).to match_array( %w( century decade year month week day ) )
+          expect(subject::DATE_INTERVALS).to match_array( %w( century decade year month day ) )
         end
         it "DEFAULT_FACET_SIZE has correct value" do
           expect(subject::DEFAULT_FACET_SIZE).to eq 50
@@ -27,7 +28,7 @@ module V1
       describe "#build_all" do
         it "returns true if it created any facets"
         it "returns false if it did not create any facets" do
-          expect(subject.build_all(stub, {}, false)).to be_false
+          expect(subject.build_all(resource, stub, {}, false)).to be_false
         end
         it "calls the search.facet block with the correct params"
       end
@@ -35,28 +36,28 @@ module V1
       describe "#parse_facet_name" do
         it "returns the result of V1::Schema.field" do
           field = stub
-          V1::Schema.should_receive(:field).with('item', 'format') { field }
-          expect(subject.parse_facet_name('format')).to eq field
+          V1::Schema.should_receive(:field).with(resource, 'format') { field }
+          expect(subject.parse_facet_name(resource, 'format')).to eq field
         end
         it "parses geo_distance facet name with no modifier" do
-          V1::Schema.should_receive(:field).with('item', 'spatial.coordinates')
-          subject.parse_facet_name('spatial.coordinates')
+          V1::Schema.should_receive(:field).with(resource, 'spatial.coordinates')
+          subject.parse_facet_name(resource, 'spatial.coordinates')
         end
         it "parses geo_distance facet name with modifier" do
-          V1::Schema.should_receive(:field).with('item', 'spatial.coordinates', '42.3:-71:20mi')
-          subject.parse_facet_name('spatial.coordinates:42.3:-71:20mi')
+          V1::Schema.should_receive(:field).with(resource, 'spatial.coordinates', '42.3:-71:20mi')
+          subject.parse_facet_name(resource, 'spatial.coordinates:42.3:-71:20mi')
         end
         it "parses date facet name with no modifier" do
-          V1::Schema.should_receive(:field).with('item', 'date')
-          subject.parse_facet_name('date')
+          V1::Schema.should_receive(:field).with(resource, 'date')
+          subject.parse_facet_name(resource, 'date')
         end
         it "parses date facet name with modifier" do
-          V1::Schema.should_receive(:field).with('item', 'date', 'year')
-          subject.parse_facet_name('date.year')
+          V1::Schema.should_receive(:field).with(resource, 'date', 'year')
+          subject.parse_facet_name(resource, 'date.year')
         end
         it "parses date facet subfield name with modifier" do
-          V1::Schema.should_receive(:field).with('item', 'temporal.begin', 'year')
-          subject.parse_facet_name('temporal.begin.year')
+          V1::Schema.should_receive(:field).with(resource, 'temporal.begin', 'year')
+          subject.parse_facet_name(resource, 'temporal.begin.year')
         end
       end
 
@@ -253,7 +254,6 @@ module V1
       end
 
       describe "#expand_facet_fields" do
-        let(:resource) { 'item' }
 
         it "returns all facetable subfields for a non-facetable field" do
           subfield = stub('sub', :facetable? => true, :name => 'somefield.sub2a', :geo_point? => false)

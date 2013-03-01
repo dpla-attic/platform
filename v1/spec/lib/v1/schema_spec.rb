@@ -4,6 +4,7 @@ require 'v1/field'
 module V1
 
   describe Schema do
+    let(:resource) { 'test_resource' }
 
     context "Module constants" do
 
@@ -20,9 +21,9 @@ module V1
         it "has the correct number of fields for 'item'" do
           expect(
                  V1::Schema::ELASTICSEARCH_MAPPING['item']['properties']
-                 ).to have(12).items
+                 ).to have(14).items
         end
-        it "has the correct number of fields for 'item'" do
+        it "has the correct number of fields for 'item/aggregatedCHO'" do
           expect(
                  V1::Schema::ELASTICSEARCH_MAPPING['item']['properties']['aggregatedCHO']['properties']
                  ).to have(16).items
@@ -34,7 +35,7 @@ module V1
     context "mapping methods" do
       let(:mock_mapping) {
         {
-          'item' => {
+          'test_resource' => {
             'properties' => {
               'id' => { 'type' => 'string', 'facet' => true },
               'aggregatedCHO' => {
@@ -124,7 +125,9 @@ module V1
       end
 
       describe "#all_fields" do
-        let(:all_field_names) { V1::Schema.all_fields('item').map(&:name) }
+
+        let(:all_field_names) { V1::Schema.all_fields(resource).map(&:name) }
+
         it "returns the expected list of fields" do
           expect(all_field_names)
             .to match_array(%w(
@@ -161,6 +164,8 @@ module V1
                               dataProvider
                               ))
         end
+
+        # Test some specific cases
         it "includes an expected basic string field" do
           expect(all_field_names).to include 'aggregatedCHO.title'
         end
@@ -173,7 +178,7 @@ module V1
       end
 
       describe "#queryable_field_names" do
-        let(:queryable_field_names) { V1::Schema.queryable_field_names }
+        let(:queryable_field_names) { V1::Schema.queryable_field_names(resource) }
 
         it "includes $field.before and $field.after for top-level date fields" do
           expect(queryable_field_names).to include 'aggregatedCHO.date.before'
@@ -189,8 +194,9 @@ module V1
         end
 
       end
+
       describe "#field" do
-        let(:item_mapping) { mock_mapping['item']['properties'] }
+        let(:item_mapping) { mock_mapping[resource]['properties'] }
 
         it "raises an exception for an invalid resource" do
           expect {
@@ -202,24 +208,24 @@ module V1
           fieldstub = stub
           name = 'dataProvider'
           V1::Field.should_receive(:new)
-            .with('item',
+            .with(resource,
                   name,
                   item_mapping[name],
                   nil
                   ) { fieldstub }
-          expect(V1::Schema.field('item', name)).to eq fieldstub
+          expect(V1::Schema.field(resource, name)).to eq fieldstub
         end
 
         it "creates a top level field with subfields correctly" do
           fieldstub = stub
           name = 'aggregatedCHO.temporal'
           V1::Field.should_receive(:new)
-            .with('item',
+            .with(resource,
                   name,
                   item_mapping['aggregatedCHO']['properties']['temporal'],
                   nil
                   ) { fieldstub }
-          expect(V1::Schema.field('item', name)).to eq fieldstub
+          expect(V1::Schema.field(resource, name)).to eq fieldstub
         end
 
         it "creates a subfield field correctly" do
@@ -227,24 +233,24 @@ module V1
           name = 'aggregatedCHO.temporal.begin'
           V1::Field.should_receive(:new)
             .with(
-                  'item',
+                  resource,
                   name,
                   item_mapping['aggregatedCHO']['properties']['temporal']['properties']['begin'],
                   nil
                   ) { subfieldstub }
-          expect(V1::Schema.field('item', name)).to eq subfieldstub
+          expect(V1::Schema.field(resource, name)).to eq subfieldstub
         end
 
         it "passes modifier to Field.new" do
           fieldstub = stub
           name = 'dataProvider'
           V1::Field.should_receive(:new)
-            .with('item',
+            .with(resource,
                   name,
                   item_mapping[name],
                   '.some_extra'
                   ) { fieldstub }
-          expect(V1::Schema.field('item', name, '.some_extra')).to eq fieldstub
+          expect(V1::Schema.field(resource, name, '.some_extra')).to eq fieldstub
         end
 
         it "handles mid-level field with subfields" do
@@ -252,12 +258,12 @@ module V1
           name = 'aggregatedCHO.level1.level2'
           V1::Field.should_receive(:new)
             .with(
-                  'item',
+                  resource,
                   name,
                   item_mapping['aggregatedCHO']['properties']['level1']['properties']['level2'],
                   nil
                   ) { midfield }
-          expect(V1::Schema.field('item', name)).to eq midfield
+          expect(V1::Schema.field(resource, name)).to eq midfield
         end
 
         it "handles deeply nested field" do
@@ -265,36 +271,36 @@ module V1
           name = 'aggregatedCHO.level1.level2.level3A'
           V1::Field.should_receive(:new)
             .with(
-                  'item',
+                  resource,
                   name,
                   item_mapping['aggregatedCHO']['properties']['level1']['properties']['level2']['properties']['level3A'],
                   nil
                   ) { subfieldstub }
-          expect(V1::Schema.field('item', name)).to eq subfieldstub
+          expect(V1::Schema.field(resource, name)).to eq subfieldstub
         end
 
         it "returns nil for an invalid top level mapping" do
           name = 'some_invalid_field'
           V1::Field.should_not_receive(:new)
-          expect(V1::Schema.field('item', name)).to eq nil
+          expect(V1::Schema.field(resource, name)).to eq nil
         end 
 
         it "returns nil for an invalid subfield of an invalid top level mapping" do
           name = 'some_invalid_field.fake_subfield'
           V1::Field.should_not_receive(:new)
-          expect(V1::Schema.field('item', name)).to eq nil
+          expect(V1::Schema.field(resource, name)).to eq nil
         end 
 
         it "returns nil for an invalid subfield of a valid top level mapping" do
           name = 'level1.invalid_subfield'
           V1::Field.should_not_receive(:new)
-          expect(V1::Schema.field('item', name)).to eq nil
+          expect(V1::Schema.field(resource, name)).to eq nil
         end 
 
         it "returns nil for an invalid deeply nested subfield of a valid top level mapping" do
           name = 'level1.invalid_subfield.another_invalid_field'
           V1::Field.should_not_receive(:new)
-          expect(V1::Schema.field('item', name)).to eq nil
+          expect(V1::Schema.field(resource, name)).to eq nil
         end 
 
       end      

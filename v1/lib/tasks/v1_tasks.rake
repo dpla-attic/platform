@@ -11,7 +11,7 @@ namespace :v1 do
     V1::StandardDataset.test_river
   end
 
-  desc "Re-creates ElasticSearch index and schema"
+  desc "Re-creates ElasticSearch index, schema, river"
   task :recreate_search_index => :environment do
     V1::StandardDataset.recreate_index!
   end
@@ -22,7 +22,7 @@ namespace :v1 do
   end
 
   desc "Creates new ElasticSearch river on 'items'"
-  task :recreate_river => :environment do
+  task :recreate_river do
     V1::StandardDataset.recreate_river!
   end
 
@@ -31,9 +31,14 @@ namespace :v1 do
     V1::StandardDataset.delete_river!
   end
 
+  desc "Gets ElasticSearch river status"
+  task :river_status do
+    puts V1::StandardDataset.river_status
+  end
+
   desc "Gets ElasticSearch search cluster status"
   task :search_status do
-    puts V1::StandardDataset.search_status
+    puts V1::StandardDataset.service_status
   end
 
   desc "Gets number of docs in search index"
@@ -56,12 +61,17 @@ namespace :v1 do
     puts V1::Repository.read_only_endpoint
   end
 
-  desc "Creates new CouchDB database (and river)"
+  desc "Gets CouchDB repository status"
+  task :repo_status do
+    puts V1::Repository.service_status
+  end
+
+  desc "Creates new CouchDB database"
   task :recreate_repo_database do
     V1::Repository.recreate_database!
   end
 
-  desc "Gets number of docs in search index"
+  desc "Gets number of docs in repository"
   task :repo_doc_count do
     puts V1::Repository.doc_count
   end
@@ -69,14 +79,6 @@ namespace :v1 do
   desc "Re-creates CouchDB database, users, river and re-populates Couch with test dataset"
   task :recreate_repo_env => :environment do
     V1::Repository.recreate_env!
-  end
-
-  desc "Verify all required V1 API config files exist"
-  task :check_config do
-    require 'dpla'
-    if Dpla.check_config( __FILE__, %w( config/elasticsearch/elasticsearch_pointer.yml ) )
-      puts "OK. All required V1 API config files present."
-    end
   end
 
 end

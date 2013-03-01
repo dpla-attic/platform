@@ -5,7 +5,7 @@
 # that should also eliminate the potential for river changes sporadically kicking up
 # the occasional false negative
 
-V1::StandardDataset.recreate_env!
+V1::StandardDataset.recreate_index!
 V1::Repository.recreate_env!
 
 

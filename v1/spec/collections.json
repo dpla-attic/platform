@@ -1,0 +1,18 @@
+[
+    {
+        "_id": "private-coll1",
+        "id": "coll1",
+        "title": "Apple Collection",
+        "@id": "http://dp.la/api/collections/minnesota--mhs",
+        "ingestType": "collection",
+        "ingestDate": "2013-02-06T21:39:35.280714"
+    },
+    {
+        "_id": "private-coll2",
+        "id": "coll2",
+        "title": "Orange Collection",
+        "@id": "http://dp.la/api/collections/minnesota--axl",
+        "ingestType": "collection",
+        "ingestDate": "2013-02-07T00:00:00.200002"
+    }
+]

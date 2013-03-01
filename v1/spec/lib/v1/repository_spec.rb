@@ -106,7 +106,7 @@ module V1
       it "calls import_docs with correct params" do
         data_file = stub
         processed_input_file = stub
-        V1::StandardDataset.should_receive(:process_input_file).with(nil, data_file) { processed_input_file }
+        V1::StandardDataset.should_receive(:process_input_file).with(data_file, false) { processed_input_file }
         subject.should_receive(:import_docs).with(processed_input_file)
         subject.import_data_file(data_file)
       end
@@ -115,7 +115,7 @@ module V1
     describe "#import_test_dataset" do
       it "imports test data for all resources" do
         subject.should_receive(:import_data_file).with(V1::StandardDataset::ITEMS_JSON_FILE)
-        #subject.should_receive(:import_data_file).with(V1::StandardDataset::COLLECTIONS_JSON_FILE)
+        subject.should_receive(:import_data_file).with(V1::StandardDataset::COLLECTIONS_JSON_FILE)
         subject.import_test_dataset
       end
     end
@@ -140,7 +140,7 @@ module V1
         CouchRest.stub(:database).with("admin_endpoint/dbname") { couchdb }
         expect {
           subject.import_docs([stub])
-        }.to raise_error Exception, /^FATAL ERROR/
+        }.to raise_error Exception, /^ERROR/
       end
     end
 

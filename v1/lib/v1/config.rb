@@ -6,7 +6,6 @@ module V1
     REPOSITORY_DATABASE = SEARCH_INDEX
 
     def self.search_endpoint
-      #TODO: should search_endpoint have index name appended?
       search_config = dpla['search']
       if search_config && search_config['endpoint']
         search_config['endpoint']
@@ -16,20 +15,17 @@ module V1
     end
 
     def self.dpla
-      dpla_config_path = File.expand_path("../../../config/dpla.yml", __FILE__)
+      #TODO: memoize
+      config_file = File.expand_path("../../../config/dpla.yml", __FILE__)
+      required_config_headers = %w( read_only_user search repository )
 
-      raise "No config file found at #{dpla_config_path}" unless File.exists? dpla_config_path 
-      dpla_config = YAML.load_file(dpla_config_path)
-      required_config_headers = [
-        "read_only_user",
-        "search",
-        "repository"
-      ]
+      raise "No config file found at #{config_file}" unless File.exists? config_file 
+      dpla_config = YAML.load_file(config_file)
 
       if dpla_config && (dpla_config.keys - required_config_headers).empty?
         return dpla_config
       else
-        raise "Consult dpla.yml.example. Missing proper values in: #{dpla_config_path}"
+        raise "Consult dpla.yml.example. Missing proper values in: #{config_file}"
       end
     end
 

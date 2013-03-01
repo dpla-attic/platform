@@ -1,9 +1,14 @@
 require 'v1/searchable'
-include V1::Searchable
 
 module V1
 
   module Item
+    extend V1::Searchable
+    
+    def self.resource
+      'item'
+    end
+
   end
 
 end

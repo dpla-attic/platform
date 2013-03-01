@@ -49,25 +49,42 @@ module V1
 
     def self.recreate_env!
       recreate_database!
+      #TODO: make recreate_database! also recreate_river, just like V1::StandardDataset.recreate_search_index does
       import_test_dataset
       puts "CouchDB docs/views: #{ doc_count }"
       V1::StandardDataset.recreate_river!
     end
 
+    def self.service_status
+      uri = endpoint + '/' + repository_database
+      config = V1::Config.dpla['read_only_user']
+
+      auth = {}
+      if config && config['username']
+        auth = {:basic_auth => {:username => config['username'], :password => config['password']}}
+      end        
+
+      begin
+        HTTParty.get(uri, auth).body
+      rescue Exception => e
+        "ERROR: #{e}"
+      end
+    end
+
     def self.doc_count
       # Intended for rake tasks
-      #TODO: don't count views. In a cruel twist of fate, we may need a view
-      # to do that. :O
+      #TODO: don't count views. In a cruel twist of fate, we may need a view to do that. :O
       CouchRest.database(admin_endpoint_database).info['doc_count'] rescue 'ERROR'
     end
 
     def self.import_test_dataset
       # Imports all the test data files
-      import_data_file( V1::StandardDataset::ITEMS_JSON_FILE )
+      import_data_file(V1::StandardDataset::ITEMS_JSON_FILE)
+      import_data_file(V1::StandardDataset::COLLECTIONS_JSON_FILE)
     end
 
     def self.import_data_file(file)
-      import_docs( V1::StandardDataset.process_input_file(nil, file) )
+      import_docs(V1::StandardDataset.process_input_file(file, false))
     end
 
     def self.import_docs(docs)
@@ -76,7 +93,7 @@ module V1
         db.bulk_save docs
       rescue RestClient::BadRequest => e
         error = JSON.parse(e.response) rescue {}
-        raise Exception, "FATAL ERROR: #{error['reason'] || e.to_s}"
+        raise Exception, "ERROR: #{error['reason'] || e.to_s}"
       end
     end
 
@@ -86,7 +103,7 @@ module V1
         docs.each {|doc| db.delete_doc doc }
       rescue RestClient::BadRequest => e
         error = JSON.parse(e.response) rescue {}
-        raise Exception, "FATAL ERROR: #{error['reason'] || e.to_s}"
+        raise Exception, "ERROR: #{error['reason'] || e.to_s}"
       end
     end
 
@@ -129,10 +146,9 @@ module V1
     end
 
     def self.lock_down_repository_roles
-      #TODO: why do readers have the admin role here?
       security_hash = {
         :admins => {"roles" => %w( admin )},
-        :readers => {"roles" => %w( admin reader )}
+        :readers => {"roles" => %w( reader admin )}  #TODO: should admin be here?
       }
       RestClient.put(
         "#{admin_endpoint_database}/_security",

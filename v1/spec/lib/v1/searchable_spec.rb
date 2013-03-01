@@ -1,21 +1,17 @@
 require 'v1/searchable'
 
-#module Rails; end
-
-# create fake 'searchable' resource
-module SearchableItem
-  extend V1::Searchable
-end
-
 module V1
+
+  module SearchableItem
+    extend V1::Searchable
+    def self.resource; 'test_resource'; end
+  end
 
   module Searchable 
 
     describe Searchable do
 
       before(:each) do
-        stub_const("V1::Config::SEARCH_INDEX", "some_index")
-        #Rails.stub_chain(:logger, :debug) { stub }
         subject.stub(:verbose_debug)
       end
 
@@ -37,26 +33,27 @@ module V1
               q controller action sort_by sort_by_pin sort_order page page_size facets facet_size fields callback
             )
         end
+
       end
     end
   end
 
   describe SearchableItem do
-
+    let(:resource) { 'test_resource' }
+    
     describe "#validate_query_params" do
       before(:each) do
         stub_const("V1::Searchable::BASE_QUERY_PARAMS", %w( q controller action ) )
       end
       it "compares against both BASE_QUERY_PARAMS and queryable_field_names" do
-        Schema.stub(:queryable_field_names) { %w( title description ) }
+        Schema.stub(:queryable_field_names).with(resource) { %w( title description ) }
 
         expect {
-          SearchableItem.validate_query_params({'q' => 'banana'})
-          SearchableItem.validate_query_params({'title' => 'curious george'})
+          subject.validate_query_params({'q' => 'banana', 'title' => 'curious george'})
         }.not_to raise_error BadRequestSearchError
 
         expect {
-          SearchableItem.validate_query_params({'invalid_field' => 'banana'})
+          subject.validate_query_params({'invalid_field' => 'banana'})
         }.to raise_error BadRequestSearchError, /invalid field/i
       end
     end
@@ -108,43 +105,54 @@ module V1
     end
 
     describe "build_sort_attributes" do
+      let(:name) { 'id' }
+      
       it "returns nil when sort params are not present" do
         params = {}
         expect(subject.build_sort_attributes(params)).to eq nil
       end
 
-      it "returns a valid sort order if a valid sort order is param present" do
-        params = {'sort_by' => 'id', 'sort_order' => 'desc'}
+      it "returns a valid sort_by when sort_order is 'asc'" do
+        field = stub(:name => name, :sortable? => true, :sort => 'field')
+        V1::Schema.stub(:field).with(resource, name) { field }
+        params = {'sort_by' => name, 'sort_order' => 'asc'}
         expect(
                subject.build_sort_attributes(params)
-               ).to eq [ {'id' => 'desc'} ]
+               ).to eq [ {name => 'asc'} ]
       end
 
-      it "returns a valid sort order if an invalid sort order param present" do
-        params = {'sort_by' => 'id', 'sort_order' => 'apple'}
+      it "returns a valid sort_by when sort_order is 'desc'" do
+        field = stub(:name => name, :sortable? => true, :sort => 'field')
+        V1::Schema.stub(:field).with(resource, name) { field }
+        params = {'sort_by' => name, 'sort_order' => 'desc'}
         expect(
                subject.build_sort_attributes(params)
-               ).to eq [ {'id' => Searchable::DEFAULT_SORT_ORDER} ]
+               ).to eq [ {name => 'desc'} ]
       end
 
-      it "returns a valid sort order param if no sort order param present" do
-        params = {'sort_by' => 'id'}
+      it "returns default sort_order if an invalid sort_order param present" do
+        field = stub(:name => name, :sortable? => true, :sort => 'field')
+        V1::Schema.stub(:field).with(resource, name) { field }
+        params = {'sort_by' => name, 'sort_order' => 'apple'}
         expect(
                subject.build_sort_attributes(params)
-               ).to eq [ {'id' => Searchable::DEFAULT_SORT_ORDER} ]
+               ).to eq [ {name => Searchable::DEFAULT_SORT_ORDER} ]
       end
 
-      it "returns the valid sort_by if a valid sort order is param present" do
-        params = {'sort_by' => 'id', 'sort_order' => 'asc'}
+      it "returns default sort_order f no sort_order param present" do
+        field = stub(:name => name, :sortable? => true, :sort => 'field')
+        V1::Schema.stub(:field).with(resource, name) { field }
+        params = {'sort_by' => name}
         expect(
                subject.build_sort_attributes(params)
-               ).to eq [ {'id' => 'asc'} ]
+               ).to eq [ {name => Searchable::DEFAULT_SORT_ORDER} ]
       end
+
 
       it "returns correct array values for geo_point types" do
         params = {'sort_by' => 'coordinates', 'sort_by_pin' => '41,-71', 'order' => 'asc'}
         field = stub(:sort => 'geo_distance', :sortable? => true, :name => 'coordinates')
-        V1::Schema.stub(:field) { field }
+        V1::Schema.stub(:field).with(resource, 'coordinates') { field }
         expect(
                subject.build_sort_attributes(params)
                ).to eq [ {'_geo_distance' => { 'coordinates' => '41,-71', 'order' => 'asc' } } ]
@@ -153,7 +161,7 @@ module V1
       it "returns correct array for script sort" do
         params = {'sort_by' => 'title'}
         field = stub(:sort => 'script', :sortable? => true, :name => 'title')
-        V1::Schema.stub(:field) { field }
+        V1::Schema.stub(:field).with(resource, 'title') { field }
         expect(
                subject.build_sort_attributes(params)
                ).to eq( 
@@ -169,6 +177,7 @@ module V1
       end
 
       it "raises a BadRequestSearchError on an invalid sort_by param" do
+        V1::Schema.stub(:field).with(resource, 'some_invalid_field') { nil }
         params = {'sort_by' => 'some_invalid_field'}
         expect  { 
           subject.build_sort_attributes(params)
@@ -177,7 +186,7 @@ module V1
 
       it "raises a BadRequestSearchError on a non-sortable sort_by param" do
         params = {'sort_by' => 'some_analyzed_field'}
-        V1::Schema.stub(:field) { stub(:sortable? => false, :name => 'foo') }
+        V1::Schema.stub(:field) { stub(:sortable? => false) }
         expect  { 
           subject.build_sort_attributes(params)
         }.to raise_error BadRequestSearchError, /non-sortable field.* sort_by parameter: some_analyzed_field/i
@@ -186,14 +195,14 @@ module V1
 
     describe "#validate_field_params" do
       it "raises BadRequestSearchError if invalid field was sent" do
-        V1::Schema.stub(:queryable_field_names) { %w( title ) }
+        V1::Schema.stub(:queryable_field_names).with(resource) { %w( title ) }
         params = {'fields' => 'some_invalid_field'}
         expect  { 
           subject.validate_field_params(params) 
         }.to raise_error BadRequestSearchError, /fields parameter/
       end
       it "does not raise an error when all fields are valid" do
-        V1::Schema.stub(:queryable_field_names) { %w( title description ) }
+        V1::Schema.stub(:queryable_field_names).with(resource) { %w( title description ) }
         params = {'fields' => 'title,description'}
         expect {
           subject.validate_field_params(params)
@@ -480,6 +489,11 @@ module V1
       before(:each) do
         Tire.stub(:search).and_yield(mock_search)
         subject.stub(:wrap_results)
+        subject.stub(:validate_query_params)
+        subject.stub(:validate_field_params)
+        V1::Searchable::Query.stub(:build_all)
+        V1::Searchable::Filter.stub(:build_all)
+        V1::Searchable::Facet.stub(:build_all)
       end
 
       it "validates params and field params" do
@@ -489,17 +503,17 @@ module V1
         subject.search(params)
       end
 
-      it "uses V1::Config::SEARCH_INDEX for its search index" do
+      it "restricts all searches to a resource" do
         params = {'q' => 'banana'}
-        Tire.should_receive(:search).with(V1::Config::SEARCH_INDEX)
+        Tire.should_receive(:search).with(V1::Config::SEARCH_INDEX + '/' + resource)
         subject.search(params)
       end
 
       it "calls query, filter and facet build_all methods with correct params" do
         params = {'q' => 'banana'}
-        V1::Searchable::Query.should_receive(:build_all).with(mock_search, params) { true }
-        V1::Searchable::Filter.should_receive(:build_all).with(mock_search, params) { false }
-        V1::Searchable::Facet.should_receive(:build_all).with(mock_search, params, !true)
+        V1::Searchable::Query.should_receive(:build_all).with(resource, mock_search, params) { true }
+        V1::Searchable::Filter.should_receive(:build_all).with(resource, mock_search, params) { false }
+        V1::Searchable::Facet.should_receive(:build_all).with(resource, mock_search, params, !true)
         subject.search(params)
       end
 
@@ -512,28 +526,8 @@ module V1
         expect(subject.search(params)).to eq dictionary_results
       end
 
-      context "sorting" do
-        it "sorts by field name if present" do
-          params = {'q' => 'banana',  'sort_by' => 'title' }
-          subject.stub(:validate_query_params)
-          subject.should_receive(:build_sort_attributes).with(params) { [] } 
-          mock_search.should_receive(:sort)
-          subject.stub(:wrap_results)
-          subject.search(params)
-        end
-
-        it "does not implement custom sorting when no sort params present" do
-          params = {'q' => 'banana'}
-          mock_search.should_not_receive(:sort)
-          subject.should_receive(:wrap_results)
-          subject.search(params)
-        end
-      end
-
       it "limits the requested fields if fields param is present" do
         params = {'fields' => 'title,type'}
-        subject.stub(:validate_query_params)
-        subject.stub(:validate_field_params)
         mock_search.should_receive(:fields).with( %w( title type ) )
         subject.search(params)
       end

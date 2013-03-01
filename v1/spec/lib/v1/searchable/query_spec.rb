@@ -5,6 +5,7 @@ module V1
   module Searchable
 
     describe Query do
+      let(:resource) { 'test_resource' }
 
       describe "#build_all" do
         #TODO: all new unit tests for completely refactored implementation
@@ -20,7 +21,7 @@ module V1
 
         #   mock_must.should_receive(:string).with('titleQString')
         #   mock_must.should_receive(:string).with('descQString')
-        #   subject.build_field_queries(params)
+        #   subject.build_field_queries(resource, params)
         # end
 
         # it "returns generated queries as flattened array" do
@@ -34,9 +35,8 @@ module V1
       describe "#field_queries" do
         it "returns correct query string for a free text search" do
           params = {'q' => 'something'}
-          expect(subject.field_queries(params))
+          expect(subject.field_queries(resource, params))
             .to match_array(
-                            
                             [['something', {"fields"=>["_all"]}]]
                             )
         end
@@ -44,11 +44,10 @@ module V1
         it "returns correct query string for field search" do
           name = 'aggregatedCHO.title'
           field = stub(:name => name, :geo_point? => false, :subfields? => false)
-          V1::Schema.stub(:field).with('item', name) { field }
+          V1::Schema.stub(:field).with(resource, name) { field }
           params = {name => 'some title'}
-          expect(subject.field_queries(params))
+          expect(subject.field_queries(resource, params))
             .to match_array(
-                            
                             [['some title', {'fields' => [name], 'lenient' => true}]]
                             )
         end
@@ -56,11 +55,10 @@ module V1
         it "handles 'aggregatedCHO.spatial.state' as a normal field search" do
           name = 'aggregatedCHO.spatial.state'
           field = stub(:name => name, :geo_point? => false, :subfields? => false)
-          V1::Schema.stub(:field).with('item', name) { field }
+          V1::Schema.stub(:field).with(resource, name) { field }
           params = {name => 'MA'}
-          expect(subject.field_queries(params))
+          expect(subject.field_queries(resource, params))
             .to match_array(
-                            
                             [['MA', {'fields' => [name], 'lenient' => true}]]
                             )
         end
@@ -69,26 +67,25 @@ module V1
         it "ignores geo_point field" do
           name = 'aggregatedCHO.spatial.coordinates'
           field = stub(:name => name, :geo_point? => true)
-          V1::Schema.stub(:field).with('item', name) { field }
+          V1::Schema.stub(:field).with(resource, name) { field }
           params = {name => '42,-71'}
-          expect(subject.field_queries(params)).to match_array []
+          expect(subject.field_queries(resource, params)).to match_array []
         end
 
         it "searches all subfields of 'aggregatedCHO.date'" do
           name = 'aggregatedCHO.date'
           field = stub(:name => name, :geo_point? => false, :subfields? => true)
-          V1::Schema.stub(:field).with('item', name) { field }
+          V1::Schema.stub(:field).with(resource, name) { field }
           params = {name => '1999-08-07'}
-          expect(subject.field_queries(params))
+          expect(subject.field_queries(resource, params))
             .to match_array(
-                            
                             [['1999-08-07', {'fields' => ['aggregatedCHO.date.*'],'lenient' => true }]]
                             )
         end
 
         it "handles an empty search correctly" do
           params = {}
-          expect(subject.field_queries(params)).to match_array []
+          expect(subject.field_queries(resource, params)).to match_array []
         end
       end
 
