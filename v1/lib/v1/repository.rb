@@ -13,7 +13,6 @@ module V1
     end
 
     def self.do_fetch(id_list)
-      #TODO: update tests
       db = CouchRest.database(read_only_endpoint)
       db.get_bulk(id_list)["rows"]
     end
@@ -27,24 +26,6 @@ module V1
 
     def self.reformat_results(results)
       results.map {|result| result['doc'].delete_if {|k,v| k =~ /^(_rev|_type)/} }
-    end
-
-    def self.read_only_endpoint
-      config = V1::Config.dpla['read_only_user']
-      read_only_login = "#{config['username']}:#{config['password']}"
-      "http://#{read_only_login}@#{host}/#{repository_database}" 
-    end
-
-    def self.repository_database
-      V1::Config::REPOSITORY_DATABASE
-    end
-
-    def self.admin_endpoint
-      V1::Config.dpla['repository']['admin_endpoint'] 
-    end
-
-    def self.admin_endpoint_database
-      "#{admin_endpoint}/#{repository_database}"
     end
 
     def self.recreate_env!
@@ -148,7 +129,7 @@ module V1
     def self.lock_down_repository_roles
       security_hash = {
         :admins => {"roles" => %w( admin )},
-        :readers => {"roles" => %w( reader admin )}  #TODO: should admin be here?
+        :readers => {"roles" => %w( reader )}
       }
       RestClient.put(
         "#{admin_endpoint_database}/_security",
@@ -160,7 +141,7 @@ module V1
       design_doc_hash = {
         :_id => "_design/auth",
         :language => "javascript",
-        :validate_doc_update => "function(newDoc, oldDoc, userCtx) { if (userCtx.roles.indexOf('_admin') !== -1) { return; } else { throw({forbidden: 'Only admins may edit the database'}); } }"
+        :validate_doc_update => "function(newDoc, oldDoc, userCtx) { if (userCtx.roles.indexOf('_admin') != -1) { return; } else { throw({forbidden: 'Only admins may edit the database'}); } }"
       }
       RestClient.put(
         "#{admin_endpoint_database}/_design/auth",
@@ -168,10 +149,25 @@ module V1
       )
     end
 
+    def self.read_only_endpoint
+      config = V1::Config.dpla['read_only_user']
+      "http://#{config['username']}:#{config['password']}@#{host}/#{repository_database}" 
+    end
+
+    def self.repository_database
+      V1::Config::REPOSITORY_DATABASE
+    end
+
+    def self.admin_endpoint
+      V1::Config.dpla['repository']['admin_endpoint'] rescue 'http://127.0.0.1:5984'
+    end
+
+    def self.admin_endpoint_database
+      "#{admin_endpoint}/#{repository_database}"
+    end
+
     def self.host
-      config = V1::Config.dpla['repository']
-      # return value from config or CouchDB default
-      (config && config['host']) ? config['host'] : "127.0.0.1:5984"
+      V1::Config.dpla['repository']['host'] rescue '127.0.0.1:5984'
     end
     
     def self.endpoint

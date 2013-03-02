@@ -168,28 +168,25 @@ module V1
             'password' => 'pw'
           },
           'repository' => {
-            'admin_endpoint' => 'http://a:b@abc.com',
-            'password' => 'pw'
+            'admin_endpoint' => 'http://a:b@abc.com'
           }
         }}
         @db_mock = mock('db')
         @read_only_user = mock("ro_user")
+        CouchRest.stub(:database).with("#{V1::Repository.admin_endpoint}/_users") { @db_mock }
+        @db_mock.should_receive(:get).with("org.couchdb.user:user") { @read_only_user }
       end
 
       it "should delete any existing read-only users" do
-        CouchRest.should_receive(:database).with("#{V1::Repository.admin_endpoint}/_users") { @db_mock }
-        @db_mock.should_receive(:get).with("org.couchdb.user:user") { @read_only_user }
-        @read_only_user.should_receive(:is_a?) { true }
-        @db_mock.should_receive(:delete_doc) { 200 }
-        RestClient.should_receive(:put) { 200 }
+        @read_only_user.should_receive(:is_a?).with(CouchRest::Document) { true }
+        @db_mock.should_receive(:delete_doc)
+        RestClient.should_receive(:put)
         V1::Repository.create_read_only_user
       end
 
       it "creates a user" do
-        CouchRest.should_receive(:database).with("#{V1::Repository.admin_endpoint}/_users") { @db_mock }
-        @db_mock.should_receive(:get).with("org.couchdb.user:user") { @read_only_user }
-        @read_only_user.should_receive(:is_a?) { false }
-        RestClient.should_receive(:put) { 200 }
+        @read_only_user.should_receive(:is_a?).with(CouchRest::Document) { false }
+        RestClient.should_receive(:put)
         V1::Repository.create_read_only_user
       end
     end
@@ -213,19 +210,19 @@ module V1
     describe "#host" do
       context "there is a couchdb config file present" do
         it "returns the repository host defined in the config file" do
-          config_values = {
-              'repository' => { 'host' => "example.com:4242" }
+          V1::Config.stub(:dpla) {
+            { 'repository' => { 'host' => "example.com:4242" } }
           }
 
-          YAML.stub(:load_file) { config_values }
           expect(subject.host).to eq "example.com:4242"  
         end
       end
-      context "there is no couchdb config file present" do
+      context "there is no repository host defined in the config file" do
         it "returns default host values" do
-          config_values = {}
+          V1::Config.stub(:dpla) {
+            {}
+          }
 
-          YAML.stub(:load_file) { config_values }
           expect(subject.host).to eq "127.0.0.1:5984"
         end
       end

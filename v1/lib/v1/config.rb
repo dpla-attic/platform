@@ -2,6 +2,7 @@ module V1
 
   module Config
 
+    #TODO: move these two to their respective modules
     SEARCH_INDEX = 'dpla'
     REPOSITORY_DATABASE = SEARCH_INDEX
 
@@ -17,15 +18,16 @@ module V1
     def self.dpla
       #TODO: memoize
       config_file = File.expand_path("../../../config/dpla.yml", __FILE__)
-      required_config_headers = %w( read_only_user search repository )
+      required = %w( read_only_user )
 
       raise "No config file found at #{config_file}" unless File.exists? config_file 
       dpla_config = YAML.load_file(config_file)
 
-      if dpla_config && (dpla_config.keys - required_config_headers).empty?
-        return dpla_config
+      # Make sure we got all required keys (extra keys are fine)
+      if dpla_config && (dpla_config.keys & required).sort == required.sort
+        dpla_config
       else
-        raise "Consult dpla.yml.example. Missing proper values in: #{config_file}"
+        raise "Consult dpla.yml.example. Missing required values in: #{config_file}"
       end
     end
 
