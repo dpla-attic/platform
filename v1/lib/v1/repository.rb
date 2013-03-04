@@ -91,62 +91,53 @@ module V1
     def self.recreate_database!
       # Delete, recreate and repopulate the database
       #TODO: add production env check
-      CouchRest.database(admin_endpoint_database).delete! rescue RestClient::ResourceNotFound
+      CouchRest.database(admin_endpoint_database).delete! rescue nil
 
       # create new db
-      CouchRest.database!(admin_endpoint_database)
+      db = CouchRest.database!(admin_endpoint_database)
 
-      create_read_only_user
-      lock_down_repository_roles
-    end
-
-    def self.create_read_only_user
       username = V1::Config.dpla['read_only_user']['username']
       password = V1::Config.dpla['read_only_user']['password'] 
-
-      # delete read only user if it exists
-      users_db = CouchRest.database("#{admin_endpoint}/_users")
-      read_only_user = users_db.get("org.couchdb.user:#{username}") rescue RestClient::ResourceNotFound
-      if read_only_user.is_a?(CouchRest::Document)
-        users_db.delete_doc(read_only_user)
-      end
-
-      user_hash = {
-        :type => "user",
-        :name => username,
-        :password => password,
-        :roles => ["reader"]
-      }
-
-      #TODO: we can probably use db.save_doc(...) here instead
-      RestClient.put(
-        "#{admin_endpoint}/_users/org.couchdb.user:#{username}",
-        user_hash.to_json,
-        {:content_type => :json, :accept => :json}
-      )
+      create_read_only_user(username, password)
+      assign_roles(db)
     end
 
-    def self.lock_down_repository_roles
-      security_hash = {
-        :admins => {"roles" => %w( admin )},
-        :readers => {"roles" => %w( reader )}
+    def self.create_read_only_user(username, password)
+      users_db = CouchRest.database("#{admin_endpoint}/_users")
+      couch_username = "org.couchdb.user:#{username}"
+      
+      # delete user if it exists
+      user = users_db.get(couch_username) rescue nil
+      users_db.delete_doc(user) if user
+
+      user_doc = {
+        '_id' => couch_username,
+        'type' => 'user',
+        'name' => username,
+        'password' => password,
+        'roles' => %w( reader )
       }
-      RestClient.put(
-        "#{admin_endpoint_database}/_security",
-        security_hash.to_json
-      )
+      result = users_db.save_doc(user_doc)
+      raise "ERROR: #{result}" unless result['ok']
+    end
+
+    def self.assign_roles(db)
+      security_doc = {
+        '_id' => '_security',
+        'admins' => {'roles' => %w( admin )},
+        'readers' => {'roles' => %w( reader )}
+      }
+      roles_result = db.save_doc(security_doc)
+      raise "ERROR: #{roles_result}" unless roles_result['ok']
 
       # add validation to ensure only admin can create new docs
-      #TODO: we can probably use db.save_doc(...) here instead
-      design_doc_hash = {
-        :_id => "_design/auth",
-        :language => "javascript",
-        :validate_doc_update => "function(newDoc, oldDoc, userCtx) { if (userCtx.roles.indexOf('_admin') != -1) { return; } else { throw({forbidden: 'Only admins may edit the database'}); } }"
+      auth_doc = {
+        '_id' => '_design/auth',
+        'language' => 'javascript',
+        'validate_doc_update' => "function(newDoc, oldDoc, userCtx) { if (userCtx.roles.indexOf('_admin') != -1) { return; } else { throw({forbidden: 'Only admins may edit the database'}); } }"
       }
-      RestClient.put(
-        "#{admin_endpoint_database}/_design/auth",
-        design_doc_hash.to_json
-      )
+      auth_result = db.save_doc(auth_doc)
+      raise "ERROR: #{auth_result}" unless auth_result['ok']
     end
 
     def self.read_only_endpoint

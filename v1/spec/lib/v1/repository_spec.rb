@@ -13,8 +13,8 @@ module V1
 
         CouchRest.should_receive(:database!).with('dbname')
         subject.stub(:create_read_only_user)
-        subject.stub(:lock_down_repository_roles)
-        V1::StandardDataset.stub(:recreate_river!)
+        subject.stub(:assign_roles)
+#        V1::StandardDataset.stub(:recreate_river!)
         subject.recreate_database!
       end
       
@@ -22,7 +22,7 @@ module V1
         CouchRest.stub(:database) { stub.as_null_object }
         CouchRest.stub(:database!)
         subject.should_receive(:create_read_only_user)
-        subject.should_receive(:lock_down_repository_roles)
+        subject.should_receive(:assign_roles)
         V1::StandardDataset.stub(:recreate_river!)
         subject.recreate_database!        
       end
@@ -162,47 +162,46 @@ module V1
     describe "#create_read_only_user" do
       
       before :each do
-        V1::Config.stub(:dpla) {{
-          'read_only_user' => {
-            'username' => 'user',
-            'password' => 'pw'
-          },
-          'repository' => {
-            'admin_endpoint' => 'http://a:b@abc.com'
-          }
-        }}
-        @db_mock = mock('db')
-        @read_only_user = mock("ro_user")
-        CouchRest.stub(:database).with("#{V1::Repository.admin_endpoint}/_users") { @db_mock }
-        @db_mock.should_receive(:get).with("org.couchdb.user:user") { @read_only_user }
+        subject.stub(:admin_endpoint) { 'couchserver' }
+        @users_db = mock('db')
+        CouchRest.stub(:database).with("#{subject.admin_endpoint}/_users") { @users_db }
+        @read_only_user = mock('ro_user')
       end
 
       it "should delete any existing read-only users" do
-        @read_only_user.should_receive(:is_a?).with(CouchRest::Document) { true }
-        @db_mock.should_receive(:delete_doc)
-        RestClient.should_receive(:put)
-        V1::Repository.create_read_only_user
+        @users_db.stub(:get).with("org.couchdb.user:user") { @read_only_user }
+        @users_db.should_receive(:delete_doc).with(@read_only_user)
+        @users_db.stub(:save_doc) { {'ok' => true} }
+        subject.create_read_only_user('user', 'pw')
       end
 
       it "creates a user" do
-        @read_only_user.should_receive(:is_a?).with(CouchRest::Document) { false }
-        RestClient.should_receive(:put)
-        V1::Repository.create_read_only_user
+        @users_db.stub(:get).with("org.couchdb.user:user") { nil }
+        @users_db.should_not_receive(:delete_doc)
+        @users_db.should_receive(:save_doc) { {'ok' => true} }
+
+        subject.create_read_only_user('user', 'pw')
       end
     end
 
-    describe "#lock_down_repository_roles" do
-
+    describe "#assign_roles" do
       it "should lock down database roles and create design doc for validation" do
-        RestClient.should_receive(:put).with(
-          "#{V1::Repository.admin_endpoint_database}/_security",
-          anything()
-        )
-        RestClient.should_receive(:put).with(
-          "#{V1::Repository.admin_endpoint_database}/_design/auth",
-          anything()
-        )
-        V1::Repository.lock_down_repository_roles
+        db = mock
+        db.should_receive(:save_doc)
+          .with({
+                  '_id' => '_security',
+                  'admins' => {'roles' => %w( admin )},
+                  'readers' => {'roles' => %w( reader )}
+                }) { {'ok' => true} }
+        db.should_receive(:save_doc)
+          .with({
+                  '_id' => '_design/auth',
+                  'language' => 'javascript',
+                  'validate_doc_update' => "function(newDoc, oldDoc, userCtx) { if (userCtx.roles.indexOf('_admin') != -1) { return; } else { throw({forbidden: 'Only admins may edit the database'}); } }"
+                }) { {'ok' => true} }
+
+
+        subject.assign_roles(db)
       end
 
     end
@@ -232,9 +231,7 @@ module V1
       before :each do
         V1::Config.stub(:dpla) {{
           "read_only_user" => { "username" => "u", "password" => "pw" },
-          "repository" => { 
-            "admin_endpoint" => "http://admin:apass@abc.com"
-          }
+          "repository" => { "admin_endpoint" => "http://admin:apass@abc.com" }
         }}
         subject.stub(:host) { "abc.com" }
       end
