@@ -1,6 +1,6 @@
 Feature: Search for items by keyword (UC001)
   
-  In order to find items through the DPLA
+  In order to find content through the DPLA
   API users should be able to search for items using free text search
                                                        
   Background:

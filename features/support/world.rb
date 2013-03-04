@@ -50,6 +50,31 @@ module CukeApiHelper
     source
   end
 
+  ## Collections additions/refactoring
+  def resource_query_to_json(resource, params={}, expect_success=false)
+    #TODO: expect_success=false), false, really?
+    resource_query(resource, params, true)['docs']
+  end
+  
+  def resource_query(resource, params={}, expect_success=false)
+    visit("/v2/#{resource}s?#{ params.to_param }")
+
+    if expect_success && page.status_code != 200
+      puts "Query expected HTTP 200 but got #{page.status_code} with params: #{params}"
+      puts "page.source: #{page.source}"
+      raise Exception 
+    end
+
+    JSON.parse(page.source) rescue nil
+  end
+
+  def resource_fetch(resource, ids_string)
+    visit("/v2/#{resource}s/#{ ids_string }")
+    JSON.parse(page.source) rescue nil
+  end
+
+  ## /Collections additions/refactoring
+
   def item_fetch(ids_string)
     visit("/v2/items/#{ ids_string }")
     JSON.parse(page.source) rescue nil

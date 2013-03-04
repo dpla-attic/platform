@@ -240,7 +240,7 @@ module V1
   
         it "returns the repository endpoint and the repo database in URL form" do
           stub_const("V1::Config::REPOSITORY_DATABASE", "some_db")
-          expect(V1::Repository.read_only_endpoint).to eq('http://u:pw@abc.com/some_db')
+          expect(subject.read_only_endpoint).to eq('http://u:pw@abc.com/some_db')
         end
   
       end

@@ -1,3 +1,5 @@
+require 'tire'
+
 module V1
 
   module Config
@@ -36,6 +38,7 @@ module V1
       Tire::Configuration.wrapper(Hash)
       logfile = File.expand_path('../../../../var/log/elasticsearch.log', __FILE__)
       Tire.configure { logger logfile, :level => 'debug' }
+      #TODO: I don't think the index_prefix call works b/c we're not using AR models
       Tire::Model::Search.index_prefix("test_") if Rails.env.test?
     end
 

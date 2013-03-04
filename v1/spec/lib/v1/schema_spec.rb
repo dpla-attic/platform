@@ -15,18 +15,38 @@ module V1
         it "has the expected top level structure" do
           expect(V1::Schema::ELASTICSEARCH_MAPPING).to be_a Hash
           expect(V1::Schema::ELASTICSEARCH_MAPPING).to have_key 'item'
-          expect(V1::Schema::ELASTICSEARCH_MAPPING['item']['date_detection']).to be_false
-          expect(V1::Schema::ELASTICSEARCH_MAPPING['item']).to have_key 'properties'
+          expect(V1::Schema::ELASTICSEARCH_MAPPING).to have_key 'collection'
         end
-        it "has the correct number of fields for 'item'" do
-          expect(
-                 V1::Schema::ELASTICSEARCH_MAPPING['item']['properties']
-                 ).to have(14).items
+        
+        context "item resource" do
+          let(:resource) { 'item' }
+          it "has the expected top level structure" do
+            expect(V1::Schema::ELASTICSEARCH_MAPPING[resource]['date_detection']).to be_false
+            expect(V1::Schema::ELASTICSEARCH_MAPPING[resource]).to have_key 'properties'
+          end
+          it "has the correct number of fields for resource" do
+            expect(
+                   V1::Schema::ELASTICSEARCH_MAPPING[resource]['properties']
+                   ).to have(14).items
+          end
+          it "has the correct number of fields for 'item/aggregatedCHO'" do
+            expect(
+                   V1::Schema::ELASTICSEARCH_MAPPING[resource]['properties']['aggregatedCHO']['properties']
+                   ).to have(16).items
+          end
         end
-        it "has the correct number of fields for 'item/aggregatedCHO'" do
-          expect(
-                 V1::Schema::ELASTICSEARCH_MAPPING['item']['properties']['aggregatedCHO']['properties']
-                 ).to have(16).items
+
+        context "collection resource" do
+          let(:resource) { 'collection' }
+          it "has the expected top level structure" do
+            expect(V1::Schema::ELASTICSEARCH_MAPPING[resource]['date_detection']).to be_false
+            expect(V1::Schema::ELASTICSEARCH_MAPPING[resource]).to have_key 'properties'
+          end
+          it "has the correct number of fields for resource" do
+            expect(
+                   V1::Schema::ELASTICSEARCH_MAPPING[resource]['properties']
+                   ).to have(6).items
+          end
         end
       end
 

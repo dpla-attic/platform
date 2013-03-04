@@ -1,9 +1,12 @@
+require 'v1/searchable'
+
 module V1
 
   module Collection
-
-    def self.search(params={})
-
+    extend V1::Searchable
+    
+    def self.resource
+      'collection'
     end
 
   end

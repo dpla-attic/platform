@@ -5,6 +5,17 @@ module V1
   module Schema
     
     ELASTICSEARCH_MAPPING = {
+      'collection' => {
+        'date_detection' => false,
+        'properties' => {
+          'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
+          '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
+          'ingestType' => { 'type' => 'string', 'include_in_all' => false },
+          'ingestDate' => { 'type' => 'date', 'include_in_all' => false },
+          'title' => { 'type' => 'string', 'sort' => 'script' },
+          'fakefacet' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+        }
+      },  #/collection
       'item' => {
         'date_detection' => false,
         'properties' => {

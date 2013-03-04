@@ -4,8 +4,13 @@ module V1
 
   describe Collection do
 
-    it "should respond_to? search" do
-      V1::Collection.should respond_to :search
+    it "defines the resource method correctly" do
+      expect(subject).to respond_to :resource
+      expect(subject.resource).to eq 'collection'
+    end
+
+    it "respond_to? search" do
+      expect(subject).to respond_to :search
     end
 
   end
