@@ -18,6 +18,17 @@ module V1
             'name' => { 'type' => 'string' }
           }
         },
+        'multisubject' => {
+          'properties' => {
+            'name' => {
+              'type' => 'multi_field',
+              'fields' => {
+                'name' => { 'type' => 'string', 'sort' => 'script' },
+                'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+              }
+            }                      
+          }
+        },
         'spatial' => {
           'properties' => {
             'city' => { 'type' => 'string', 'index' => "not_analyzed" },
@@ -32,7 +43,7 @@ module V1
               'type' => 'multi_field',
               'fields' => {
                 'name' => {'type' => 'string' },
-                'raw' => {'type' => 'string', 'index' => 'not_analyzed', 'facet' => true }
+                'not_analyzed' => {'type' => 'string', 'index' => 'not_analyzed', 'facet' => true }
               }
             }
           }
@@ -135,7 +146,7 @@ module V1
       
     end
 
-    describe "sorting" do
+    describe "#sortable" do
       it "implements correct sort and sortable? for sort:field" do
         field = V1::Field.new(resource, 'id', item_mapping['id'])
         expect(field.sort).to eq 'field'
@@ -146,6 +157,15 @@ module V1
         expect(field.sort).to eq nil
         expect(field.sortable?).to be_false
       end
+      it "implements correct sort and sortable? for multi_field field" do
+        field = V1::Field.new(resource, 'multisubject.name', item_mapping['multisubject']['properties']['name'])
+        expect(field.multi_field?).to be_true
+        
+        expect(field.sort).to eq 'script'
+        expect(field.multi_field_default.name).to eq 'multisubject.name.name'
+
+        expect(field.sortable?).to be_true
+      end
     end
 
     describe "#multi_fields" do
@@ -155,7 +175,7 @@ module V1
       end
       it "returns array of multi_fields when there are one or more multi_fields to build" do
         field = V1::Field.new(resource, 'isPartOf.name', item_mapping['isPartOf']['properties']['name'])
-        expect(field.multi_fields.map(&:name)).to match_array %w( isPartOf.name.name isPartOf.name.raw )
+        expect(field.multi_fields.map(&:name)).to match_array %w( isPartOf.name.name isPartOf.name.not_analyzed )
       end
     end
 
@@ -235,7 +255,7 @@ module V1
           field = V1::Field.new(resource, 'spatial.iso3166-2', item_mapping['spatial']['properties']['iso3166-2'])
           expect(field.facetable?).to be_true
         end
-        it "detects a multi_field type with a 'raw' subfield" do
+        it "detects a multi_field type with a 'not_analyzed' subfield" do
           field = V1::Field.new(resource, 'isPartOf.name', item_mapping['isPartOf']['properties']['name'])
           expect(field.facetable?).to be_true
         end
@@ -250,7 +270,7 @@ module V1
           field = V1::Field.new(resource, 'subject.@id', item_mapping['subject']['properties']['@id'])
           expect(field.facetable?).to be_false
         end
-        it "detects a multi_field types with a 'raw' subfield" do
+        it "detects a multi_field types with a 'not_analyzed' subfield" do
           field = V1::Field.new(resource, 'field1.name', item_mapping['field1']['properties']['name'])
           expect(field.facetable?).to be_false
         end
@@ -258,17 +278,17 @@ module V1
 
     end
 
-    describe "#analyzed?" do
-      it "returns false when index => not_analyzed" do
-        field = V1::Field.new(resource, 'title', item_mapping['title'])
-        expect(field.analyzed?).to be_true
-      end
+    # describe "#analyzed?" do
+    #   it "returns false when index => not_analyzed" do
+    #     field = V1::Field.new(resource, 'title', item_mapping['title'])
+    #     expect(field.analyzed?).to be_true
+    #   end
       
-      it "returns true unless index => not_analyzed" do
-        field = V1::Field.new(resource, 'id', item_mapping['id'])
-        expect(field.analyzed?).to be_false
-      end
-    end
+    #   it "returns true unless index => not_analyzed" do
+    #     field = V1::Field.new(resource, 'id', item_mapping['id'])
+    #     expect(field.analyzed?).to be_false
+    #   end
+    # end
 
     describe "#enabled?" do
       it "returns false if a field is explicitly not enabled" do

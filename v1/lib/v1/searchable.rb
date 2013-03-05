@@ -51,7 +51,6 @@ module V1
       end
 
       begin
-        #verbose_debug(search)
         if defined?(Rails)
           Rails.logger.info "CURL: #{search.to_curl}" if search.respond_to? :to_curl
         end
@@ -66,7 +65,9 @@ module V1
 
     def build_sort_attributes(params)
       #TODO: can also sort by multiple fields: sort { by [{'published_on' => 'desc'}, {'_score' => 'asc'}] }
-
+      #TODO: It would be cool if we detected "can't sort on string types with more than one value per doc"
+      # errors from elasticsearch and resent the query with a script sort, as well as cached that learned
+      # value for the next request to automatically do it right.
       sort_by_name = params['sort_by'].to_s
       return nil if sort_by_name == ''
 
@@ -87,16 +88,20 @@ module V1
         raise BadRequestSearchError, "Non-sortable field(s) specified in sort_by parameter: #{sort_by_name}"
       end
 
+      # TODO: if they request sorting on a multifield, use its not_analzyed version (which needs
+      # to have the correct sort attr in the schema.)
+      # Generate sort payload
       if sort_by.sort == 'field'
         [{
            sort_by.name => order
          }]
       elsif sort_by.sort == 'script'
         # script sort to work around ElasticSearch not supporting sort by array value fields
+        # Could be a potential performance issue.
         [{
            '_script' => {
              'script' => "s='';foreach(val : doc['#{sort_by.name}'].values) {s += val + ' '} s",
-             'type' => "string",
+             'type' => 'string',
              'order' => order
            }
          }]

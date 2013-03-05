@@ -241,11 +241,11 @@ module V1
           field = stub(:name => 'title', :multi_fields => [])
           expect(subject.facet_field_name(field)).to eq field.name
         end
-        it "handles a multi_field field with a .raw subfield" do
+        it "handles a multi_field field with a .not_analyzed subfield" do
           multi1 = stub(:name => 'isPartOf.name.name', :facetable? => false)
-          multi2 = stub(:name => 'isPartOf.name.raw', :facetable? => true)
+          multi2 = stub(:name => 'isPartOf.name.not_analyzed', :facetable? => true)
           field = stub(:name => 'isPartOf.name', :multi_fields => [multi1, multi2])
-          expect(subject.facet_field_name(field)).to eq 'isPartOf.name.raw'
+          expect(subject.facet_field_name(field)).to eq 'isPartOf.name.not_analyzed'
         end
         it "handles a date field with an interval" do
           field = stub(:name => 'date', :facet_modifier => 'year', :multi_fields => [])
@@ -256,15 +256,15 @@ module V1
       describe "#expand_facet_fields" do
 
         it "returns all facetable subfields for a non-facetable field" do
-          subfield = stub('sub', :facetable? => true, :name => 'somefield.sub2a', :geo_point? => false)
-          field = stub('field', :facetable? => false, :name => 'somefield', :subfields => [subfield], :geo_point? => false)
+          subfield = stub(:facetable? => true, :name => 'somefield.sub2a', :geo_point? => false)
+          field = stub(:facetable? => false, :name => 'somefield', :subfields => [subfield], :geo_point? => false)
           V1::Schema.stub(:field).with(resource, 'somefield') { field }
           expect(
                  subject.expand_facet_fields(resource, %w( somefield ) )
                  ).to match_array %w( somefield.sub2a )
         end
         it "returns a facetable field with no subfields" do
-          field = stub('field', :facetable? => true, :name => 'id', :subfields => [])
+          field = stub(:facetable? => true, :name => 'id', :subfields => [])
           V1::Schema.stub(:field).with(resource, 'id') { field }
           expect(
                  subject.expand_facet_fields(resource, %w( id ) )
@@ -272,18 +272,17 @@ module V1
         end
 
         it "returns a non-facetable field with no facetable subfields" do
-          field = stub('field', :facetable? => false, :name => 'description', :subfields => [])
+          field = stub(:facetable? => false, :name => 'description', :subfields => [])
           V1::Schema.stub(:field).with(resource, 'description') { field }
           expect(
                  subject.expand_facet_fields(resource, %w( description ) )
                  ).to match_array %w( description )
         end
 
-
         it "returns all facetable subfields for a non-facetable field" do
-          sub1 = stub('sub1', :facetable? => true, :name => 'somefield.sub2a', :geo_point? => false)
-          sub2 = stub('sub2', :facetable? => true, :name => 'somefield.sub2a_geo', :geo_point? => true)
-          field = stub('field', :facetable? => false, :name => 'somefield', :subfields => [sub1, sub2], :geo_point? => false)
+          sub1 = stub(:facetable? => true, :name => 'somefield.sub2a', :geo_point? => false)
+          sub2 = stub(:facetable? => true, :name => 'somefield.sub2a_geo', :geo_point? => true)
+          field = stub(:facetable? => false, :name => 'somefield', :subfields => [sub1, sub2], :geo_point? => false)
           V1::Schema.stub(:field).with(resource, 'somefield') { field }
           expect(
                  subject.expand_facet_fields(resource, %w( somefield ) )
@@ -291,11 +290,11 @@ module V1
         end
 
         it "returns the correct values when called with a mix of fields" do
-          subfield = stub('sub', :facetable? => true, :name => 'somefield.sub2a', :geo_point? => false)
-          somefield = stub('field', :facetable? => false, :name => 'somefield', :subfields => [subfield], :geo_point? => false)
+          subfield = stub(:facetable? => true, :name => 'somefield.sub2a', :geo_point? => false)
+          somefield = stub(:facetable? => false, :name => 'somefield', :subfields => [subfield], :geo_point? => false)
           V1::Schema.stub(:field).with(resource, 'somefield') { somefield }
 
-          id_field = stub('field', :facetable? => true, :name => 'id', :subfields => [])
+          id_field = stub(:facetable? => true, :name => 'id', :subfields => [])
           V1::Schema.stub(:field).with(resource, 'id') { id_field }
 
           expect(

@@ -1,7 +1,7 @@
 module V1
 
   class Field
-    # f.facet_name  # => isPartOf.name => isPartOf.name.raw (it's multi_field)
+    # f.facet_name  # => isPartOf.name => isPartOf.name.not_analyzed (its multi_field)
     # f.facet_fields# results of expand_facet_name (always returns an array)
     # f.options (?) # query params appended to field name (e.g. date.before)
 
@@ -24,12 +24,25 @@ module V1
       @mapping['type']
     end
 
-    def sort
-      @mapping['sort']
+    #TODO: Right now, sorting on a multi_field happens on its multi_field_default. Ideally,
+    # this would be changed to its not_analyzed field. Then the sort attr on the multi_field_default
+    # can be removed
+    def sort  #TEST
+      #TODO: multi_field support
+      @mapping['sort'] || multi_field_default && multi_field_default.sort
     end
 
-    def sortable?
-      !sort.nil?
+    def simple_name
+      @simple_name ||= name.split('.').last
+    end
+
+    def sortable?  #TEST
+      !!sort || multi_field_default && multi_field_default.sortable?
+    end
+
+    def multi_field_default  #TEST
+      return @multi_field_default if defined?(@multi_field_default)
+      @multi_field_default = multi_fields.detect {|mf| mf.simple_name == simple_name }
     end
 
     def subfields?
@@ -43,11 +56,11 @@ module V1
     def subfields_deep
       # Note: As a side-effect of the recursive design this will always return self
       # for a field with no subfields
-      [self] + subfields.map {|sf| sf.subfields_deep}.flatten
+      [self] + subfields.map(&:subfields_deep).flatten
     end
 
     def subfield_names
-      subfields.map {|sf| sf.name}
+      subfields.map(&:name)
     end
 
     def multi_fields
@@ -67,7 +80,7 @@ module V1
 
     def facetable?
       # Rules: a field is facetable if its 'facet' attribute is true, or if its type is
-      # multi_field and it has a multi_field named 'raw' that is facetable?. This could
+      # multi_field and it has a multi_field named 'not_analyzed' that is facetable?. This could
       # be set up to look for the multi_field with the same name as this field, too. 
       # Note: A field is not facetable if its facetable attribute is false but it does
       # have a facetable subfield - you would need to expand this field to get its facetable
@@ -77,15 +90,15 @@ module V1
         true
       elsif type == 'multi_field'
         # this has a facetable multi_field subfield
-        multi_fields.select {|mf| mf.name =~ /\.raw$/ && mf.facetable?}.any?
+        multi_fields.select {|mf| mf.name =~ /\.not_analyzed$/ && mf.facetable?}.any?
       else
         false
       end
     end
 
-    def analyzed?
-      @mapping['index'] != 'not_analyzed'
-    end
+    # def analyzed?
+    #   @mapping['index'] != 'not_analyzed'
+    # end
 
     def enabled?
       !(@mapping.has_key?('enabled') && @mapping['enabled'] == false)

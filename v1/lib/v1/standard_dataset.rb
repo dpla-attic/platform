@@ -15,7 +15,6 @@ module V1
       recreate_index!
       import_test_dataset
       puts "ElasticSearch docs: #{ doc_count }"
-      recreate_river!
     end
 
     def self.doc_count
@@ -60,6 +59,8 @@ module V1
 
       Tire.index(V1::Config::SEARCH_INDEX) do |tire|
         tire.delete
+        #TODO: add '_meta' => {'created' => $timestamp}
+        #ToDO: also consider using [settings.]index.mapping.ignore_malformed => true
         tire.create( { 'mappings' => V1::Schema::ELASTICSEARCH_MAPPING } )
         if tire.response.code != 200
           raise "ERROR: #{ JSON.parse(tire.response.body)['error'] }" 

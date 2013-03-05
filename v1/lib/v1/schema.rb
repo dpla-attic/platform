@@ -10,8 +10,8 @@ module V1
         'properties' => {
           'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
           '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
-          'ingestType' => { 'type' => 'string', 'include_in_all' => false },
-          'ingestDate' => { 'type' => 'date', 'include_in_all' => false },
+          'ingestType' => { 'type' => 'object', 'enabled' => false },
+          'ingestDate' => { 'type' => 'object', 'enabled' => false },
           'title' => { 'type' => 'string', 'sort' => 'script' },
           'fakefacet' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
         }
@@ -52,12 +52,48 @@ module V1
               },
               'spatial' => {
                 'properties' => {
-                  'name' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-                  'country' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-                  'region' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-                  'county' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-                  'state' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-                  'city' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+                  'name' => {
+                    'type' => 'multi_field',
+                    'fields' => {
+                      'name' => { 'type' => 'string', 'sort' => 'script' },
+                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                    }
+                  },
+                  'country' => {
+                    'type' => 'multi_field',
+                    'fields' => {
+                      'country' => { 'type' => 'string', 'sort' => 'script' },
+                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                    }
+                  },
+                  'region' => {
+                    'type' => 'multi_field',
+                    'fields' => {
+                      'region' => { 'type' => 'string', 'sort' => 'script' },
+                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                    }
+                  },
+                  'county' => {
+                    'type' => 'multi_field',
+                    'fields' => {
+                      'county' => { 'type' => 'string', 'sort' => 'script' },
+                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                    }
+                  },
+                  'state' => {
+                    'type' => 'multi_field',
+                    'fields' => {
+                      'state' => { 'type' => 'string', 'sort' => 'script' },
+                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                    }
+                  },
+                  'city' => {
+                    'type' => 'multi_field',
+                    'fields' => {
+                      'city' => { 'type' => 'string', 'sort' => 'script' },
+                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                    }
+                  },
                   'iso3166-2' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
                   'coordinates' => { 'type' => 'geo_point', 'index' => 'not_analyzed', 'sort' => 'geo_distance', 'facet' => true }
                 }
@@ -66,7 +102,13 @@ module V1
                 'properties' => {
                   '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
                   '@type' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
-                  'name' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                  'name' => {
+                    'type' => 'multi_field',
+                    'fields' => {
+                      'name' => { 'type' => 'string', 'sort' => 'script' },
+                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                    }
+                  }                      
                 }
               },
               'temporal' => {
@@ -90,7 +132,13 @@ module V1
           'isPartOf' => {
             'properties' => {
               '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-              'name' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true }
+              'name' => {
+                'type' => 'multi_field',
+                'fields' => {
+                  'name' => { 'type' => 'string', 'sort' => 'field' },
+                  'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                }
+              }                      
             }
           },
           'isShownAt' => {
@@ -110,24 +158,27 @@ module V1
           'provider' => {
             'properties' => {
               '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-              'name' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true }
+              'name' => {
+                'type' => 'multi_field',
+                'fields' => {
+                  'name' => { 'type' => 'string', 'sort' => 'field' },
+                  'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                }
+              }                      
             }
           },
           '@context' => { 'type' => 'object', 'enabled' => false },
           'admin' => { 'type' => 'object', 'enabled' => false },
           'originalRecord' => { 'type' => 'object', 'enabled' => false },
-          'ingestType' => { 'type' => 'string', 'include_in_all' => false },
-          'ingestDate' => { 'type' => 'date', 'include_in_all' => false },
+          'ingestType' => { 'type' => 'object', 'enabled' => false },
+          'ingestDate' => { 'type' => 'object', 'enabled' => false },
         }
       }
     }.freeze
 
     def self.field(resource, name, modifier=nil)
       # A "resource" is a top-level DPLA resource: 'item', 'collection', 'creator'
-
-      if !ELASTICSEARCH_MAPPING.has_key? resource
-        raise "Invalid resource: #{resource}"
-      end
+      raise "Invalid resource: #{resource}" unless ELASTICSEARCH_MAPPING[resource]
 
       field_names = name.split('.')
       first_name = field_names.shift
@@ -146,7 +197,7 @@ module V1
 
     def self.all_fields(resource)
       # Renders mapping into a list of fields and $field.subfields. This will include
-      # every node in the mapping, meaning level1 will be included even if
+      # every node in the mapping, meaning node "levelA" will be included even if
       # it has subfields.
       names = {}
       top_level_names = ELASTICSEARCH_MAPPING[resource]['properties'].keys

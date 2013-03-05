@@ -24,6 +24,11 @@ end
 
 Then /^I should get http status code "(.*?)"$/ do |arg1|
   item_query(@params, false)
+
+  if page.status_code.to_s != arg1
+    puts "Server Response: #{ JSON.parse(page.source)['message'] || page.source }"
+  end
+
   expect(page.status_code.to_s).to eq(arg1)
 end
 

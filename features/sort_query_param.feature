@@ -18,9 +18,14 @@ Feature: Sort search results
     And sort by "aggregatedCHO.title"
     Then I should get http status code "200"
 
-  Scenario: Sort on not_analyzed field with array values using script-type sort
+  Scenario: Sort on multi_field field with array values using script-type sort
     When I make an empty search
     And sort by "aggregatedCHO.subject.name"
+    Then I should get http status code "200"
+
+  Scenario: Sort on multi_field field with array values using script-type sort
+    When I make an empty search
+    And sort by "aggregatedCHO.spatial.city"
     Then I should get http status code "200"
 
   Scenario: Sort on non-sortable field

@@ -5,7 +5,7 @@
 # and tags would be used to create the correct datasets. That would also eliminate the
 # possibility of pagination causing false negatives between test runs on different systems.
 
-#puts "SKIPPING Setup Yo."
+# puts "~~~~~~~~~~~~~~~~\n~~~~~~~~~~~~ SKIPPING Setup Yo. ~~~~~~~~~~~~\n~~~~~~~~~~~~~~~~"
 V1::StandardDataset.recreate_index!
 V1::Repository.recreate_env!
 

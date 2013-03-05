@@ -12,11 +12,15 @@ Then /^the API should return (\d+) (collection)s with "(.*?)"$/ do |count, resou
   end
 end
 
-When /^I (.+)-search for "(.*?)"( in the "(.*?)" field)?$/ do |resource, keyword, junk, query_field|
+When /^I (.+)-search for( the phrase)? "(.*?)"( in the "(.*?)" field)?$/ do |resource, is_phrase, keyword, junk, query_field|
   @resource = resource
   @query_field = query_field || 'q'
   @query_string = keyword
-  @params = { @query_field => @query_string }
+  
+  # phrase queries get wrapped in double quotes
+  @params = {
+    @query_field => is_phrase.nil? ? @query_string : '"' + @query_string + '"'
+  }
 end
 
 # When /^I search the "(.*?)" field for records with a date between "(.*?)" and "(.*?)"$/ do |field, start_date, end_date|

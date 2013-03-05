@@ -20,7 +20,6 @@ module V1
       it "calls the correct methods in the correct order" do
         subject.should_receive(:recreate_index!)
         subject.should_receive(:import_test_dataset)
-        subject.should_receive(:recreate_river!)
         subject.stub(:doc_count)
         subject.stub(:puts)
         subject.recreate_env!

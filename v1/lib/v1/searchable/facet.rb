@@ -59,6 +59,18 @@ module V1
         requested.any?
       end
 
+      def self.facet_field_name(field)
+        # Determines what field (not name) to tell ElasticSearch to use for a facet on this field
+        multi_field_facet_name = field.name + '.not_analyzed'
+
+        if field.multi_fields.any? {|mf| (mf.name == multi_field_facet_name) && mf.facetable?}
+          # facetable multi_field with our standard not_analyzed subfield
+          multi_field_facet_name
+        else
+          field.name
+        end
+      end
+      
       def self.facet_display_name(field)
         # Retrail the facet_modifier string for date fields to better support date_histogram
         # intervals in the facet payload returned to the client
@@ -193,16 +205,6 @@ module V1
         end
       end
 
-      def self.facet_field_name(field)
-        # Determines what field (not name) to tell ElasticSearch to use for a facet on this field
-        if field.multi_fields.any? {|mf| (mf.name == field.name + '.raw') && mf.facetable?}
-          # facetable multi_field with our standard .raw subfield
-          field.name + '.raw'
-        else
-          field.name
-        end
-      end
-      
       def self.expand_facet_fields(resource, names)
         # Expands a list of names into all facetables names and those names' facetable subnames
         # Passes unrecognized facet names through un-touched so they can be handled elsewhere
