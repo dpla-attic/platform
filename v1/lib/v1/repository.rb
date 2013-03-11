@@ -94,15 +94,20 @@ module V1
       CouchRest.database(admin_endpoint_database).delete! rescue nil
 
       # create new db
-      db = CouchRest.database!(admin_endpoint_database)
+      CouchRest.database!(admin_endpoint_database)
 
-      username = V1::Config.dpla['read_only_user']['username']
-      password = V1::Config.dpla['read_only_user']['password'] 
-      create_read_only_user(username, password)
-      assign_roles(db)
+      recreate_users
     end
 
-    def self.create_read_only_user(username, password)
+    def self.recreate_users
+      #TODO: should we be creating the admin user here too? perhaps only if it does not exist?
+      username = V1::Config.dpla['read_only_user']['username']
+      password = V1::Config.dpla['read_only_user']['password'] 
+      recreate_user(username, password)
+      assign_roles
+    end
+
+    def self.recreate_user(username, password)
       users_db = CouchRest.database("#{admin_endpoint}/_users")
       couch_username = "org.couchdb.user:#{username}"
       
@@ -121,23 +126,30 @@ module V1
       raise "ERROR: #{result}" unless result['ok']
     end
 
-    def self.assign_roles(db)
-      security_doc = {
-        '_id' => '_security',
-        'admins' => {'roles' => %w( admin )},
-        'readers' => {'roles' => %w( reader )}
-      }
-      roles_result = db.save_doc(security_doc)
-      raise "ERROR: #{roles_result}" unless roles_result['ok']
+    def self.assign_roles
+      # Only creates new docs if they do not already exist
+      db = CouchRest.database(admin_endpoint_database)      
+      current_security = db.get( '_security' ) rescue nil
+      if current_security.nil?
+        security_doc = {
+          '_id' => '_security',
+          'admins' => {'roles' => %w( admin )},
+          'readers' => {'roles' => %w( reader )}
+        }
+        roles_result = db.save_doc(security_doc)
+        raise "ERROR: #{roles_result}" unless roles_result['ok']
+      end        
 
-      # add validation to ensure only admin can create new docs
-      auth_doc = {
-        '_id' => '_design/auth',
-        'language' => 'javascript',
-        'validate_doc_update' => "function(newDoc, oldDoc, userCtx) { if (userCtx.roles.indexOf('_admin') != -1) { return; } else { throw({forbidden: 'Only admins may edit the database'}); } }"
-      }
-      auth_result = db.save_doc(auth_doc)
-      raise "ERROR: #{auth_result}" unless auth_result['ok']
+      current_auth = db.get( '_design/auth' ) rescue nil
+      if current_auth.nil?
+        auth_doc = {
+          '_id' => '_design/auth',
+          'language' => 'javascript',
+          'validate_doc_update' => "function(newDoc, oldDoc, userCtx) { if (userCtx.roles.indexOf('_admin') != -1) { return; } else { throw({forbidden: 'Only admins may edit the database'}); } }"
+        }
+        auth_result = db.save_doc(auth_doc)
+        raise "ERROR: #{auth_result}" unless auth_result['ok']
+      end
     end
 
     def self.read_only_endpoint

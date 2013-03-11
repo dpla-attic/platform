@@ -12,18 +12,14 @@ module V1
         CouchRest.should_receive(:database).with('dbname') { couchdb }
 
         CouchRest.should_receive(:database!).with('dbname')
-        subject.stub(:create_read_only_user)
-        subject.stub(:assign_roles)
-#        V1::StandardDataset.stub(:recreate_river!)
+        subject.stub(:recreate_users)
         subject.recreate_database!
       end
       
       it "creates reader user and sets up access rules on DB" do
         CouchRest.stub(:database) { stub.as_null_object }
         CouchRest.stub(:database!)
-        subject.should_receive(:create_read_only_user)
-        subject.should_receive(:assign_roles)
-        V1::StandardDataset.stub(:recreate_river!)
+        subject.should_receive(:recreate_users)
         subject.recreate_database!        
       end
 
@@ -159,7 +155,7 @@ module V1
       end
     end
 
-    describe "#create_read_only_user" do
+    describe "#recreate_user" do
       
       before :each do
         subject.stub(:admin_endpoint) { 'couchserver' }
@@ -172,7 +168,7 @@ module V1
         @users_db.stub(:get).with("org.couchdb.user:user") { @read_only_user }
         @users_db.should_receive(:delete_doc).with(@read_only_user)
         @users_db.stub(:save_doc) { {'ok' => true} }
-        subject.create_read_only_user('user', 'pw')
+        subject.recreate_user('user', 'pw')
       end
 
       it "creates a user" do
@@ -180,19 +176,23 @@ module V1
         @users_db.should_not_receive(:delete_doc)
         @users_db.should_receive(:save_doc) { {'ok' => true} }
 
-        subject.create_read_only_user('user', 'pw')
+        subject.recreate_user('user', 'pw')
       end
     end
 
     describe "#assign_roles" do
       it "should lock down database roles and create design doc for validation" do
-        db = mock
+         db = mock
+        CouchRest.stub(:database) { db }
+        db.should_receive(:get).with('_security') { nil }
         db.should_receive(:save_doc)
           .with({
                   '_id' => '_security',
                   'admins' => {'roles' => %w( admin )},
                   'readers' => {'roles' => %w( reader )}
                 }) { {'ok' => true} }
+
+        db.should_receive(:get).with('_design/auth') { nil }
         db.should_receive(:save_doc)
           .with({
                   '_id' => '_design/auth',
@@ -200,8 +200,7 @@ module V1
                   'validate_doc_update' => "function(newDoc, oldDoc, userCtx) { if (userCtx.roles.indexOf('_admin') != -1) { return; } else { throw({forbidden: 'Only admins may edit the database'}); } }"
                 }) { {'ok' => true} }
 
-
-        subject.assign_roles(db)
+        subject.assign_roles
       end
 
     end

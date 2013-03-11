@@ -70,7 +70,12 @@ namespace :v1 do
   task :recreate_repo_database do
     V1::Repository.recreate_database!
   end
-
+  
+  desc "Re-creates read-only CouchDB user and re-assigns roles"
+  task :recreate_repo_users do
+    V1::Repository.recreate_users
+  end
+  
   desc "Gets number of docs in repository"
   task :repo_doc_count do
     puts V1::Repository.doc_count
