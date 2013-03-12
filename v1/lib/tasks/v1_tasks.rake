@@ -21,12 +21,12 @@ namespace :v1 do
     V1::StandardDataset.recreate_env!
   end
 
-  desc "Creates new ElasticSearch river on 'items'"
+  desc "Creates new ElasticSearch river"
   task :recreate_river do
     V1::StandardDataset.recreate_river!
   end
 
-  desc "Deletes CouchDB River on 'items'"
+  desc "Deletes ElasticSearch river"
   task :delete_river do
     V1::StandardDataset.delete_river!
   end
