@@ -29,9 +29,9 @@ module V1
                    V1::Schema::ELASTICSEARCH_MAPPING[resource]['properties']
                    ).to have(14).items
           end
-          it "has the correct number of fields for 'item/aggregatedCHO'" do
+          it "has the correct number of fields for 'item/sourceResource'" do
             expect(
-                   V1::Schema::ELASTICSEARCH_MAPPING[resource]['properties']['aggregatedCHO']['properties']
+                   V1::Schema::ELASTICSEARCH_MAPPING[resource]['properties']['sourceResource']['properties']
                    ).to have(16).items
           end
         end
@@ -45,7 +45,7 @@ module V1
           it "has the correct number of fields for resource" do
             expect(
                    V1::Schema::ELASTICSEARCH_MAPPING[resource]['properties']
-                   ).to have(6).items
+                   ).to have(7).items
           end
         end
       end
@@ -58,7 +58,7 @@ module V1
           'test_resource' => {
             'properties' => {
               'id' => { 'type' => 'string', 'facet' => true },
-              'aggregatedCHO' => {
+              'sourceResource' => {
                 'properties' => {
                   'title' => { 'type' => 'string' },
                   'description' => { 'type' => 'string' },
@@ -127,7 +127,7 @@ module V1
                     }
                   },
                 }
-              },  #/aggregatedCHO
+              },  #/sourceResource
               'dataProvider' => { 'type' => 'string' },
               'someBlob' => { 'enabled' => false },
             }
@@ -152,42 +152,42 @@ module V1
           expect(all_field_names)
             .to match_array(%w(
                               id
-                              aggregatedCHO
-                              aggregatedCHO.title
-                              aggregatedCHO.description
-                              aggregatedCHO.date
-                              aggregatedCHO.date.displayDate
-                              aggregatedCHO.date.begin
-                              aggregatedCHO.date.end
-                              aggregatedCHO.level1
-                              aggregatedCHO.level1.level2
-                              aggregatedCHO.level1.level2.level3A
-                              aggregatedCHO.level1.level2.level3B
-                              aggregatedCHO.temporal
-                              aggregatedCHO.temporal.begin
-                              aggregatedCHO.temporal.end
-                              aggregatedCHO.spatial
-                              aggregatedCHO.spatial.city
-                              aggregatedCHO.spatial.iso3166-2
-                              aggregatedCHO.spatial.coordinates
-                              aggregatedCHO.isPartOf
-                              aggregatedCHO.isPartOf.@id
-                              aggregatedCHO.isPartOf.name
-                              aggregatedCHO.field1
-                              aggregatedCHO.field1.name
-                              aggregatedCHO.field2
-                              aggregatedCHO.field2.sub2a
-                              aggregatedCHO.field2.sub2b
-                              aggregatedCHO.field3
-                              aggregatedCHO.field3.sub3a
-                              aggregatedCHO.field3.sub3b
+                              sourceResource
+                              sourceResource.title
+                              sourceResource.description
+                              sourceResource.date
+                              sourceResource.date.displayDate
+                              sourceResource.date.begin
+                              sourceResource.date.end
+                              sourceResource.level1
+                              sourceResource.level1.level2
+                              sourceResource.level1.level2.level3A
+                              sourceResource.level1.level2.level3B
+                              sourceResource.temporal
+                              sourceResource.temporal.begin
+                              sourceResource.temporal.end
+                              sourceResource.spatial
+                              sourceResource.spatial.city
+                              sourceResource.spatial.iso3166-2
+                              sourceResource.spatial.coordinates
+                              sourceResource.isPartOf
+                              sourceResource.isPartOf.@id
+                              sourceResource.isPartOf.name
+                              sourceResource.field1
+                              sourceResource.field1.name
+                              sourceResource.field2
+                              sourceResource.field2.sub2a
+                              sourceResource.field2.sub2b
+                              sourceResource.field3
+                              sourceResource.field3.sub3a
+                              sourceResource.field3.sub3b
                               dataProvider
                               ))
         end
 
         # Test some specific cases
         it "includes an expected basic string field" do
-          expect(all_field_names).to include 'aggregatedCHO.title'
+          expect(all_field_names).to include 'sourceResource.title'
         end
         it "excludes $field where 'enabled' is false" do
           expect(all_field_names).not_to include 'someBlob'
@@ -201,13 +201,13 @@ module V1
         let(:queryable_field_names) { V1::Schema.queryable_field_names(resource) }
 
         it "includes $field.before and $field.after for top-level date fields" do
-          expect(queryable_field_names).to include 'aggregatedCHO.date.before'
-          expect(queryable_field_names).to include 'aggregatedCHO.date.after'
-          expect(queryable_field_names).to include 'aggregatedCHO.temporal.before'
-          expect(queryable_field_names).to include 'aggregatedCHO.temporal.after'
+          expect(queryable_field_names).to include 'sourceResource.date.before'
+          expect(queryable_field_names).to include 'sourceResource.date.after'
+          expect(queryable_field_names).to include 'sourceResource.temporal.before'
+          expect(queryable_field_names).to include 'sourceResource.temporal.after'
         end
         it "includes $field.distance for a geo_point field" do
-          expect(queryable_field_names).to include 'aggregatedCHO.spatial.distance'
+          expect(queryable_field_names).to include 'sourceResource.spatial.distance'
         end
         it "does not contain any duplicate fields" do
           expect(queryable_field_names).to match_array queryable_field_names.uniq
@@ -238,11 +238,11 @@ module V1
 
         it "creates a top level field with subfields correctly" do
           fieldstub = stub
-          name = 'aggregatedCHO.temporal'
+          name = 'sourceResource.temporal'
           V1::Field.should_receive(:new)
             .with(resource,
                   name,
-                  item_mapping['aggregatedCHO']['properties']['temporal'],
+                  item_mapping['sourceResource']['properties']['temporal'],
                   nil
                   ) { fieldstub }
           expect(V1::Schema.field(resource, name)).to eq fieldstub
@@ -250,12 +250,12 @@ module V1
 
         it "creates a subfield field correctly" do
           subfieldstub = stub
-          name = 'aggregatedCHO.temporal.begin'
+          name = 'sourceResource.temporal.begin'
           V1::Field.should_receive(:new)
             .with(
                   resource,
                   name,
-                  item_mapping['aggregatedCHO']['properties']['temporal']['properties']['begin'],
+                  item_mapping['sourceResource']['properties']['temporal']['properties']['begin'],
                   nil
                   ) { subfieldstub }
           expect(V1::Schema.field(resource, name)).to eq subfieldstub
@@ -275,12 +275,12 @@ module V1
 
         it "handles mid-level field with subfields" do
           midfield = stub
-          name = 'aggregatedCHO.level1.level2'
+          name = 'sourceResource.level1.level2'
           V1::Field.should_receive(:new)
             .with(
                   resource,
                   name,
-                  item_mapping['aggregatedCHO']['properties']['level1']['properties']['level2'],
+                  item_mapping['sourceResource']['properties']['level1']['properties']['level2'],
                   nil
                   ) { midfield }
           expect(V1::Schema.field(resource, name)).to eq midfield
@@ -288,12 +288,12 @@ module V1
 
         it "handles deeply nested field" do
           subfieldstub = stub
-          name = 'aggregatedCHO.level1.level2.level3A'
+          name = 'sourceResource.level1.level2.level3A'
           V1::Field.should_receive(:new)
             .with(
                   resource,
                   name,
-                  item_mapping['aggregatedCHO']['properties']['level1']['properties']['level2']['properties']['level3A'],
+                  item_mapping['sourceResource']['properties']['level1']['properties']['level2']['properties']['level3A'],
                   nil
                   ) { subfieldstub }
           expect(V1::Schema.field(resource, name)).to eq subfieldstub

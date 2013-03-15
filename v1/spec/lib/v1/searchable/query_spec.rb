@@ -42,7 +42,7 @@ module V1
         end
         
         it "returns correct query string for field search" do
-          name = 'aggregatedCHO.title'
+          name = 'sourceResource.title'
           field = stub(:name => name, :geo_point? => false, :subfields? => false)
           V1::Schema.stub(:field).with(resource, name) { field }
           params = {name => 'some title'}
@@ -52,8 +52,8 @@ module V1
                             )
         end
 
-        it "handles 'aggregatedCHO.spatial.state' as a normal field search" do
-          name = 'aggregatedCHO.spatial.state'
+        it "handles 'sourceResource.spatial.state' as a normal field search" do
+          name = 'sourceResource.spatial.state'
           field = stub(:name => name, :geo_point? => false, :subfields? => false)
           V1::Schema.stub(:field).with(resource, name) { field }
           params = {name => 'MA'}
@@ -65,21 +65,21 @@ module V1
 
 
         it "ignores geo_point field" do
-          name = 'aggregatedCHO.spatial.coordinates'
+          name = 'sourceResource.spatial.coordinates'
           field = stub(:name => name, :geo_point? => true)
           V1::Schema.stub(:field).with(resource, name) { field }
           params = {name => '42,-71'}
           expect(subject.field_queries(resource, params)).to match_array []
         end
 
-        it "searches all subfields of 'aggregatedCHO.date'" do
-          name = 'aggregatedCHO.date'
+        it "searches all subfields of 'sourceResource.date'" do
+          name = 'sourceResource.date'
           field = stub(:name => name, :geo_point? => false, :subfields? => true)
           V1::Schema.stub(:field).with(resource, name) { field }
           params = {name => '1999-08-07'}
           expect(subject.field_queries(resource, params))
             .to match_array(
-                            [['1999-08-07', {'fields' => ['aggregatedCHO.date.*'],'lenient' => true }]]
+                            [['1999-08-07', {'fields' => ['sourceResource.date.*'],'lenient' => true }]]
                             )
         end
 

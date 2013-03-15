@@ -10,10 +10,11 @@ module V1
         'properties' => {
           'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
           '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
+          'title' => { 'type' => 'string', 'sort' => 'script' },
+          'description' => { 'type' => 'string' },          
+          'fakefacet' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
           'ingestType' => { 'type' => 'object', 'enabled' => false },
           'ingestDate' => { 'type' => 'object', 'enabled' => false },
-          'title' => { 'type' => 'string', 'sort' => 'script' },
-          'fakefacet' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
         }
       },  #/collection
       'item' => {
@@ -21,7 +22,7 @@ module V1
         'properties' => {
           'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
           '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
-          'aggregatedCHO' => {
+          'sourceResource' => {
             'properties' => {
               'contributor' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
               'creator' => { 'type' => 'string' },
@@ -40,7 +41,7 @@ module V1
                   'iso639' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true }
                 }
               },
-              'physicalMedium' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+              'format' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
               'publisher' => { 'type' => 'string' },
               'rights' => { 'type' => 'string' },
               'relation' => { 'type' => 'string' },
@@ -120,7 +121,7 @@ module V1
               'title' => { 'type' => 'string', 'sort' => 'script' },
               'type' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
             }
-          },  #/aggregatedCHO
+          },  #/sourceResource
           'dataProvider' => { 'type' => 'string' },
           'hasView' => {
             'properties' => {
@@ -141,20 +142,8 @@ module V1
               }                      
             }
           },
-          'isShownAt' => {
-            'properties' => {
-              '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-              'format' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true },
-              'rights' => { 'type' => 'string', 'index' => 'not_analyzed' }
-            }
-          },
-          'object' => {
-            'properties' => {
-              '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-              'format' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true },
-              'rights' => { 'type' => 'string', 'index' => 'not_analyzed' }
-            }
-          },
+          'isShownAt' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+          'object' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
           'provider' => {
             'properties' => {
               '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },

@@ -4,12 +4,12 @@ module Contentqa
   class SearchController < ApplicationController
     include Contentqa::SearchHelper
 
-    DISPLAY = %w[id aggregatedCHO.title aggregatedCHO.description aggregatedCHO.creator aggregatedCHO.type aggregatedCHO.publisher aggregatedCHO.physicalMedium aggregatedCHO.rights aggregatedCHO.contributor aggregatedCHO.date aggregatedCHO.spatial aggregatedCHO.temporal aggregatedCHO.subject aggregatedCHO.ingestDate isPartOf aggregatedCHO.language.name]
-    SEARCH = %w[id aggregatedCHO.title aggregatedCHO.description aggregatedCHO.creator aggregatedCHO.type aggregatedCHO.publisher aggregatedCHO.physicalMedium aggregatedCHO.rights aggregatedCHO.contributor aggregatedCHO.spatial aggregatedCHO.temporal.after aggregatedCHO.temporal.before aggregatedCHO.subject.name isPartOf]
-    FACETS = %w[aggregatedCHO.type aggregatedCHO.physicalMedium aggregatedCHO.language.name aggregatedCHO.spatial.name aggregatedCHO.spatial.state aggregatedCHO.spatial.city aggregatedCHO.subject.name isPartOf.name aggregatedCHO.contributor]
+    DISPLAY = %w[id sourceResource.title sourceResource.description sourceResource.creator sourceResource.type sourceResource.publisher sourceResource.format sourceResource.rights sourceResource.contributor sourceResource.date sourceResource.spatial sourceResource.temporal sourceResource.subject sourceResource.ingestDate isPartOf sourceResource.language.name]
+    SEARCH = %w[id sourceResource.title sourceResource.description sourceResource.creator sourceResource.type sourceResource.publisher sourceResource.format sourceResource.rights sourceResource.contributor sourceResource.spatial sourceResource.temporal.after sourceResource.temporal.before sourceResource.subject.name isPartOf]
+    FACETS = %w[sourceResource.type sourceResource.format sourceResource.language.name sourceResource.spatial.name sourceResource.spatial.state sourceResource.spatial.city sourceResource.subject.name isPartOf.name sourceResource.contributor]
 
     # add facets to PARAMETERS because anything facetable should also be searchable. Dupes are harmless here
-    PARAMETERS = FACETS + %w[aggregatedCHO.title aggregatedCHO.description aggregatedCHO.creator aggregatedCHO.type aggregatedCHO.publisher aggregatedCHO.physicalMedium aggregatedCHO.rights  aggregatedCHO.contributor aggregatedCHO.date.before aggregatedCHO.date.after aggregatedCHO.spatial.name aggregatedCHO.spatial.state aggregatedCHO.temporal.after aggregatedCHO.temporal.before isPartOf id q page_size facet_size page aggregatedCHO.subject.name]
+    PARAMETERS = FACETS + %w[sourceResource.title sourceResource.description sourceResource.creator sourceResource.type sourceResource.publisher sourceResource.format sourceResource.rights  sourceResource.contributor sourceResource.date.before sourceResource.date.after sourceResource.spatial.name sourceResource.spatial.state sourceResource.temporal.after sourceResource.temporal.before isPartOf id q page_size facet_size page sourceResource.subject.name]
 
     def index
       api_params = params.delete_if { |key,value| PARAMETERS.exclude? key}

@@ -4,6 +4,7 @@
         "id": "coll1",
         "@id": "http://dp.la/api/collections/minnesota--mhs",
         "title": "Apple Collection",
+        "description": "Macintosh and Golden Delicious, mostly",
         "fakefacet": "fake facet1",
         "ingestType": "collection",
         "ingestDate": "2013-02-06T21:39:35.280714"
@@ -13,6 +14,7 @@
         "id": "coll2",
         "@id": "http://dp.la/api/collections/minnesota--axl",
         "title": "Orange Collection Bonanza",
+        "description": "Nothing rhymes with this fruit type",
         "fakefacet": "fake facet2",
         "ingestType": "collection",
         "ingestDate": "2013-02-07T00:00:00.200002"
@@ -22,6 +24,7 @@
         "id": "coll3",
         "@id": "http://dp.la/api/collections/minnesota--axl",
         "title": "Honeydew Collection Bonanza",
+        "description": "A list of things for your significant other to do",
         "fakefacet": "fake facet2",
         "ingestType": "collection",
         "ingestDate": "2013-02-07T00:00:00.200002"

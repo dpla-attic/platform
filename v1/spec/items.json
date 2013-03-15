@@ -3,7 +3,7 @@
         "_id": "1",
         "id": "1",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "title": "banana one",
             "description": "description one",
             "creator": "",
@@ -12,7 +12,7 @@
                 "begin": "1977-01-01",
                 "end": "1977-01-01"
             },
-            "physicalMedium": "",
+            "format": "",
             "rights": "",
             "relation": "",
             "source": "",
@@ -23,7 +23,7 @@
         "_id": "2",
         "id": "2",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "title": "title two",
             "description": "perplexed two",
             "creator": "",
@@ -32,7 +32,7 @@
                 "begin": "1978-01-01",
                 "end": "1979-01-01"
             },
-            "physicalMedium": "",
+            "format": "",
             "rights": "",
             "relation": "",
             "source": "",
@@ -43,7 +43,7 @@
         "_id": "3",
         "id": "3",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "title": "title three",
             "description": "perplexed three",
             "creator": "",
@@ -55,7 +55,7 @@
             "subject": {
                 "name": "perplexed subject3 doodle"
             },
-            "physicalMedium": "text/xml",
+            "format": "text/xml",
             "rights": "",
             "relation": "",
             "source": "",
@@ -66,11 +66,11 @@
         "_id": "P",
         "id": "P",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "title": ["title phunk1", "title phunk2"],
             "description": "facettest, coll-P, contrib 42",
             "creator": "",
-            "physicalMedium": ["image/jpeg", "Manuscripts"],
+            "format": ["image/jpeg", "Manuscripts"],
             "language": {
                 "name": "English",
                 "iso639": "eng"
@@ -93,7 +93,7 @@
         "_id": "P2",
         "id": "P2",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "title": "P2 title",
             "description": "facettest, coll-P, contrib 42",
             "subject": {
@@ -112,7 +112,7 @@
         "_id": "P3",
         "id": "P3",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "title": "P3 title",
             "description": "facettest, coll-P, contrib 13",
             "subject": {
@@ -131,7 +131,7 @@
         "_id": "P2-A",
         "id": "P2-A",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "title": "title P2-A",
             "description": "mouse",
             "spatial": [
@@ -150,7 +150,7 @@
         "_id": "P2-B",
         "id":"P2-B",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "title": "title P2-B",
             "description": "",
             "spatial": [
@@ -167,7 +167,7 @@
         "_id": "P3-temporal-1",
         "id": "P3-temporal-1",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "title": "P3-temporal-1",
             "description": "bookend temporal ranges",
             "spatial": {
@@ -179,12 +179,12 @@
         "_id": "A",
         "id": "aaa",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "title": "title A",
             "description": "",
             "creator": "",
             "publisher": "",
-            "physicalMedium": "",
+            "format": "",
             "rights": "",
             "temporal": {
                 "begin": "1950-06-01",
@@ -199,12 +199,12 @@
         "_id": "B",
         "id": "bbb",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "title": "title B",
             "description": "",
             "creator": "",
             "publisher": "",
-            "physicalMedium": "",
+            "format": "",
             "rights": "",
             "temporal": {
                 "begin": "1955-07-01",
@@ -219,12 +219,12 @@
         "_id": "C",
         "id": "C",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "title": "title C",
             "description": "",
             "creator": "",
             "publisher": "",
-            "physicalMedium": "",
+            "format": "",
             "rights": "",
             "temporal": {
                 "begin": "1970",
@@ -239,12 +239,12 @@
         "_id": "D",
         "id": "D",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "title": "title D",
             "description": "",
             "creator": "",
             "publisher": "",
-            "physicalMedium": "",
+            "format": "",
             "rights": "",
             "temporal": [
                 {
@@ -265,7 +265,7 @@
         "_id": "F",
         "id": "F",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "title": "title F",
             "description": "",
             "creator": "",
@@ -274,7 +274,7 @@
                 "begin": "1973-04-19",
                 "end": "1973-04-19"
             },
-            "physicalMedium": "",
+            "format": "",
             "rights": "",
             "spatial": null,
             "temporal": {
@@ -290,12 +290,12 @@
         "_id": "M",
         "id": "M",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "title": "title M",
             "description": "",
             "creator": "",
             "publisher": "",
-            "physicalMedium": "",
+            "format": "",
             "rights": "",
             "spatial": [
                 {
@@ -318,7 +318,7 @@
         "_id": "Doppel1",
         "id": "Doppel1",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "title": "doppelganger title1",
             "description": "description ganger",
             "temporal": {
@@ -336,7 +336,7 @@
         "id": "Doppel2",
         "ingestType": "item",
         "title": "doppelganger title2",
-        "aggregatedCHO": {
+        "sourceResource": {
             "description": "description ganger",
             "temporal": {
                 "begin": "1988-03-01",
@@ -352,7 +352,7 @@
         "_id": "GeoDistance1",
         "id": "GeoDistance1",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "spatial": {
                 "name": "geo_distance1",
                 "coordinates": "43,-71",
@@ -365,7 +365,7 @@
         "_id": "GeoDistance2",
         "id": "GeoDistance2",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "spatial": {
                 "name": "geo_distance2",
                 "coordinates": "45,-71",
@@ -378,7 +378,7 @@
         "_id": "one.two.three",
         "id": "one.two.three",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "title": "dotted id test"
         }
     },
@@ -386,7 +386,7 @@
         "_id": "S1",
         "id": "S1",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "subject": {
                 "name": "Tone"
             },
@@ -401,7 +401,7 @@
         "_id": "S2",
         "id": "S2",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "subject": {
                 "name": "Ttwo"
             },
@@ -416,7 +416,7 @@
         "_id": "S3",
         "id": "S3",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "subject": {
                 "name": "Ttwo"
             },
@@ -431,7 +431,7 @@
         "_id": "S4",
         "id": "S4",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "subject": {
                 "name": "Tthree"
             },
@@ -446,7 +446,7 @@
         "_id": "S5",
         "id": "S5",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "subject": {
                 "name": "Tthree"
             },
@@ -461,7 +461,7 @@
         "_id": "S6",
         "id": "S6",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "subject": {
                 "name": "Tthree"
             },
@@ -476,7 +476,7 @@
         "_id": "R8",
         "id": "R8",
         "ingestType": "item",
-        "aggregatedCHO": {
+        "sourceResource": {
             "title": "peanut",
             "description": "Testing script sort on not_analyzed fields with array values",
             "subject": [
