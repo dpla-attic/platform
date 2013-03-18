@@ -74,8 +74,8 @@
     <h3>Search results</h3>
 
     <% @results.each do |record| %>
-    <% if dotted_hash_value(record,'object.@id').to_s != '' %>
-      <%= image_tag(dotted_hash_value(record,'object.@id').to_s) %><br/>
+    <% if dotted_hash_value(record,'object').to_s != '' %>
+      <%= image_tag(dotted_hash_value(record,'object').to_s) %><br/>
     <% end %>
     <% @display_fields.each do |f| %>
       <% if dotted_hash_value(record, f).to_s != ''  %>

@@ -380,7 +380,8 @@
         "ingestType": "item",
         "sourceResource": {
             "title": "dotted id test"
-        }
+        },
+        "object": "http://www.google.com/images/srpr/logo4w.png"
     },
     {
         "_id": "S1",
