@@ -18,4 +18,6 @@ V1::Engine.routes.draw do
   get "/collections" => "search#collections"
   get "/collections(.:format)/*ids" => "search#fetch_collections", :as => :collections_fetch
 
+  get "/repo/status" => "search#repo_status"
+
 end

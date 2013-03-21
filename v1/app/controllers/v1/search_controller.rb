@@ -58,8 +58,32 @@ module V1
         results.to_json
       end
     end
+
+    def repo_status
+      status = :ok
+      message = nil
+
+      begin
+        response = JSON.parse(V1::Repository.service_status(true))
+        
+        if response['doc_count'].to_s == ''
+          status = :error
+          message = response.to_s
+        end
+      rescue Errno::ECONNREFUSED => e
+        status = :service_unavailable
+        message = e.to_s
+      rescue => e
+        status = :error
+        message = e.to_s
+      end
+
+      logger.warn "REPO_STATUS Check: #{message}" if message
+      head status
+    end
     
     def connection_refused
+      logger.warn "search_controller#connection_refused handler firing"
       e = ServiceUnavailableSearchError.new
       render :json => render_json({:message => e.message}, params), :status => e.http_status
     end

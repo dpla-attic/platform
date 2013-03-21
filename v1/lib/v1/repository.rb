@@ -1,6 +1,7 @@
 require 'v1/standard_dataset'
 require 'json'
 require 'couchrest'
+require 'httparty'
 
 module V1
 
@@ -25,18 +26,19 @@ module V1
     end
 
     def self.reformat_results(results)
+      # BUG: This will throw a NoMethodError if results is all couch '404' responses
       results.map {|result| result['doc'].delete_if {|k,v| k =~ /^(_rev|_type)/} }
     end
 
     def self.recreate_env!
       recreate_database!
-      #TODO: make recreate_database! also recreate_river, just like V1::StandardDataset.recreate_search_index does
+      #TODO: make recreate_database! also recreate_river, like V1::StandardDataset.recreate_search_index does
       import_test_dataset
       puts "CouchDB docs/views: #{ doc_count }"
       V1::StandardDataset.recreate_river!
     end
 
-    def self.service_status
+    def self.service_status(raise_exceptions=false)
       uri = endpoint + '/' + repository_database
       config = V1::Config.dpla['read_only_user']
 
@@ -48,6 +50,8 @@ module V1
       begin
         HTTParty.get(uri, auth).body
       rescue Exception => e
+        # let caller request exceptions or let it default to returning an informative string
+        raise e if raise_exceptions
         "ERROR: #{e}"
       end
     end

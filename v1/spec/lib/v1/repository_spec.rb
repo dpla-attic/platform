@@ -254,6 +254,21 @@ module V1
 
     end
 
+    describe "#service_status" do
+      it "returns a string for a failed HTTP get by default" do
+        HTTParty.should_receive(:get).and_raise Exception
+        expect(subject.service_status).to match /^Error: /i
+      end
+
+      it "raises an Exception for a failed HTTP get when requested" do
+        HTTParty.should_receive(:get).and_raise Exception, 'Connection Refused'
+        expect {
+          subject.service_status(true)
+        }.to raise_error /Connection Refused/i
+      end
+      
+    end
+
   end
 
 end
