@@ -58,7 +58,7 @@ namespace :v1 do
 
   desc "Displays the CouchDB repository_endpoint the API is configured to use"
   task :repo_endpoint do
-    puts V1::Repository.read_only_endpoint
+    puts 'http://' + V1::Repository.reader_cluster_database
   end
 
   desc "Gets CouchDB repository status"

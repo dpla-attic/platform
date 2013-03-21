@@ -40,9 +40,11 @@ puts "TRAVIS: Creating #{dpla_config_file}"
 File.open(dpla_config_file, 'w') do |f|
   f.write(
           {
-            'read_only_user' => {
-              'username' => 'dpla',
-              'password' => 'es_password'
+            'repository' => {
+              'reader' => {
+                'user' => 'dpla',
+                'pass' => 'es_password'
+              }
             }
           }.to_yaml
           )

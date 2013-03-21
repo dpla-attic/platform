@@ -105,16 +105,17 @@ module V1
 
     def self.create_river
       # To delete a doc: https://github.com/elasticsearch/elasticsearch-river-couchdb/issues/7
-      repository_uri = URI.parse(V1::Repository.endpoint)
+      repo_uri = URI.parse('http://' + V1::Repository.reader_cluster_database)
+
       river_payload = {
         'type' => 'couchdb',
         'couchdb' => {
-          'host' => repository_uri.host,
-          'port' => repository_uri.port,
-          'db' => V1::Config::REPOSITORY_DATABASE,
-          'user' => V1::Config.dpla['read_only_user']['username'],
-          'password' => V1::Config.dpla['read_only_user']['password'],
-          'script' => "ctx._type = ctx.doc.ingestType"
+          'host' => repo_uri.host,
+          'port' => repo_uri.port,
+          'db' => repo_uri.path.sub('/', ''),
+          'user' => repo_uri.user,
+          'password' => repo_uri.password,
+          'script' => "ctx._type = ctx.doc.ingestType || 'unknown'"
         },
         'index' => {
           'index' => V1::Config::SEARCH_INDEX
@@ -195,7 +196,8 @@ module V1
       doc = {
         '_id' => test_doc_id,
         'id' => test_doc_id,
-        'title' => timestamp
+        'title' => timestamp,
+        'ingestType' => 'item'  #any valid resource type
       }
       
       # post it to couchdb as a new doc
@@ -224,7 +226,7 @@ module V1
       elsif search_doc['title'] != timestamp
         puts "Fail: Test doc found in ElasticSearch, but was not updated correctly"
         puts "Expected title: #{timestamp}"
-        puts "Actul title:    #{search_doc['title']}"
+        puts "Actual title:   #{search_doc['title']}"
       else
         print "SUCCESS: Changes in test doc propogated by the River OK "
         puts "('title' => '#{search_doc['title']}' for id: #{test_doc_id})"
@@ -232,6 +234,7 @@ module V1
 
       if !import_result.nil?
         # remove test doc from couch
+        #TODO: Do an updelete here now that the river is type-specific
         delete_doc = {'_id' => import_result['id'], '_rev' => import_result['rev']}
         V1::Repository.delete_docs([delete_doc])
       end

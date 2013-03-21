@@ -1,5 +1,3 @@
-require 'tire'
-
 module V1
 
   module Config
@@ -9,28 +7,15 @@ module V1
     REPOSITORY_DATABASE = SEARCH_INDEX
 
     def self.search_endpoint
-      search_config = dpla['search']
-      if search_config && search_config['endpoint']
-        search_config['endpoint']
-      else
-        "http://0.0.0.0:9200"
-      end
+      endpoint = dpla['search']['endpoint'] rescue 'http://127.0.0.1:9200'
+      endpoint = (endpoint =~ /^http:\/\//i) ? endpoint : 'http://' + endpoint
     end
 
     def self.dpla
       #TODO: memoize
       config_file = File.expand_path("../../../config/dpla.yml", __FILE__)
-      required = %w( read_only_user )
-
-      raise "No config file found at #{config_file}" unless File.exists? config_file 
-      dpla_config = YAML.load_file(config_file)
-
-      # Make sure we got all required keys (extra keys are fine)
-      if dpla_config && (dpla_config.keys & required).sort == required.sort
-        dpla_config
-      else
-        raise "Consult dpla.yml.example. Missing required values in: #{config_file}"
-      end
+      raise "No config file found at #{config_file}" unless File.exists? config_file
+      YAML.load_file(config_file)
     end
 
     def self.initialize_tire
@@ -38,8 +23,6 @@ module V1
       Tire::Configuration.wrapper(Hash)
       logfile = File.expand_path('../../../../var/log/elasticsearch.log', __FILE__)
       Tire.configure { logger logfile, :level => 'debug' }
-      #TODO: I don't think the index_prefix call works b/c we're not using AR models
-      Tire::Model::Search.index_prefix("test_") if Rails.env.test?
     end
 
   end

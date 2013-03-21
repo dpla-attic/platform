@@ -5,8 +5,9 @@ module V1
   describe Repository do
 
     describe "#recreate_database!" do
+
       it "uses correct repository URI to delete and delete" do
-        subject.stub(:admin_endpoint_database => 'dbname')
+        subject.stub(:admin_cluster_database => 'dbname')
         couchdb = mock
         couchdb.should_receive(:delete!)
         CouchRest.should_receive(:database).with('dbname') { couchdb }
@@ -25,7 +26,7 @@ module V1
 
     end
 
-    describe "#reformat_results" do
+    describe "#format_results" do
       it "reformats results properly" do
         results = [
                    {
@@ -52,13 +53,42 @@ module V1
                    }
                   ]
 
-        expect(subject.reformat_results(results)).to match_array(
+        expect(subject.format_results(results)).to match_array(
           [
            {"_id" => "A", "id"=>"aaa", "title"=>"title A"},
            {"_id" => "B", "id"=>"bbb", "title"=>"title B"}
           ]
         )
       end
+      
+      it "gracefully handles 1/1 missing fetch results" do
+        results = [{"key"=>"a", "error"=>"not_found"}]
+        expect {
+          subject.format_results(results)
+        }.not_to raise_error NoMethodError
+      end
+      
+      it "gracefully handles 2/2 missing fetch results" do
+        results = [
+                   {"key"=>"a", "error"=>"not_found"},
+                   {"key"=>"b", "error"=>"not_found"},
+                  ]
+        expect {
+          subject.format_results(results)
+        }.not_to raise_error NoMethodError
+      end
+      
+      it "gracefully handles 1/2 missing fetch results" do
+        results = [
+                   {"key"=>"a", "error"=>"not_found"},
+                   {"_id" => "B", "id"=>"b", "title"=>"foo", "_rev"=>"d9g7bc1"}
+                  ]
+        expect {
+          subject.format_results(results)
+        }.not_to raise_error NoMethodError
+      end
+      
+      # use "bbb" for any live tests. I deleted taht doc manually from couch50
     end
 
     describe "#fetch" do
@@ -68,7 +98,7 @@ module V1
       let(:endpoint_stub) { stub 'endpoint' }
       
       before(:each) do
-        subject.stub(:read_only_endpoint) { endpoint_stub }
+        subject.stub(:reader_cluster_database) { endpoint_stub }
         CouchRest.stub(:database).with(endpoint_stub) { db_mock }
       end
 
@@ -118,7 +148,7 @@ module V1
 
     describe "#import_docs" do
       it "imports the correct resource type via the admin endpoint" do
-        subject.stub(:admin_endpoint_database) { 'admin_endpoint/dbname' }
+        subject.stub(:admin_cluster_database) { 'admin_endpoint/dbname' }
         couchdb = mock
 
         CouchRest.should_receive(:database).with("admin_endpoint/dbname") { couchdb }
@@ -129,7 +159,7 @@ module V1
       end
 
       it "raises an Exception if the bulk_save raises a BadRequest exception" do
-        subject.stub(:admin_endpoint_database) { 'admin_endpoint/dbname' }
+        subject.stub(:admin_cluster_database) { 'admin_endpoint/dbname' }
         couchdb = mock
         couchdb.stub(:bulk_save).and_raise RestClient::BadRequest
 
@@ -142,7 +172,7 @@ module V1
 
     describe "#delete_docs" do
       it "delegates to CouchRest with correct params" do
-        subject.stub(:admin_endpoint_database) { 'admin_endpoint/dbname' }
+        subject.stub(:admin_cluster_database) { 'admin_endpoint/dbname' }
         couchdb = mock
 
         CouchRest.should_receive(:database).with("admin_endpoint/dbname") { couchdb }
@@ -157,32 +187,71 @@ module V1
 
     describe "#recreate_user" do
       
+      let(:user_db) { mock('db') }
+      let(:reader) { mock('ro_user') }
+
       before :each do
-        subject.stub(:admin_endpoint) { 'couchserver' }
-        @users_db = mock('db')
-        CouchRest.stub(:database).with("#{subject.admin_endpoint}/_users") { @users_db }
-        @read_only_user = mock('ro_user')
+        subject.stub(:sleep)
+        V1::Config.stub(:dpla) {{
+            'repository' => {
+              'reader' => {
+                'user' => 'dpla-reader',
+                'pass' => 'pizza',
+              }
+            }
+          }}
+
+        subject.stub(:node_endpoint).with('admin', '/_users') { 'node_endpoint/_users' }
+        CouchRest.stub(:database).with('node_endpoint/_users') { user_db }
       end
 
-      it "should delete any existing read-only users" do
-        @users_db.stub(:get).with("org.couchdb.user:user") { @read_only_user }
-        @users_db.should_receive(:delete_doc).with(@read_only_user)
-        @users_db.stub(:save_doc) { {'ok' => true} }
-        subject.recreate_user('user', 'pw')
+      it "deletes the existing read-only users" do
+        user_db.stub(:get).with("org.couchdb.user:dpla-reader") { reader }
+        subject.stub(:sleep)
+        user_db.should_receive(:delete_doc).with(reader) { {'ok' => true} }
+        user_db.stub(:save_doc) { {'ok' => true} }
+
+        subject.recreate_user
+      end
+
+      it "gracefully handles no pre-existing user to delete" do
+        user_db.stub(:get).with("org.couchdb.user:dpla-reader").and_raise RestClient::ResourceNotFound
+        user_db.stub(:save_doc) { {'ok' => true} }
+
+        expect {
+          subject.recreate_user
+        }.not_to raise_error
       end
 
       it "creates a user" do
-        @users_db.stub(:get).with("org.couchdb.user:user") { nil }
-        @users_db.should_not_receive(:delete_doc)
-        @users_db.should_receive(:save_doc) { {'ok' => true} }
+        user_db.stub(:get).with("org.couchdb.user:dpla-reader") { reader }
+        user_db.stub(:delete_doc) { {'ok' => true} }
 
-        subject.recreate_user('user', 'pw')
+        user_db.should_receive(:save_doc) { {'ok' => true} }
+        subject.recreate_user
+      end
+
+      it "correctly encrypts the password when creating a user" do
+        salt = 'ABC'
+        password_sha = 'pizzaABC'
+        SecureRandom.stub(:hex) { salt }
+        Digest::SHA1.stub(:hexdigest).with('pizza' + salt) { password_sha }
+
+        user_db.stub(:get).with("org.couchdb.user:dpla-reader") { reader }
+        user_db.stub(:delete_doc) { {'ok' => true} }
+
+        user_db.should_receive(:save_doc)
+          .with(
+                hash_including('salt' => salt, 'password_sha' => password_sha)
+                )  { {'ok' => true} }
+
+        subject.recreate_user
       end
     end
 
     describe "#assign_roles" do
       it "should lock down database roles and create design doc for validation" do
-         db = mock
+        db = mock
         CouchRest.stub(:database) { db }
         db.should_receive(:get).with('_security') { nil }
         db.should_receive(:save_doc)
@@ -205,28 +274,7 @@ module V1
 
     end
 
-    describe "#host" do
-      context "there is a couchdb config file present" do
-        it "returns the repository host defined in the config file" do
-          V1::Config.stub(:dpla) {
-            { 'repository' => { 'host' => "example.com:4242" } }
-          }
-
-          expect(subject.host).to eq "example.com:4242"  
-        end
-      end
-      context "there is no repository host defined in the config file" do
-        it "returns default host values" do
-          V1::Config.stub(:dpla) {
-            {}
-          }
-
-          expect(subject.host).to eq "127.0.0.1:5984"
-        end
-      end
-    end
-    
-    describe "set of functions depending on the DPLA config file" do
+    describe "config accessors" do
       before :each do
         V1::Config.stub(:dpla) {{
           "read_only_user" => { "username" => "u", "password" => "pw" },
@@ -235,21 +283,85 @@ module V1
         subject.stub(:host) { "abc.com" }
       end
       
-      describe "#read_only_endpoint" do
-  
-        it "returns the repository endpoint and the repo database in URL form" do
-          stub_const("V1::Config::REPOSITORY_DATABASE", "some_db")
-          expect(subject.read_only_endpoint).to eq('http://u:pw@abc.com/some_db')
-        end
-  
-      end
-
-      describe "#admin_endpoint" do
-        context "when a repository has been defined" do
-          it "returns an endpoint with admin credentials" do
-            expect(subject.admin_endpoint).to eq("http://admin:apass@abc.com")
+      context "cluster support" do
+        describe "#cluster_host" do
+          it "returns the cluster_host var when it is defined" do
+            V1::Config.stub(:dpla) {{
+                'repository' => { 'cluster_host' => '1.2.3.4:5986' }
+              }}
+            expect(subject.cluster_host).to eq '1.2.3.4:5986'
+          end
+          it "returns the node_host var when cluster_host is not defined" do
+            V1::Config.stub(:dpla) {{
+                'repository' => { 'node_host' => '1.2.3.4:5984' }
+              }}
+            expect(subject.cluster_host).to eq '1.2.3.4:5984'
           end
         end
+        describe "#node_host" do
+          it "defaults to correct host and IP when no hosts are defined" do
+            V1::Config.stub(:dpla) {{
+                'repository' => {  }
+              }}
+            expect(subject.node_host).to eq "127.0.0.1:5984"
+          end
+        end
+        
+        describe "#build_endpoint" do
+          before(:each) do
+            V1::Config.stub(:dpla) {{
+                'repository' => {
+                  'admin' => {
+                    'user' => 'dpla-admin',
+                    'pass' => 'adminpass',
+                  },
+                  'reader' => {
+                    'user' => 'dpla-reader',
+                    'pass' => 'readerpass',
+                  }
+                }
+              }}
+          end
+          it "builds an bare endpoint" do
+            expect(subject.build_endpoint('repohost:1234')).to eq 'repohost:1234'
+          end
+          it "builds an bare endpoint with a role" do
+            expect(subject.build_endpoint('repohost:1234', 'admin'))
+              .to eq 'dpla-admin:adminpass@repohost:1234'
+          end
+          it "builds an bare endpoint with a role and a suffix with no leading slash" do
+            expect(subject.build_endpoint('repohost:1234', 'admin', 'dbname'))
+              .to eq 'dpla-admin:adminpass@repohost:1234/dbname'
+          end
+          it "builds an bare endpoint with a role and a suffix with a leading slash" do
+            expect(subject.build_endpoint('repohost:1234', 'admin', '/dbname'))
+              .to eq 'dpla-admin:adminpass@repohost:1234/dbname'
+          end
+          it "raises an exception for an undefined role" do
+            expect {
+              subject.build_endpoint('repohost:1234', 'fakerole')
+            }.to raise_error /Requested role is undefined: fakerole/i
+          end
+        end
+
+        describe "#cluster_endpoint" do
+          it "delegates to build_endpoint with correct host param" do
+            cluster_stub = stub
+            subject.stub(:cluster_host) { cluster_stub }
+            endpoint = stub 
+            subject.should_receive(:build_endpoint).with(cluster_stub, anything, anything) { endpoint }
+            
+            expect(subject.cluster_endpoint()).to eq endpoint
+          end
+        end
+
+        describe "#admin_cluster_database" do
+          it "delegates correctly" do
+            subject.should_receive(:cluster_endpoint).with('reader', subject.repo_name)
+            subject.reader_cluster_database
+          end
+        end
+
       end
 
     end

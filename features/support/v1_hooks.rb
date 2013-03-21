@@ -8,6 +8,6 @@
 # puts "~~~~~~~~~~~~~~~~\n~~~~~~~~~~~~ SKIPPING Setup Yo. ~~~~~~~~~~~~\n~~~~~~~~~~~~~~~~"
 V1::StandardDataset.recreate_index!
 V1::Repository.recreate_env!
-
+sleep 1
 
 

@@ -2,7 +2,6 @@ $:.push File.expand_path("../lib", __FILE__)
 
 require "v1/version"
 
-# Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
   s.name        = "dpla_search_api_v1"
   s.version     = V1::VERSION
@@ -15,12 +14,11 @@ Gem::Specification.new do |s|
 
   s.files = Dir["{app,config,db,lib}/**/*"] + ["Rakefile", "README.md"]
 
-  s.add_dependency "rails", "~> 3.2.8"
-  s.add_dependency "pg"
+  s.add_dependency "rails", "~> 3.2.12"
   s.add_dependency "json"
   s.add_dependency "tire"
   s.add_dependency "couchrest"
-  s.add_dependency "inifile"
+  s.add_dependency "httparty"
 
   s.add_development_dependency "rspec-rails"
 end

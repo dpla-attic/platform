@@ -1,14 +1,15 @@
 source 'https://rubygems.org'
 
-gem 'rails', '3.2.11'
+gem 'rails', '3.2.12'
+gem 'unicorn'
+gem 'rubygems-bundler', '1.1.1'
 gem 'pg', :require => 'pg'
+gem 'sqlite3'  
 gem 'devise', '2.1.2'
 gem 'jquery-rails'
 gem 'dpla_search_api_v1', :path => 'v1'
-# Reminder: Api-specific gems belong in v1.gemspec
 gem 'turnout'  #can this be moved to v1.gemspec?
 gem 'dpla_contentqa', :path => 'contentqa'
-gem 'httparty'
 
 group :assets do
   gem 'sass-rails',   '~> 3.2.3'

@@ -14,41 +14,46 @@ module V1
     end
 
     def self.do_fetch(id_list)
-      db = CouchRest.database(read_only_endpoint)
-      db.get_bulk(id_list)["rows"]
+      begin
+        db = CouchRest.database(reader_cluster_database)
+        return db.get_bulk(id_list)["rows"]
+      rescue StandardError => e
+        puts "do_fetch ERROR: #{e}"
+      end
     end
 
     def self.wrap_results(results)
       { 
         'count' => results.size,
-        'docs' => reformat_results(results)
+        'docs' => format_results(results)
       }
     end
 
-    def self.reformat_results(results)
-      # BUG: This will throw a NoMethodError if results is all couch '404' responses
-      results.map {|result| result['doc'].delete_if {|k,v| k =~ /^(_rev|_type)/} }
+    def self.format_results(results)
+      results.map do |result|
+        result['doc'].delete_if {|k,v| k =~ /^(_rev|_type)/} if result['doc']
+      end
     end
 
     def self.recreate_env!
       recreate_database!
       #TODO: make recreate_database! also recreate_river, like V1::StandardDataset.recreate_search_index does
       import_test_dataset
+
       puts "CouchDB docs/views: #{ doc_count }"
       V1::StandardDataset.recreate_river!
     end
 
     def self.service_status(raise_exceptions=false)
-      uri = endpoint + '/' + repository_database
-      config = V1::Config.dpla['read_only_user']
+      uri = URI.parse('http://' + reader_cluster_database)
 
       auth = {}
-      if config && config['username']
-        auth = {:basic_auth => {:username => config['username'], :password => config['password']}}
+      if uri.user
+        auth = {:basic_auth => {:username => uri.user, :password => uri.password}}
       end        
 
       begin
-        HTTParty.get(uri, auth).body
+        HTTParty.get(uri.to_s, auth).body
       rescue Exception => e
         # let caller request exceptions or let it default to returning an informative string
         raise e if raise_exceptions
@@ -59,7 +64,7 @@ module V1
     def self.doc_count
       # Intended for rake tasks
       #TODO: don't count views. In a cruel twist of fate, we may need a view to do that. :O
-      CouchRest.database(admin_endpoint_database).info['doc_count'] rescue 'ERROR'
+      CouchRest.database(admin_cluster_database).info['doc_count'] rescue 'ERROR'
     end
 
     def self.import_test_dataset
@@ -73,7 +78,7 @@ module V1
     end
 
     def self.import_docs(docs)
-      db = CouchRest.database(admin_endpoint_database)
+      db = CouchRest.database(admin_cluster_database)
       begin
         db.bulk_save docs
       rescue RestClient::BadRequest => e
@@ -83,102 +88,163 @@ module V1
     end
 
     def self.delete_docs(docs)
-      db = CouchRest.database(admin_endpoint_database)
+      db = CouchRest.database(admin_cluster_database)
       begin
         docs.each {|doc| db.delete_doc doc }
       rescue RestClient::BadRequest => e
         error = JSON.parse(e.response) rescue {}
-        raise Exception, "ERROR: #{error['reason'] || e.to_s}"
+        raise "ERROR: #{error['reason'] || e.to_s}"
       end
     end
 
     def self.recreate_database!
       # Delete, recreate and repopulate the database
       #TODO: add production env check
-      CouchRest.database(admin_endpoint_database).delete! rescue nil
+      begin
+        CouchRest.database(admin_cluster_database).delete!
+      rescue RestClient::ResourceNotFound
+      rescue => e
+        raise "DB Delete Error: #{e}"
+      end
 
       # create new db
-      CouchRest.database!(admin_endpoint_database)
+      begin
+        CouchRest.database!(admin_cluster_database)
+      rescue StandardError => e
+        raise "DB Create Error: #{e}"
+      end
 
+      #TODO: create a database admin (rather than use the system admin like we have been doing)
       recreate_users
     end
 
     def self.recreate_users
-      #TODO: should we be creating the admin user here too? perhaps only if it does not exist?
-      username = V1::Config.dpla['read_only_user']['username']
-      password = V1::Config.dpla['read_only_user']['password'] 
-      recreate_user(username, password)
-      assign_roles
+      recreate_user
+      assign_roles(true)
     end
 
-    def self.recreate_user(username, password)
-      users_db = CouchRest.database("#{admin_endpoint}/_users")
+    def self.recreate_user
+      config = V1::Config.dpla['repository']
+      username = config['reader']['user'] rescue nil
+      password = config['reader']['pass'] rescue nil
+
+      raise "repository.reader.user attribute undefined" if username.nil?
       couch_username = "org.couchdb.user:#{username}"
+
+      db = CouchRest.database( node_endpoint('admin', '/_users') )
       
-      # delete user if it exists
-      user = users_db.get(couch_username) rescue nil
-      users_db.delete_doc(user) if user
+      begin
+        delete_results = db.delete_doc( db.get(couch_username) )
+        raise "Delete pre-existing user '#{username}' error: #{delete_results}" unless delete_results['ok']
+        # let the delete finish on the couchdb side
+        sleep 1
+      rescue RestClient::ResourceNotFound
+      rescue => e
+        raise "Unexpected error deleting user '#{username}': #{e}"
+      end
+
+      # generate salt and sha such that this is compatible with CouchDB 1.1.1+
+      salt = SecureRandom.hex(16)
+      password_sha = Digest::SHA1.hexdigest(password + salt)
 
       user_doc = {
         '_id' => couch_username,
         'type' => 'user',
         'name' => username,
-        'password' => password,
+        'salt' => salt,
+        'password_sha' => password_sha,
         'roles' => %w( reader )
       }
-      result = users_db.save_doc(user_doc)
-      raise "ERROR: #{result}" unless result['ok']
+
+      begin
+        # puts "Saving user: #{username} with salt: #{salt} and SHA: #{password_sha}"
+        result = db.save_doc(user_doc)
+        puts "ERROR: #{result}" unless result['ok']
+      rescue => e
+        raise "Create user error: #{e}"
+      end
     end
 
-    def self.assign_roles
+    def self.assign_roles(force_recreate=false)
       # Only creates new docs if they do not already exist
-      db = CouchRest.database(admin_endpoint_database)      
-      current_security = db.get( '_security' ) rescue nil
-      if current_security.nil?
+      db = CouchRest.database(admin_cluster_database)
+
+      begin
+        current_security = db.get('_security')
+      rescue RestClient::ResourceNotFound
+      end
+
+      if current_security.nil? || force_recreate
         security_doc = {
           '_id' => '_security',
           'admins' => {'roles' => %w( admin )},
           'readers' => {'roles' => %w( reader )}
         }
+
         roles_result = db.save_doc(security_doc)
+        # puts "Roles OK: #{roles_result.to_s}"
         raise "ERROR: #{roles_result}" unless roles_result['ok']
       end        
 
       current_auth = db.get( '_design/auth' ) rescue nil
-      if current_auth.nil?
+      if current_auth.nil? || force_recreate
         auth_doc = {
           '_id' => '_design/auth',
           'language' => 'javascript',
           'validate_doc_update' => "function(newDoc, oldDoc, userCtx) { if (userCtx.roles.indexOf('_admin') != -1) { return; } else { throw({forbidden: 'Only admins may edit the database'}); } }"
         }
+        auth_doc.merge!(current_auth) if current_auth
         auth_result = db.save_doc(auth_doc)
+        # puts "Auth OK: #{auth_result.to_s}"
         raise "ERROR: #{auth_result}" unless auth_result['ok']
       end
     end
-
-    def self.read_only_endpoint
-      config = V1::Config.dpla['read_only_user']
-      "http://#{config['username']}:#{config['password']}@#{host}/#{repository_database}" 
-    end
-
-    def self.repository_database
+    
+    def self.repo_name
       V1::Config::REPOSITORY_DATABASE
     end
 
-    def self.admin_endpoint
-      V1::Config.dpla['repository']['admin_endpoint'] rescue 'http://127.0.0.1:5984'
+    def self.cluster_host
+      # supplies default value if not defined in config file
+      V1::Config.dpla['repository'].fetch('cluster_host', node_host)
     end
 
-    def self.admin_endpoint_database
-      "#{admin_endpoint}/#{repository_database}"
+    def self.node_host
+      # supplies default value if not defined in config file
+      V1::Config.dpla['repository'].fetch('node_host', '127.0.0.1:5984')
     end
 
-    def self.host
-      V1::Config.dpla['repository']['host'] rescue '127.0.0.1:5984'
+    def self.cluster_endpoint(role=nil, suffix='')
+      build_endpoint(cluster_host, role, suffix)
     end
-    
-    def self.endpoint
-      "http://#{host}"
+
+    def self.node_endpoint(role=nil, suffix='')
+      build_endpoint(node_host, role, suffix)
+    end
+
+    def self.admin_cluster_database
+      cluster_endpoint('admin', repo_name)
+    end
+
+    def self.reader_cluster_database
+      cluster_endpoint('reader', repo_name)
+    end
+
+    def self.build_endpoint(host, role=nil, suffix='')
+      config = V1::Config.dpla['repository']
+
+      auth_string = ''
+      if role
+        auth = config.fetch(role, {})
+        raise "Requested role is undefined: #{role}" if auth.empty?
+        auth_string = auth['user'].to_s + ':' + auth['pass'].to_s + '@'
+      end
+
+      if suffix != ''
+        suffix = (suffix =~ /^\// ? suffix : "/#{suffix}"  )
+      end
+      
+      auth_string + host + suffix
     end
 
   end

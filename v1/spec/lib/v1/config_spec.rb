@@ -26,58 +26,22 @@ module V1
         end
       end
 
-      context "when the dpla config file exists but is missing required keys" do
-        it "should raise an error" do
-          File.stub(:expand_path) { 'dpla.yml' }
-          File.stub(:exists?).with('dpla.yml') { true }
-          YAML.stub(:load_file) { {'some_key' => 'abc'} }
-          expect {
-            Config.dpla
-          }.to raise_error /Missing required values in:.*/i
-        end
-      end
-
-      context "when the dpla config file includes all valid section headers" do
-        it "returns the hash of config values" do
-          File.stub(:expand_path) { 'dpla.yml' }
-          File.stub(:exists?).with('dpla.yml') { true }
-          YAML.stub(:load_file) { {'read_only_user' => 'abc', 'search' => 'abc', 'repository' => 'abc'} }
-          expect( Config.dpla.keys ).to match_array %w( read_only_user repository search )
-        end
-
-        it "gracefully handles non-required fields while still requiring the required fields" do
-          File.stub(:expand_path) { 'dpla.yml' }
-          File.stub(:exists?).with('dpla.yml') { true }
-          YAML.stub(:load_file) {
-            {
-              'read_only_user' => 'abc',
-              'extra_key' => 'value',
-              }
-          }
-          expect( Config.dpla.keys ).to match_array %w( read_only_user extra_key )
-        end
-
-      end
     end
 
     context "#search_endpoint" do
 
-      it "constructs the correct elasticsearch URL based on explicit values in elasticsearch.yml" do
+      it "returns the search endpoint if one is defined" do
         Config.stub(:dpla) {
           {
-            'search' => { 'endpoint' => "http://testhost:9999" }
+            'search' => { 'endpoint' => "testhost:9999" }
           }
         }
         expect(Config.search_endpoint).to eq "http://testhost:9999"
       end
 
-      it "handles an empty elasticsearch.yml by supplying default values" do
-        Config.stub(:dpla) {
-          {
-            'somekey' => 'someval'
-          }
-        }
-        expect(Config.search_endpoint).to eq "http://0.0.0.0:9200"
+      it "returns the default search endpoint if one is not defined" do
+        Config.stub(:dpla) { {} }
+        expect(Config.search_endpoint).to eq "http://127.0.0.1:9200"
       end
 
     end
