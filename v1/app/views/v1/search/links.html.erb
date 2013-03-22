@@ -34,51 +34,51 @@
   </tr>
   <tr>
     <td>UC002</td> 
-    <td><%= link_to nil, v1_api.items_path('aggregatedCHO.title' => 'banana') %> </td>
+    <td><%= link_to nil, v1_api.items_path('sourceResource.title' => 'banana') %> </td>
     <td>Field-specific search</td>
     </tr>
   <tr>
     <td>UC002</td> 
-    <td><%= link_to nil, v1_api.items_path('aggregatedCHO.description' => 'notfound OR three', 'aggregatedCHO.subject' => '*doodle') %>
+    <td><%= link_to nil, v1_api.items_path('sourceResource.description' => 'notfound OR three', 'sourceResource.subject' => '*doodle') %>
     <td>Field-specific boolean search, field-specific wildcard search (because it is not_analyzed)</td>
   </tr>
   <tr>
     <td>UC002</td>
-    <td><%= link_to nil, v1_api.items_path('aggregatedCHO.description' => 'banana') %></td>
+    <td><%= link_to nil, v1_api.items_path('sourceResource.description' => 'banana') %></td>
     <td>(zero results)</td>
   <tr>
     <td>UC003</td>
-    <td><%= link_to nil, v1_api.items_path('aggregatedCHO.temporal.after' => '1950-01-01') %></td>
+    <td><%= link_to nil, v1_api.items_path('sourceResource.temporal.after' => '1950-01-01') %></td>
     <td>(A, B, C)</td>
   </tr>
   <tr>
     <td>UC003</td>
-    <td><%= link_to nil, v1_api.items_path('aggregatedCHO.temporal.before' => '1955-07-15', 'callback' => 'jsPhunktion') %></td>
+    <td><%= link_to nil, v1_api.items_path('sourceResource.temporal.before' => '1955-07-15', 'callback' => 'jsPhunktion') %></td>
     <td>(A, B, D as JSONP)</td>
   </tr>
   <tr>
     <td>UC003</td>
-    <td><%= link_to nil, v1_api.items_path('aggregatedCHO.temporal.after' => '1800-01-01', 'aggregatedCHO.temporal.before' => '1850-12-31') %></td>
+    <td><%= link_to nil, v1_api.items_path('sourceResource.temporal.after' => '1800-01-01', 'sourceResource.temporal.before' => '1850-12-31') %></td>
     <td>(temporal date range, zero results)</td>
   </tr>
   <tr>
     <td>UC004</td>
-    <td><%= link_to nil, v1_api.items_path('aggregatedCHO.spatial' => 'Cambridge') %></td>
+    <td><%= link_to nil, v1_api.items_path('sourceResource.spatial' => 'Cambridge') %></td>
     <td>M (spatial search, auto-expanded to search all spatial subfields)</td>
   </tr>
   <tr>
     <td>UC004</td>
-    <td><%= link_to nil, v1_api.items_path('aggregatedCHO.spatial.city' => 'Cambridge') %></td>
+    <td><%= link_to nil, v1_api.items_path('sourceResource.spatial.city' => 'Cambridge') %></td>
     <td>M </td>
   </tr>
   <tr>
     <td>UC004</td>
-    <td><%= link_to nil, v1_api.items_path('aggregatedCHO.spatial.coordinates' => '42.3,-71') %></td>
+    <td><%= link_to nil, v1_api.items_path('sourceResource.spatial.coordinates' => '42.3,-71') %></td>
     <td>M (default range)</td>
   </tr>
   <tr>
     <td>UC004</td>
-    <td><%= link_to nil, v1_api.items_path('aggregatedCHO.spatial.coordinates' => '41,-71', 'aggregatedCHO.spatial.distance' => '100mi') %></td>
+    <td><%= link_to nil, v1_api.items_path('sourceResource.spatial.coordinates' => '41,-71', 'sourceResource.spatial.distance' => '100mi') %></td>
     <td>M (specific range expressed in miles)</td>
   </tr>
   <tr>
@@ -103,27 +103,27 @@
   </tr>
   <tr>
     <td>#2789</td>
-    <td><%= link_to nil, v1_api.items_path('sort_by' => 'aggregatedCHO.date.begin', 'page_size' => 99) %></td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'sourceResource.date.begin', 'page_size' => 99) %></td>
     <td>Sort: by 'date.begin' date field (w/large page size, for effect)</td>
   </tr>
   <tr>
     <td>#3382</td>
-    <td><%= link_to nil, v1_api.items_path('sort_by' => 'aggregatedCHO.title') %></td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'sourceResource.title') %></td>
     <td>Sort: by (analyzed) 'title' field using _script sort under the hood </td>
   </tr>
   <tr>
     <td>#3382</td>
-    <td><%= link_to nil, v1_api.items_path('sort_by' => 'aggregatedCHO.subject.name') %></td>
-    <td>Sort: by (multi-valued) 'aggregatedCHO.subject.name' field using _script sort under the hood </td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'sourceResource.subject.name') %></td>
+    <td>Sort: by (multi-valued) 'sourceResource.subject.name' field using _script sort under the hood </td>
   </tr>
   <tr>
     <td>#2789</td>
-    <td><%= link_to nil, v1_api.items_path('sort_by' => 'aggregatedCHO.description') %></td>
-    <td>Sort: by 'aggregatedCHO.description' field, (HTTP 400 error: non-sortable field) </td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'sourceResource.description') %></td>
+    <td>Sort: by 'sourceResource.description' field, (HTTP 400 error: non-sortable field) </td>
   </tr>
   <tr>
     <td>#2789</td>
-    <td><%= link_to nil, v1_api.items_path('sort_by' => 'aggregatedCHO.spatial.coordinates', 'sort_by_pin' => '41.3,-71') %></td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'sourceResource.spatial.coordinates', 'sort_by_pin' => '41.3,-71') %></td>
     <td>Geo-Sort: Sort by distance from a "sort_by_pin" of 41.3,-71 (Harvard, New Hampshire, Maine) </td>
   </tr>
   <tr>
@@ -143,7 +143,7 @@
   </tr>
   <tr>
     <td>#2790</td>
-    <td><%= link_to nil, v1_api.items_path('fields' => 'aggregatedCHO.title,aggregatedCHO.description') %></td>
+    <td><%= link_to nil, v1_api.items_path('fields' => 'sourceResource.title,sourceResource.description') %></td>
     <td>Specify fields in results</td>
   </tr>
   <tr>
@@ -168,47 +168,47 @@
   </tr>
   <tr>
     <td>UC010</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'aggregatedCHO.date.begin', 'page_size' => 0) %></td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'sourceResource.date.begin', 'page_size' => 0) %></td>
     <td>page_size = 0 to request only facets</td>
   </tr>
   <tr>
     <td>#2973</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'aggregatedCHO.date.begin') %></td>
-    <td>Date facet on aggregatedCHO.date.begin</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'sourceResource.date.begin') %></td>
+    <td>Date facet on sourceResource.date.begin</td>
   </tr>
   <tr>
     <td>#2973</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'aggregatedCHO.date.begin.year') %></td>
-    <td>Date facet on aggregatedCHO.date.begin.year (interval)</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'sourceResource.date.begin.year') %></td>
+    <td>Date facet on sourceResource.date.begin.year (interval)</td>
   </tr>
   <tr>
     <td>#2973</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'aggregatedCHO.date.begin.decade') %></td>
-    <td>Date facet on aggregatedCHO.date.begin.decade (interval)</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'sourceResource.date.begin.decade') %></td>
+    <td>Date facet on sourceResource.date.begin.decade (interval)</td>
   </tr>
   <tr>
     <td>#2973</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'aggregatedCHO.date.begin.century') %></td>
-    <td>Date facet on aggregatedCHO.date.begin.century (interval)</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'sourceResource.date.begin.century') %></td>
+    <td>Date facet on sourceResource.date.begin.century (interval)</td>
   </tr>
   <tr>
     <td>#2973</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'aggregatedCHO.temporal.begin') %></td>
-    <td>Date facet on aggregatedCHO.temporal.begin</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'sourceResource.temporal.begin') %></td>
+    <td>Date facet on sourceResource.temporal.begin</td>
   </tr>
   <tr>
     <td>#2973</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'aggregatedCHO.temporal.begin.year') %></td>
-    <td>Date facet on aggregatedCHO.temporal.begin.year (interval)</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'sourceResource.temporal.begin.year') %></td>
+    <td>Date facet on sourceResource.temporal.begin.year (interval)</td>
   </tr>
   <tr>
     <td>#2974</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'aggregatedCHO.spatial.coordinates:42.3:-71') %></td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'sourceResource.spatial.coordinates:42.3:-71') %></td>
     <td>Geo-distance facet with default range size</td>
   </tr>
   <tr>
     <td>#2974</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'aggregatedCHO.spatial.coordinates:42.3:-71:12km') %></td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'sourceResource.spatial.coordinates:42.3:-71:12km') %></td>
     <td>Geo-distance facet with specific range value and range units</td>
   </tr>
   <tr>
@@ -223,12 +223,12 @@
   </tr>
   <tr>
     <td>#2977</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'aggregatedCHO.subject.name', 'facet_size' => '2') %></td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'sourceResource.subject.name', 'facet_size' => '2') %></td>
     <td>Limit number of facets returned to 2</td>
   </tr>
   <tr>
     <td>#2977</td>
-    <td><%= link_to nil, v1_api.items_path('facets' => 'aggregatedCHO.subject.name', 'facet_size' => 'max') %></td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'sourceResource.subject.name', 'facet_size' => 'max') %></td>
     <td>Limit number of facets returned to max system setting</td>
   </tr>
 </table>

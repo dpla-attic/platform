@@ -12,6 +12,10 @@ Feature: Search for items by keyword (UC002)
     When I item-search for "banana" in the "sourceResource.title" field
     Then the API should return record 1
     
+  Scenario: Basic keyword search of dotted field
+    When I item-search for "partnerhubid1" in the "sourceResource.id" field
+    Then the API should return record 2
+    
   Scenario: Basic keyword search with case-insensitive match
     When I item-search for "cambridge" in the "sourceResource.spatial.city" field
     Then the API should return record M

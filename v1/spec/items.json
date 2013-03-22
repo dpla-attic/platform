@@ -24,6 +24,7 @@
         "id": "2",
         "ingestType": "item",
         "sourceResource": {
+            "id": "partnerhubid1",
             "title": "title two",
             "description": "perplexed two",
             "creator": "",

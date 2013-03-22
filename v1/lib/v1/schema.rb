@@ -24,6 +24,7 @@ module V1
           '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
           'sourceResource' => {
             'properties' => {
+              'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
               'contributor' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
               'creator' => { 'type' => 'string' },
               'date' => {
