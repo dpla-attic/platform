@@ -20,8 +20,8 @@ module V1
           expect(DEFAULT_PAGE_SIZE).to eq 10
         end
         
-        it "DEFAULT_MAX_PAGE_SIZE has the correct value" do
-          expect(DEFAULT_MAX_PAGE_SIZE).to eq 100
+        it "MAX_PAGE_SIZE has the correct value" do
+          expect(MAX_PAGE_SIZE).to eq 100
         end
 
         it "DEFAULT_SORT_ORDER has the correct value" do
@@ -58,53 +58,79 @@ module V1
       end
     end
 
+    describe "#id_to_private_id" do
+      it "calls search correctly when called with a single id" do
+        subject.should_receive(:search).with({ 'id' => 'aaa' }) {
+          { 'docs' => [{"_id" => "A", "id" => "aaa"}] }
+        }
+        expect(subject.id_to_private_id(['aaa'])).to eq( {'aaa' => 'A'} )
+      end
+      it "calls search correctly when called with multiple ids" do
+        subject.should_receive(:search).with({ 'id' => 'aaa OR bbb' }) {
+          { 'docs' => [{"_id" => "A", "id" => "aaa"}, {"_id" => "B", "id" => "bbb"}] }
+        }
+        expect(subject.id_to_private_id(['aaa', 'bbb'])).to eq( {'aaa' => 'A', 'bbb' => 'B'} )
+      end
+    end
+
     describe "#fetch" do
-      let(:result1) {
-        {
-          "count" => 1,
-          "docs" => [{"_id" => "1"}]
-        }
+      let(:pub_a) { 'aaa' }
+      let(:priv_a) { 'A' }
+      let(:pub_b) { 'bbb' }
+      let(:priv_b) { 'B' }
+      let(:pub_c) { 'ccc' }
+
+      let(:fetch_result1) {
+        { "count" => 1, "docs" => [{"_id" => "A", "id" => "aaa"}] }
       }
-      let(:result2) {
-        {
-          "count" => 1,
-          "docs" => [{"_id" => "2"}]
-        }
+      let(:fetch_result2) {
+        { "count" => 1, "docs" => [{"_id" => "B", "id" => "bbb"}] }
       }
-      let(:error_stub){
-        {
-          "id" => "ccc",
-          "error" => "404"
-        }
+      let(:result_ab) {
+        { "count" => 2, "docs" => [{"_id" => "A", "id" => "aaa"}, {"_id" => "B", "id" => "bbb"}] }
       }
- 
-      it "delegates transformed ids to V1::Repository.fetch" do
-        subject.should_receive(:search).with({"id" => "aaa" }) { result1 }
-        V1::Repository.should_receive(:fetch).with(["1"]) # { repo_item_stub }
-        subject.fetch(["aaa"])
+      let(:missing_stub){
+        { "id" => "ccc", "error" => "404" }
+      }
+
+       it "delegates transformed ids to V1::Repository.fetch" do
+        subject.should_receive(:id_to_private_id).with( [pub_a] ) { {pub_a => priv_a} }
+        V1::Repository.should_receive(:fetch).with([priv_a]) { fetch_result1 }
+        expect(subject.fetch([pub_a])).to eq fetch_result1 
       end
 
-      it "accepts more than one item" do
-        subject.stub(:search).twice.and_return(result1, result2)
-        V1::Repository.should_receive(:fetch).with(["1", "2"])
-        subject.fetch(["aaa", "bbb"])
+      it "handles a fetch for an array of multiple IDs" do
+        subject.stub(:id_to_private_id).with( [pub_a, pub_b] ) { {pub_a => priv_a, pub_b => priv_b} }
+        V1::Repository.should_receive(:fetch).with([priv_a, priv_b]) { result_ab }
+        expect(subject.fetch([pub_a, pub_b])).to eq result_ab
       end
 
-      it "can handle an item that does not exist" do
-        repo_item_stub_1 = stub
-        subject.stub(:search).twice.and_return(result1, {'count' => 0})
-        V1::Repository.should_receive(:fetch).with(["1"]) { {'docs' => [repo_item_stub_1]} }
-        expect(subject.fetch(["aaa", "ccc"])['docs']).to match_array( [repo_item_stub_1, error_stub] )
+      it "handles a fetch for a string containing multiple IDs" do
+        subject.stub(:id_to_private_id).with( [pub_a, pub_b] ) { {pub_a => priv_a, pub_b => priv_b} }
+        V1::Repository.stub(:fetch).with([priv_a, priv_b]) { result_ab }
+        expect(subject.fetch("aaa,bbb")).to eq result_ab
       end
 
-      it "raises error when single item not found" do
-        subject.stub(:search) { {'count' => 0} }
-        expect { subject.fetch(["non-existent-ID"]) }.to raise_error(NotFoundSearchError)
+      it "handles partial search miss" do
+        subject.stub(:id_to_private_id).with( [pub_a, pub_c] ) { {pub_a => priv_a} }
+        V1::Repository.should_receive(:fetch).with([priv_a]) { fetch_result1 }
+        expect(subject.fetch([pub_a, pub_c]))
+          .to eq({
+                   "count" => 2,
+                   "docs" => [{"_id" => "A", "id" => "aaa"}, { "id" => "ccc", "error" => "404" }]
+                 })
+      end
+
+      it "raises error on search miss on 1 of 1 IDs" do
+        subject.stub(:id_to_private_id) { {} }
+        expect {
+          subject.fetch(["non-existent-ID"])
+        }.to raise_error(NotFoundSearchError)
       end
 
     end
 
-    describe "build_sort_attributes" do
+    describe "#build_sort_attributes" do
       let(:name) { 'id' }
       
       it "returns nil when sort params are not present" do
@@ -251,9 +277,9 @@ module V1
       end
 
       it "returns the default max page size when the search size is greater than the max" do
-        huge_size = Searchable::DEFAULT_MAX_PAGE_SIZE + 1
+        huge_size = Searchable::MAX_PAGE_SIZE + 1
         params = { "page_size" => huge_size }
-        expect(subject.search_page_size(params)).to eq (Searchable::DEFAULT_MAX_PAGE_SIZE)
+        expect(subject.search_page_size(params)).to eq (Searchable::MAX_PAGE_SIZE)
       end
 
       it "supports page_size=0" do

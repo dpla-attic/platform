@@ -15,7 +15,7 @@ module V1
     DEFAULT_PAGE_SIZE = 10
 
     # Default max page size
-    DEFAULT_MAX_PAGE_SIZE = 100
+    MAX_PAGE_SIZE = 100
     
     # Default sort order for search results
     DEFAULT_SORT_ORDER = 'asc'
@@ -30,6 +30,11 @@ module V1
     def search(params={})
       validate_query_params(params)
       validate_field_params(params)
+      #  search = Tire.search(V1::Config::SEARCH_INDEX + '/' + 'item') do |s|
+      # 1.9.3p194 :020 >     s.query do |q|
+      # 1.9.3p194 :021 >        q.ids %w( 1 2 ), 'butts'
+      # 1.9.3p194 :022?>     end
+      # 1.9.3p194 :023?>   end
 
       search = Tire.search(V1::Config::SEARCH_INDEX + '/' + resource) do |search|
         queries_ran = []
@@ -51,11 +56,9 @@ module V1
       end
 
       begin
-        if defined?(Rails)
-          Rails.logger.info "CURL: #{search.to_curl}" if search.respond_to? :to_curl
+        if defined?(Rails) && search.respond_to?(:to_curl)
+          Rails.logger.info "CURL: #{search.to_curl}"
         end
-        #puts "JSON: #{search.to_json}" if search.respond_to? :to_json
-
         return wrap_results(search, params)
       rescue Tire::Search::SearchRequestFailed => e
         error = JSON.parse(search.response.body)['error'] rescue nil
@@ -246,20 +249,57 @@ module V1
         0
       elsif size.to_i == 0
         DEFAULT_PAGE_SIZE
-      elsif size.to_i > DEFAULT_MAX_PAGE_SIZE
-        DEFAULT_MAX_PAGE_SIZE
+      elsif size.to_i > MAX_PAGE_SIZE
+        MAX_PAGE_SIZE
       else
         size.to_i
       end
     end
 
+    def id_to_private_id(ids)
+      #TODO: only request _id field
+      search({'id' => ids.join(' OR ')})['docs'].inject({}) do |memo, doc|
+        memo[doc['id']] = doc['_id']
+        memo
+      end
+    end
+
     def fetch(ids)
       # Transparently translate "id" values from query to the "_id" values CouchDB expects
+      # Accepts an array of ids or a string containing a comma separated list of ids
+      ids = ids.split(/,\s*/) if ids.is_a?(String)
+
+      id_map = id_to_private_id(ids)
+
+      # Business logic: if they fetched one doc and it was 404, raise.
+      if id_map.empty? && ids.size == 1
+        raise NotFoundSearchError, "Document not found"
+      end
+
+      fetches = V1::Repository.fetch(id_map.values)
+      # fetched docs that were deleted will have a nil 'doc' field
+      fetches['docs'].delete_if {|doc| doc.nil?}
+
+      misses = ids - fetches['docs'].map {|doc| doc['id']}
+      misses.each do |id|
+        fetches['docs'] << { 'id' => id, 'error' => '404' }
+      end
+
+      {
+        'docs' => fetches['docs'],
+        'count' => fetches['docs'].size
+      }
+    end
+
+    def fetchORIG(ids)
+      # Transparently translate "id" values from query to the "_id" values CouchDB expects
+      # Accepts an array of ids or a string containing a comma separated list of ids
+      ids = ids.split(/,\s*/) if ids.is_a?(String)
+
       doc_ids = []
       missing_ids = []
-      #TODO: use search.ids() method, or add logic for it in search()
-      #TODO: allow string or array $ids arg, like Repository.fetch
 
+#      puts "REquested ids: #{ids}"
       ids.each do |id|
         result = search({'id' => id})
         
@@ -276,9 +316,25 @@ module V1
         raise NotFoundSearchError, "Document not found"
       end
 
+      # puts "TRanslated to..."
+      # puts "_id values: #{doc_ids}"
+      # puts "missingval #{missing_ids}"
+
       results = V1::Repository.fetch(doc_ids)
+      # results.map do |result|
+      #   # For any deleted or not_found doc create standard "not found" result hash
+      #   # { 'id' => id, 'error' => '404'} that the client can expect
+
+      #   # couchdb miss and doc deleted from couch, respectively
+      #   # if result['error'] == 'not_found' || (result['value'] && result['value']['deleted'])
+      #   #   next
+      #   # end
+        
+      #   puts "FR mapping: #{result}"
+      # end.compact        
+
       #TODO: handle exception for search hit but fetch miss
- 
+      
       if missing_ids.any?
         results['docs'].concat( missing_ids.map { |id| { 'id' => id, 'error' => '404'} } )
       end

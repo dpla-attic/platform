@@ -32,6 +32,28 @@ module V1
       end
 
 
+      describe "#ids_query" do
+        it "returns correct args for a single ID" do
+          params = {'ids' => 'aaa'}
+          expect(subject.ids_query(resource, params))
+            .to match_array([['aaa'], 'test_resource'])
+          
+        end
+
+        it "returns correct args for multiple IDs" do
+          params = {'ids' => 'aaa,bbb'}
+          expect(subject.ids_query(resource, params))
+            .to match_array([ %w(aaa bbb), 'test_resource'])
+        end
+
+        it "returns empty array when no ids query param exists" do
+          params = {}
+          expect(subject.ids_query(resource, params))
+            .to match_array([])
+        end
+      end
+        
+
       describe "#field_queries" do
         it "returns correct query string for a free text search" do
           params = {'q' => 'something'}

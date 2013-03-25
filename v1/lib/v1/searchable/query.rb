@@ -11,12 +11,17 @@ module V1
         # Returns boolean for "did we run any queries?"
         field_queries = field_queries(resource, params)
         date_range_queries = date_range_queries(params)
+        ids_queries = ids_query(resource, params)
 
         # Only call search.query.boolean if we have some queries to pass it.
         # Otherwise we'll get incorrect search results.
-        return false if (field_queries.empty? && date_range_queries.empty?)
+        return false if (field_queries + date_range_queries + ids_queries).empty?
 
         search.query do |query|
+          if ids_queries.any?
+            query.ids *ids_queries
+          end
+
           query.boolean do |boolean|
 
             field_queries.each do |query_string|
@@ -34,6 +39,15 @@ module V1
           end
         end
         true
+      end
+
+      
+      def self.ids_query(resource, params)
+        # This is not actually available via the front-end, but it could be if we wanted
+        ids = params['ids'].to_s
+        return [] if ids == ''
+
+        [ids.split(/,\s*/), resource]
       end
 
       def self.field_queries(resource, params)

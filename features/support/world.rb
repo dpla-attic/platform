@@ -68,15 +68,21 @@ module CukeApiHelper
     JSON.parse(page.source) rescue nil
   end
 
-  def resource_fetch(resource, ids_string)
-    visit("/v2/#{resource}s/#{ ids_string }")
+  def resource_fetch(resource, ids)
+    visit("/v2/#{resource}s/#{ ids }")
+    
+    if page.status_code != 200
+      puts "Fetch query expected HTTP 200 but got #{page.status_code} for ids: #{ids}"
+      puts "page.source: #{page.source}"
+      raise Exception 
+    end
     JSON.parse(page.source) rescue nil
   end
 
   ## /Collections additions/refactoring
 
-  def item_fetch(ids_string)
-    visit("/v2/items/#{ ids_string }")
+  def item_fetch(ids)
+    visit("/v2/items/#{ ids }")
     JSON.parse(page.source) rescue nil
   end
 

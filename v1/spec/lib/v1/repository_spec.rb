@@ -88,7 +88,6 @@ module V1
         }.not_to raise_error NoMethodError
       end
       
-      # use "bbb" for any live tests. I deleted taht doc manually from couch50
     end
 
     describe "#fetch" do

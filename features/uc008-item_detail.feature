@@ -19,13 +19,6 @@ Feature: Retrieve detailed information about items (UC008)
     When I request details for items with ingestion identifiers "one.two.three"
     Then the API will return the items with the document identifiers "one.two.three"
 
-  @wip
-  Scenario: Retrieve a single item from the repository with specific fields
-    When I request details for an item with identifier "ACDEF"
-      And request the fields "title" and "description"
-    Then the API will return the item with the identifier "ACDEF"
-      And only include the "id", "title", and "description" fields in the record returned
-  
   Scenario: Retrieve multiple items with some missing
     When I request details for items with ingestion identifiers "not_me,aaa,bbb,or_me"
     Then the API will return the items with the document identifiers "A,B"
@@ -34,4 +27,8 @@ Feature: Retrieve detailed information about items (UC008)
   Scenario: Retrieve multiple items from the repository
     When I request details for items with ingestion identifiers "aaa,bbb"
     Then the API will return the items with the document identifiers "A,B"
+
+  Scenario: Retrieve multiple items that are all search misses
+    When I request details for items with ingestion identifiers "not_me,or_me"
+    And items that identify errors with ids "not_me,or_me"
 

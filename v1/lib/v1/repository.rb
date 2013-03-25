@@ -7,32 +7,31 @@ module V1
 
   module Repository
 
-    def self.fetch(id_list)
+    def self.fetch(ids)
       # Accepts an array of ids or a string containing a comma separated list of ids
-      id_list = id_list.split(/,\s*/) if id_list.is_a?(String)
-      wrap_results(do_fetch(id_list))
+      ids = ids.split(/,\s*/) if ids.is_a?(String)
+      wrap_results(raw_fetch(ids))
     end
 
-    def self.do_fetch(id_list)
-      begin
-        db = CouchRest.database(reader_cluster_database)
-        return db.get_bulk(id_list)["rows"]
-      rescue StandardError => e
-        puts "do_fetch ERROR: #{e}"
-      end
+    def self.raw_fetch(ids)
+      CouchRest.database(reader_cluster_database).get_bulk(ids)["rows"]
     end
 
     def self.wrap_results(results)
+      #TODO: We don't need to wrap this and send the size. let the consumer do that.
+      found_results = format_results(results)
       { 
-        'count' => results.size,
-        'docs' => format_results(results)
+        'count' => found_results.size,
+        'docs' => found_results,
       }
     end
 
     def self.format_results(results)
       results.map do |result|
+#        puts "FR-result: #{result}"
         result['doc'].delete_if {|k,v| k =~ /^(_rev|_type)/} if result['doc']
       end
+      
     end
 
     def self.recreate_env!
@@ -63,7 +62,6 @@ module V1
 
     def self.doc_count
       # Intended for rake tasks
-      #TODO: don't count views. In a cruel twist of fate, we may need a view to do that. :O
       CouchRest.database(admin_cluster_database).info['doc_count'] rescue 'ERROR'
     end
 
