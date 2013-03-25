@@ -1,0 +1,15 @@
+# This is a copy of dpla.yml that is copied into place by bin/travis-before-script.rb and
+# used by Travis CI (travis-ci.org). It is not used anywhere else in this app.
+
+repository:
+  node_host: 127.0.0.1:5984
+
+#  admin:
+# admin is not needed because CouchDB runs in admin party mode on Travis
+
+  reader:
+    user: travisreader
+    pass: travispass
+
+search:
+  endpoint: 127.0.0.1:9200

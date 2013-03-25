@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'yaml'
+require 'fileutils'
 
 ####
 puts "TRAVIS: Creating dpla_test database"
@@ -18,6 +19,7 @@ end
 ####
 puts "TRAVIS: Creating #{db_yaml_file}"
 
+# TODO: Use a template file like dpla.yml.travis does
 File.open(db_yaml_file, 'w') do |f|
   f.write({'test' =>
             {'adapter' => 'postgresql', 'database' => 'dpla_test', 'username' => 'postgres' }
@@ -27,28 +29,15 @@ end
 puts "TRAVIS: Done."
 
 ####
-# Create the DPLA config file for securing couchDB and with read-only user for elastic search
-dpla_config_file = "v1/config/dpla.yml"
+source_config = "v1/config/dpla.yml.travis"
+dest_config = source_config.sub /\.travis$/, ''
+puts "TRAVIS: Copying #{source_config} to #{dest_config}"
 
-if File.exist? dpla_config_file
-  raise "Refusing to overwrite pre-existing dpla config yaml file #{dpla_config_file}"
+if File.exist? dest_config
+  raise "Refusing to overwrite pre-existing dpla config yaml file #{dest_config}"
 end
 
-####
-puts "TRAVIS: Creating #{dpla_config_file}"
-# Create the non-default-able values that Travis will need
-File.open(dpla_config_file, 'w') do |f|
-  f.write(
-          {
-            'repository' => {
-              'reader' => {
-                'user' => 'dpla',
-                'pass' => 'es_password'
-              }
-            }
-          }.to_yaml
-          )
-end
+FileUtils.cp source_config, dest_config
 
 puts "TRAVIS: Done."
 

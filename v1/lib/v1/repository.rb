@@ -230,18 +230,19 @@ module V1
       cluster_endpoint('reader', repo_name)
     end
 
-    def self.build_endpoint(host, role=nil, suffix='')
+    def self.build_endpoint(host, role=nil, suffix=nil)
       config = V1::Config.dpla['repository']
 
       auth_string = ''
       if role
         auth = config.fetch(role, {})
-        raise "Requested role is undefined: #{role}" if auth.empty?
-        auth_string = auth['user'].to_s + ':' + auth['pass'].to_s + '@'
+        auth_string = auth['user'].to_s + ':' + auth['pass'].to_s + '@' unless auth.empty?
       end
 
-      if suffix != ''
+      if suffix
         suffix = (suffix =~ /^\// ? suffix : "/#{suffix}"  )
+      else
+        suffix = ''
       end
       
       auth_string + host + suffix

@@ -322,25 +322,24 @@ module V1
                 }
               }}
           end
-          it "builds an bare endpoint" do
+          it "builds an endpoint" do
             expect(subject.build_endpoint('repohost:1234')).to eq 'repohost:1234'
           end
-          it "builds an bare endpoint with a role" do
+          it "builds an endpoint with a role" do
             expect(subject.build_endpoint('repohost:1234', 'admin'))
               .to eq 'dpla-admin:adminpass@repohost:1234'
           end
-          it "builds an bare endpoint with a role and a suffix with no leading slash" do
+          it "builds an endpoint with a role and a suffix with no leading slash" do
             expect(subject.build_endpoint('repohost:1234', 'admin', 'dbname'))
               .to eq 'dpla-admin:adminpass@repohost:1234/dbname'
           end
-          it "builds an bare endpoint with a role and a suffix with a leading slash" do
+          it "builds an endpoint with a role and a suffix with a leading slash" do
             expect(subject.build_endpoint('repohost:1234', 'admin', '/dbname'))
               .to eq 'dpla-admin:adminpass@repohost:1234/dbname'
           end
-          it "raises an exception for an undefined role" do
-            expect {
-              subject.build_endpoint('repohost:1234', 'fakerole')
-            }.to raise_error /Requested role is undefined: fakerole/i
+          it "builds an endpoint with a role that is not defined in the config" do
+            expect(subject.build_endpoint('repohost:1234', 'undefined_role'))
+              .to eq 'repohost:1234'
           end
         end
 
