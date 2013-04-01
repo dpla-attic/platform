@@ -1,36 +1,36 @@
 Given /^the dataset exists$/ do
-  expect(File.exist?V1::StandardDataset::ITEMS_JSON_FILE).to be_true
+  V1::StandardDataset::dataset_files.each do |file|
+    expect(File.exist?(file)).to be_true
+  end
 end
 
 When /^I load the test dataset$/ do
-  @json = load_dataset
+  @json = load_dataset rescue $!
 end
 
 Then /^I should not get a dataset error$/ do
-  expect {
-    JSON.parse(@json)
-  }.to_not raise_error(JSON::ParserError)
+  expect(@json.is_a?(JSON::ParserError) ).to be_false
 end
 
 Given /^there are (\d+) items with "(.*?)" in the "(.*?)" field$/ do |arg1, target, field|
-  docs = JSON.parse(load_dataset)
+  docs = load_dataset
 
   names = field.split('.')
   count = 0
   docs.each do |doc|
-    # for each doc, traverse hash and add to counter if end node contained
+    # for each doc, traverse hash and increment count if end node contained target
     names.each do |name|
-      doc = doc[name]
+      doc = doc[name] rescue nil
       count += 1 if doc =~ /#{target}/
     end
-
   end
 
   expect(count.to_s).to eq(arg1)
 end
 
 Given /^there is a metadata record "(.*?)" with "(.*?)" in the "(.*?)" field$/ do |id, expected, field|
-  docs = JSON.parse(load_dataset)
+  docs = load_dataset
+
   doc = docs.detect {|doc| doc['_id'] == id}
 
   #traverse hash tree

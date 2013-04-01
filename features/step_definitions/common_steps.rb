@@ -1,5 +1,5 @@
-Given /^that I have have a valid API key$/ do
-  true
+Given /^that I have a valid API key$/ do
+  @params['api_key'] = @valid_api_key
 end
 
 Given /^the default page size is (\d+)$/ do |arg1|
@@ -11,7 +11,8 @@ Given /^the default test dataset is loaded$/ do
 end
 
 When /^I make an empty search$/ do
-  @params = {}
+  #nothing to do
+  true
 end
 
 When /^sort by "(.*?)"$/ do |arg1|
@@ -23,8 +24,17 @@ When /^sort by pin "(.*?)"$/ do |arg1|
 end
 
 Then /^I should get http status code "(.*?)"$/ do |arg1|
-  item_query(@params, false)
+  #TODO: simplify this to only check status
+  resource_query('item', @params, false)
 
+  if page.status_code.to_s != arg1
+    puts "Server Response: #{ JSON.parse(page.source)['message'] || page.source }"
+  end
+
+  expect(page.status_code.to_s).to eq(arg1)
+end
+
+Then /^I should get http status code "(.*?)" from the QA app$/ do |arg1|
   if page.status_code.to_s != arg1
     puts "Server Response: #{ JSON.parse(page.source)['message'] || page.source }"
   end

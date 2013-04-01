@@ -1,5 +1,5 @@
 When /^I search with "(.*?)" as the value of the fields parameter$/ do |fields|
-  @params = { 'fields' => fields }
+  @params.merge!({ 'fields' => fields })
 end
 
 Then /^I should get results with only "(.*?)" as fields$/ do |fields|

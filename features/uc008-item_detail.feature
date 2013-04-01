@@ -4,7 +4,7 @@ Feature: Retrieve detailed information about items (UC008)
   API users should be able to retrieve detailed information on items in the repository
 
   Background:
-    Given that I have have a valid API key
+    Given that I have a valid API key
     And the default test dataset is loaded
 
   Scenario: Try to retrieve an item that doesn't exist in the repository

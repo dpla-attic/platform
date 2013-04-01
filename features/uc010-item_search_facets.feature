@@ -4,7 +4,7 @@ Feature: Search the DPLA using facets (UC010)
   API users should be able to perform a faceted search within the DPLA repository
                
   Background:
-    Given that I have have a valid API key
+    Given that I have a valid API key
     
   Scenario: Retrieve global facets
     When I make an empty search

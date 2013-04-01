@@ -1,5 +1,5 @@
 Then /^the API will return a (\d+) http error message$/ do |status|
-  item_fetch(@fetch_id_string)
+  resource_fetch(@resource, @fetch_id_string, status)
   expect(page.status_code.to_s).to eq(status)
 end
 

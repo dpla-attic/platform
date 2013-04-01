@@ -4,7 +4,7 @@ Feature: Search for items by keyword (UC001)
   API users should be able to search for items using free text search
                                                        
   Background:
-    Given that I have have a valid API key
+    Given that I have a valid API key
       And the default test dataset is loaded
   
   Scenario: Free text item search with hits on the title

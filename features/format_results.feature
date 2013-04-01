@@ -4,7 +4,7 @@ Feature: Format API results based on request format or params
   API users should be able to request search results wrapped as JSONP
 
   Background:
-    Given that I have have a valid API key
+    Given that I have a valid API key
     And the default test dataset is loaded
 
   Scenario: JSONP wrapping is requested via "callback" query param

@@ -7,7 +7,7 @@ Feature: Search for items by date range (UC003)
   # converted to explicit date ranges (e.g. '1500 - 1599') during the ingestion process.
 
   Background:
-    Given that I have have a valid API key
+    Given that I have a valid API key
     And the default test dataset is loaded
 
   Scenario: Date search after a date

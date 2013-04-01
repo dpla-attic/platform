@@ -3,7 +3,11 @@ Feature: Search for collections by keyword (UC027)
   In order to find content through the DPLA
   API users should be able to search for collections using free text search
 
-  Given that I have have a valid API key
+  Background:
+    Given that I have a valid API key
+      And the default test dataset is loaded
+  
+  Given that I have a valid API key
     And the default test dataset is loaded
 
   Scenario: Free text collection search with hits on the title

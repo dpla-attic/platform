@@ -22,7 +22,7 @@ end
 
 Then /^the API returns the "(.*?)" facets$/ do |arg1|
   facets = arg1.split(/,\s*/)
-  @results = item_query(@params)
+  @results = resource_query('item', @params)
   if !@results['facets']
     # if it goes wrong, it goes wrong here
     raise Exception, "Test error: No facets found\nResponse: #{@results['message']}"
@@ -69,7 +69,7 @@ end
 
 Then /^the API returns items that contain the query string$/ do
   # Admittedly, a fairly loose test.
-  results = item_query(@params)
+  results = resource_query('item', @params)
 
   results['docs'].each do |doc|
     expect( doc.to_s =~ /#{@query_string}/i ).to be_true

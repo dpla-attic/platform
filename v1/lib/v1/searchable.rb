@@ -30,11 +30,6 @@ module V1
     def search(params={})
       validate_query_params(params)
       validate_field_params(params)
-      #  search = Tire.search(V1::Config::SEARCH_INDEX + '/' + 'item') do |s|
-      # 1.9.3p194 :020 >     s.query do |q|
-      # 1.9.3p194 :021 >        q.ids %w( 1 2 ), 'butts'
-      # 1.9.3p194 :022?>     end
-      # 1.9.3p194 :023?>   end
 
       search = Tire.search(V1::Config::SEARCH_INDEX + '/' + resource) do |search|
         queries_ran = []

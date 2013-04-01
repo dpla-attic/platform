@@ -4,7 +4,7 @@ Feature: Sort search results
   API users should be able to sort search results
                                                        
   Background:
-    Given that I have have a valid API key
+    Given that I have a valid API key
       And the default page size is 10
       And the default test dataset is loaded
 

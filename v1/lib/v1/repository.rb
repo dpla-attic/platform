@@ -1,3 +1,4 @@
+require_relative '../../app/models/v1/api_key'
 require 'v1/standard_dataset'
 require 'json'
 require 'couchrest'
@@ -6,6 +7,8 @@ require 'httparty'
 module V1
 
   module Repository
+
+    API_KEY_DATABASE = 'dpla_api_auth'
 
     def self.fetch(ids)
       # Accepts an array of ids or a string containing a comma separated list of ids
@@ -28,47 +31,38 @@ module V1
 
     def self.format_results(results)
       results.map do |result|
-#        puts "FR-result: #{result}"
         result['doc'].delete_if {|k,v| k =~ /^(_rev|_type)/} if result['doc']
       end
-      
     end
 
-    def self.recreate_env!
-      recreate_database!
-      #TODO: make recreate_database! also recreate_river, like V1::StandardDataset.recreate_search_index does
+    def self.recreate_doc_database
+      # rake target
+      recreate_database(admin_cluster_database)
+    end
+    
+    def self.recreate_api_keys_database
+      # rake target
+      recreate_database(admin_cluster_auth_database)
+    end
+    
+    def self.recreate_env(include_river=false)
+      recreate_doc_database
+      recreate_api_keys_database
+      V1::StandardDataset.recreate_river! if include_river
+      recreate_users
+      import_test_api_keys
       import_test_dataset
-
+      create_api_auth_views
       puts "CouchDB docs/views: #{ doc_count }"
-      V1::StandardDataset.recreate_river!
-    end
-
-    def self.service_status(raise_exceptions=false)
-      uri = URI.parse('http://' + reader_cluster_database)
-
-      auth = {}
-      if uri.user
-        auth = {:basic_auth => {:username => uri.user, :password => uri.password}}
-      end        
-
-      begin
-        HTTParty.get(uri.to_s, auth).body
-      rescue Exception => e
-        # let caller request exceptions or let it default to returning an informative string
-        raise e if raise_exceptions
-        "ERROR: #{e}"
-      end
     end
 
     def self.doc_count
       # Intended for rake tasks
-      CouchRest.database(admin_cluster_database).info['doc_count'] rescue 'ERROR'
+      CouchRest.database(admin_cluster_database).info['doc_count'] rescue 'Error'
     end
 
     def self.import_test_dataset
-      # Imports all the test data files
-      import_data_file(V1::StandardDataset::ITEMS_JSON_FILE)
-      import_data_file(V1::StandardDataset::COLLECTIONS_JSON_FILE)
+      V1::StandardDataset::dataset_files.each {|file| import_data_file file}
     end
 
     def self.import_data_file(file)
@@ -81,7 +75,7 @@ module V1
         db.bulk_save docs
       rescue RestClient::BadRequest => e
         error = JSON.parse(e.response) rescue {}
-        raise Exception, "ERROR: #{error['reason'] || e.to_s}"
+        raise Exception, "Error: #{error['reason'] || e.to_s}"
       end
     end
 
@@ -91,15 +85,82 @@ module V1
         docs.each {|doc| db.delete_doc doc }
       rescue RestClient::BadRequest => e
         error = JSON.parse(e.response) rescue {}
-        raise "ERROR: #{error['reason'] || e.to_s}"
+        raise "Error: #{error['reason'] || e.to_s}"
       end
     end
 
-    def self.recreate_database!
-      # Delete, recreate and repopulate the database
+    def self.recreate_auth_database(import_test_keys=false)
+      # rake task entry point
+      recreate_database(admin_cluster_auth_database)
+      #recreate_auth_design_doc(db)
+      import_test_api_keys if import_test_keys
+    end
+
+    def self.create_api_auth_views
+      # TODO: move to a JSON file and import from there. Ditto for dpla DB utils
+      # example: curl 'http://hz4:5950/dpla_api_auth/_design/api_auth_utils/_view/find_by_owner?key="aa44@dp.la"'
+      db = CouchRest.database(admin_cluster_auth_database)
+      views_doc = {
+        '_id' => "_design/api_auth_utils",
+        :views => {
+          :find_by_owner => {
+            :map => "function(doc) {\n  if (doc.owner) {\n    emit(doc.owner, doc);\n  }\n}"
+          }
+        }
+      }
+      result = db.save_doc(views_doc)
+      raise "Error: #{result}" unless result['ok']
+    end
+
+    #TODO: Move api management methods into a V1::ApiAuth module
+    def self.create_api_key(owner)
+      #TODO: tests
+      key = ApiKey.new(
+                       'db' => CouchRest.database(admin_cluster_auth_database),
+                       'owner' => owner
+                       )
+      key.save
+      key
+    end
+
+    def self.find_api_key_by_owner(owner)
+      key = ApiKey.find_by_owner(CouchRest.database(admin_cluster_auth_database), owner)
+      key ? key['_id'] : nil
+    end
+    
+    def self.authenticate_api_key(key_id)
+      ApiKey.authenticate(CouchRest.database(admin_cluster_auth_database), key_id)
+    end
+
+    def self.import_test_api_keys(owner=nil)
+      # rake task entry point
+      db = CouchRest.database(admin_cluster_auth_database)
+      keys = YAML.load_file(File.expand_path("../../../config/test_api_keys.yml", __FILE__))
+
+      puts "Test API keys: #{'ONLY FOR: ' + owner.to_s}"
+      keys.each do |key, body|
+        # Only import key for this owner
+        next if owner && owner != body['owner']
+        print "  #{ key }  #{body['owner']}  #{'(disabled)' if body['disabled'] === true}"
+
+        begin
+          result = db.save_doc( {'_id' => key}.merge(body) )
+          puts ""
+          puts "Error importing key: #{result}" unless result['ok']
+        rescue RestClient::Conflict => e
+          puts "  (key already present)"
+        rescue => e
+          raise "Error importing key: #{e}"
+        end
+      end
+      #TODO: Needs _auth/design created
+    end
+    
+    def self.recreate_database(database_uri)
+      # Delete and create a database
       #TODO: add production env check
       begin
-        CouchRest.database(admin_cluster_database).delete!
+        CouchRest.database(database_uri).delete!
       rescue RestClient::ResourceNotFound
       rescue => e
         raise "DB Delete Error: #{e}"
@@ -107,18 +168,17 @@ module V1
 
       # create new db
       begin
-        CouchRest.database!(admin_cluster_database)
+        CouchRest.database!(database_uri)
       rescue StandardError => e
         raise "DB Create Error: #{e}"
       end
-
-      #TODO: create a database admin (rather than use the system admin like we have been doing)
-      recreate_users
     end
 
     def self.recreate_users
       recreate_user
-      assign_roles(true)
+      db = CouchRest.database(admin_cluster_database)
+      #      assign_roles(db, true)  # these aren't used yet
+      recreate_auth(db, force_recreate=false)
     end
 
     def self.recreate_user
@@ -141,6 +201,7 @@ module V1
         raise "Unexpected error deleting user '#{username}': #{e}"
       end
 
+      #TODO: Move this into its own method
       # generate salt and sha such that this is compatible with CouchDB 1.1.1+
       salt = SecureRandom.hex(16)
       password_sha = Digest::SHA1.hexdigest(password + salt)
@@ -157,33 +218,34 @@ module V1
       begin
         # puts "Saving user: #{username} with salt: #{salt} and SHA: #{password_sha}"
         result = db.save_doc(user_doc)
-        puts "ERROR: #{result}" unless result['ok']
+        puts "Error: #{result}" unless result['ok']
       rescue => e
         raise "Create user error: #{e}"
       end
     end
 
-    def self.assign_roles(force_recreate=false)
-      # Only creates new docs if they do not already exist
-      db = CouchRest.database(admin_cluster_database)
+    # def self.assign_roles(db, force_recreate=false)
+    #   #TODO: verify need for this if we are not using database-admins yet
+    #   # Only creates new docs if they do not already exist
+    #   begin
+    #     current_security = db.get('_security')
+    #   rescue RestClient::ResourceNotFound
+    #   end
 
-      begin
-        current_security = db.get('_security')
-      rescue RestClient::ResourceNotFound
-      end
+    #   if current_security.nil? || force_recreate
+    #     security_doc = {
+    #       '_id' => '_security',
+    #       'admins' => {'roles' => %w( admin )},
+    #       'readers' => {'roles' => %w( reader )}
+    #     }
 
-      if current_security.nil? || force_recreate
-        security_doc = {
-          '_id' => '_security',
-          'admins' => {'roles' => %w( admin )},
-          'readers' => {'roles' => %w( reader )}
-        }
-
-        roles_result = db.save_doc(security_doc)
-        # puts "Roles OK: #{roles_result.to_s}"
-        raise "ERROR: #{roles_result}" unless roles_result['ok']
-      end        
-
+    #     roles_result = db.save_doc(security_doc)
+    #     # puts "Roles OK: #{roles_result.to_s}"
+    #     raise "Error: #{roles_result}" unless roles_result['ok']
+    #   end        
+    # end
+      
+    def self.recreate_auth(db, force_recreate=false)
       current_auth = db.get( '_design/auth' ) rescue nil
       if current_auth.nil? || force_recreate
         auth_doc = {
@@ -191,13 +253,31 @@ module V1
           'language' => 'javascript',
           'validate_doc_update' => "function(newDoc, oldDoc, userCtx) { if (userCtx.roles.indexOf('_admin') != -1) { return; } else { throw({forbidden: 'Only admins may edit the database'}); } }"
         }
+        
         auth_doc.merge!(current_auth) if current_auth
         auth_result = db.save_doc(auth_doc)
         # puts "Auth OK: #{auth_result.to_s}"
-        raise "ERROR: #{auth_result}" unless auth_result['ok']
+        raise "Error: #{auth_result}" unless auth_result['ok']
       end
     end
     
+    def self.service_status(raise_exceptions=false)
+      uri = URI.parse('http://' + reader_cluster_database)
+
+      auth = {}
+      if uri.user
+        auth = {:basic_auth => {:username => uri.user, :password => uri.password}}
+      end        
+
+      begin
+        HTTParty.get(uri.to_s, auth).body
+      rescue Exception => e
+        # let caller request exceptions or let it default to returning an informative string
+        raise e if raise_exceptions
+        "Error: #{e}"
+      end
+    end
+
     def self.repo_name
       V1::Config::REPOSITORY_DATABASE
     end
@@ -218,6 +298,10 @@ module V1
 
     def self.node_endpoint(role=nil, suffix='')
       build_endpoint(node_host, role, suffix)
+    end
+
+    def self.admin_cluster_auth_database
+      cluster_endpoint('admin', API_KEY_DATABASE)
     end
 
     def self.admin_cluster_database

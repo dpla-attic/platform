@@ -4,7 +4,7 @@ Feature: Search for items by creator (UC005)
   API users should be able to perform searches based on the creator of the content
 
   Background:
-    Given that I have have a valid API key
+    Given that I have a valid API key
     And the default test dataset is loaded
 
   Scenario: Creator search by text string

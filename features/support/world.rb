@@ -4,7 +4,7 @@ module CukeApiHelper
     # Delicately massage query results facets structure into something more testable
     # This method has similar hash traversal logic as V1::Schema.field()
     # NOTE: Only matches ElasticSearch results for not_analyzed fields
-    dataset = JSON.parse(load_dataset)
+    dataset = load_dataset
     source = {}
 
     facets.each do |facet|
@@ -68,11 +68,12 @@ module CukeApiHelper
     JSON.parse(page.source) rescue nil
   end
 
-  def resource_fetch(resource, ids)
-    visit("/v2/#{resource}s/#{ ids }")
+  def resource_fetch(resource, ids, expected_http_code=200)
+    visit("/v2/#{resource}s/#{ids}?api_key=#{@params['api_key']}")
     
-    if page.status_code != 200
-      puts "Fetch query expected HTTP 200 but got #{page.status_code} for ids: #{ids}"
+    expected_http_code = expected_http_code.to_i
+    if page.status_code != expected_http_code
+      puts "Fetch query expected HTTP #{expected_http_code} but got #{page.status_code} for ids: #{ids}"
       puts "page.source: #{page.source}"
       raise Exception 
     end
@@ -81,35 +82,20 @@ module CukeApiHelper
 
   ## /Collections additions/refactoring
 
-  def item_fetch(ids)
-    visit("/v2/items/#{ ids }")
-    JSON.parse(page.source) rescue nil
-  end
-
   def item_query_to_json(params={}, expect_success=false)
-    item_query(params, true)['docs']
+    resource_query('item', params, true)['docs']
   end
 
   def item_query(params={}, expect_success=false)
-    #    format = get_request_format(params)
-    visit("/v2/items?#{ params.to_param }")
-
-    if expect_success && page.status_code != 200
-      puts "Query expected HTTP 200 but got #{page.status_code} with params: #{params}"
-      puts "page.source: #{page.source}"
-      raise Exception 
-    end
-
-    JSON.parse(page.source) rescue nil
+    resource_query('item', params, expect_success)
   end
 
-  # def get_request_format(params)
-  #   format = params.delete 'format'
-  #   format ? '.' + format : ''
-  # end
-
   def load_dataset
-    File.read(V1::StandardDataset::ITEMS_JSON_FILE)
+    json = []
+    V1::StandardDataset.dataset_files.each do |json_file|
+      json.concat V1::StandardDataset.process_input_file(json_file, false)
+    end
+    json
   end
 
   def get_maintenance_file

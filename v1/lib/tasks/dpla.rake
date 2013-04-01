@@ -56,6 +56,11 @@ namespace :v1 do
     puts V1::StandardDataset.search_schema(args.resource)
   end
 
+  desc "Show API 'is_valid?' auth for a key"
+  task :show_api_auth, [:key] do |t, args|
+    puts "Authenticated?: #{  V1::Repository.authenticate_api_key args.key }"
+  end
+  
   desc "Displays the CouchDB repository_endpoint the API is configured to use"
   task :repo_endpoint do
     puts 'http://' + V1::Repository.reader_cluster_database
@@ -66,9 +71,21 @@ namespace :v1 do
     puts V1::Repository.service_status
   end
 
-  desc "Creates new CouchDB database"
+  desc "Creates new CouchDB repository database"
   task :recreate_repo_database do
-    V1::Repository.recreate_database!
+    V1::Repository.recreate_doc_database
+    V1::Repository.recreate_users
+  end
+
+  desc "Creates new CouchDB auth token database"
+  task :recreate_repo_api_key_database do
+    V1::Repository.recreate_api_keys_database
+    V1::Repository.create_api_auth_views
+  end
+  
+  desc "Imports test API keys into auth token database"
+  task :import_test_api_keys, [:owner] do |t, args|
+    V1::Repository.import_test_api_keys(args.owner)
   end
   
   desc "Re-creates read-only CouchDB user and re-assigns roles"
@@ -82,8 +99,15 @@ namespace :v1 do
   end
 
   desc "Re-creates CouchDB database, users, river and re-populates Couch with test dataset"
-  task :recreate_repo_env => :environment do
-    V1::Repository.recreate_env!
+  task :recreate_repo_env do
+    V1::Repository.recreate_env(true)
   end
+
+  desc "Gets number of docs in search index and repository"
+  task :doc_counts do
+    puts "Search docs    : #{ V1::StandardDataset.doc_count }"
+    puts "Repo docs/views: #{ V1::Repository.doc_count }" 
+  end
+
 
 end

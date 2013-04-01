@@ -1,5 +1,5 @@
 When /^I query with a raise parameter of "(.*?)"$/ do |arg1|
-  @params = { 'raise' => arg1 }
+  @params.merge!({ 'raise' => arg1 })
 end
 
 When /^I take the API service down for maintenance$/ do

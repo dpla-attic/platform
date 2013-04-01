@@ -4,24 +4,50 @@ module V1
 
   describe Repository do
 
-    describe "#recreate_database!" do
+    context "Module constants" do
 
-      it "uses correct repository URI to delete and delete" do
-        subject.stub(:admin_cluster_database => 'dbname')
-        couchdb = mock
-        couchdb.should_receive(:delete!)
-        CouchRest.should_receive(:database).with('dbname') { couchdb }
-
-        CouchRest.should_receive(:database!).with('dbname')
-        subject.stub(:recreate_users)
-        subject.recreate_database!
+      it "API_KEY_DATABASE has the correct value" do
+        expect(subject::API_KEY_DATABASE).to eq 'dpla_api_auth'
       end
-      
-      it "creates reader user and sets up access rules on DB" do
-        CouchRest.stub(:database) { stub.as_null_object }
-        CouchRest.stub(:database!)
-        subject.should_receive(:recreate_users)
-        subject.recreate_database!        
+
+    end
+
+    context "database/user management" do
+
+      describe "#recreate_database" do
+        it "deletes and creates a database correctly" do
+          db_uri = 'dbname'
+          couchdb = mock
+          couchdb.should_receive(:delete!)
+          CouchRest.should_receive(:database).with(db_uri) { couchdb }
+          CouchRest.should_receive(:database!).with(db_uri)
+
+          subject.recreate_database(db_uri)
+        end
+      end
+
+      describe "#recreate_env" do
+
+        before :each do
+          subject.stub(:doc_count)
+          subject.stub(:puts)
+          subject.should_receive(:recreate_doc_database)
+          subject.should_receive(:recreate_api_keys_database)
+          subject.should_receive(:recreate_users)
+          subject.should_receive(:import_test_api_keys)
+          subject.should_receive(:import_test_dataset)
+          subject.should_receive(:create_api_auth_views)
+        end
+        
+        it "has all the right moves by default" do
+          V1::StandardDataset.should_not_receive(:recreate_river!)
+          subject.recreate_env
+        end
+
+        it "has all the right moves and creates the river if requested" do
+          V1::StandardDataset.should_receive(:recreate_river!)
+          subject.recreate_env(true)
+        end
       end
 
     end
@@ -32,8 +58,7 @@ module V1
                    {
                      "id"=>"A",
                      "key"=>"A",
-                     "doc"=>
-                     {
+                     "doc"=> {
                        "_id"=>"A",
                        "_rev"=>"1-A",
                        "id"=>"aaa",
@@ -43,8 +68,7 @@ module V1
                    {
                      "id"=>"B",
                      "key"=>"B",
-                     "doc"=>
-                     {
+                     "doc"=> {
                        "_id"=>"B",
                        "_rev"=>"1-B",
                        "id"=>"bbb",
@@ -165,7 +189,7 @@ module V1
         CouchRest.stub(:database).with("admin_endpoint/dbname") { couchdb }
         expect {
           subject.import_docs([stub])
-        }.to raise_error Exception, /^ERROR/
+        }.to raise_error Exception, /^Error/
       end
     end
 
@@ -186,9 +210,6 @@ module V1
 
     describe "#recreate_user" do
       
-      let(:user_db) { mock('db') }
-      let(:reader) { mock('ro_user') }
-
       before :each do
         subject.stub(:sleep)
         V1::Config.stub(:dpla) {{
@@ -199,10 +220,12 @@ module V1
               }
             }
           }}
-
         subject.stub(:node_endpoint).with('admin', '/_users') { 'node_endpoint/_users' }
         CouchRest.stub(:database).with('node_endpoint/_users') { user_db }
       end
+
+      let(:user_db) { mock('db') }
+      let(:reader) { mock('ro_user') }
 
       it "deletes the existing read-only users" do
         user_db.stub(:get).with("org.couchdb.user:dpla-reader") { reader }
@@ -248,32 +271,33 @@ module V1
       end
     end
 
-    describe "#assign_roles" do
-      it "should lock down database roles and create design doc for validation" do
-        db = mock
-        CouchRest.stub(:database) { db }
-        db.should_receive(:get).with('_security') { nil }
-        db.should_receive(:save_doc)
-          .with({
-                  '_id' => '_security',
-                  'admins' => {'roles' => %w( admin )},
-                  'readers' => {'roles' => %w( reader )}
-                }) { {'ok' => true} }
+    # describe "#assign_roles" do
+    #   it "should lock down database roles and create design doc for validation" do
+    #     db = mock
+    #     CouchRest.stub(:database) { db }
+    #     db.should_receive(:get).with('_security') { nil }
+    #     db.should_receive(:save_doc)
+    #       .with({
+    #               '_id' => '_security',
+    #               'admins' => {'roles' => %w( admin )},
+    #               'readers' => {'roles' => %w( reader )}
+    #             }) { {'ok' => true} }
 
-        db.should_receive(:get).with('_design/auth') { nil }
-        db.should_receive(:save_doc)
-          .with({
-                  '_id' => '_design/auth',
-                  'language' => 'javascript',
-                  'validate_doc_update' => "function(newDoc, oldDoc, userCtx) { if (userCtx.roles.indexOf('_admin') != -1) { return; } else { throw({forbidden: 'Only admins may edit the database'}); } }"
-                }) { {'ok' => true} }
+    #     db.should_receive(:get).with('_design/auth') { nil }
+    #     db.should_receive(:save_doc)
+    #       .with({
+    #               '_id' => '_design/auth',
+    #               'language' => 'javascript',
+    #               'validate_doc_update' => "function(newDoc, oldDoc, userCtx) { if (userCtx.roles.indexOf('_admin') != -1) { return; } else { throw({forbidden: 'Only admins may edit the database'}); } }"
+    #             }) { {'ok' => true} }
 
-        subject.assign_roles
-      end
+    #     subject.assign_roles
+    #   end
 
-    end
+    # end
 
-    describe "config accessors" do
+    context "config accessors" do
+      #TODO: comment this before block out
       before :each do
         V1::Config.stub(:dpla) {{
           "read_only_user" => { "username" => "u", "password" => "pw" },
@@ -282,86 +306,83 @@ module V1
         subject.stub(:host) { "abc.com" }
       end
       
-      context "cluster support" do
-        describe "#cluster_host" do
-          it "returns the cluster_host var when it is defined" do
-            V1::Config.stub(:dpla) {{
-                'repository' => { 'cluster_host' => '1.2.3.4:5986' }
-              }}
-            expect(subject.cluster_host).to eq '1.2.3.4:5986'
-          end
-          it "returns the node_host var when cluster_host is not defined" do
-            V1::Config.stub(:dpla) {{
-                'repository' => { 'node_host' => '1.2.3.4:5984' }
-              }}
-            expect(subject.cluster_host).to eq '1.2.3.4:5984'
-          end
+       describe "#cluster_host" do
+        it "returns the cluster_host var when it is defined" do
+          V1::Config.stub(:dpla) {{
+              'repository' => { 'cluster_host' => '1.2.3.4:5986' }
+            }}
+          expect(subject.cluster_host).to eq '1.2.3.4:5986'
         end
-        describe "#node_host" do
-          it "defaults to correct host and IP when no hosts are defined" do
-            V1::Config.stub(:dpla) {{
-                'repository' => {  }
-              }}
-            expect(subject.node_host).to eq "127.0.0.1:5984"
-          end
+        it "returns the node_host var when cluster_host is not defined" do
+          V1::Config.stub(:dpla) {{
+              'repository' => { 'node_host' => '1.2.3.4:5984' }
+            }}
+          expect(subject.cluster_host).to eq '1.2.3.4:5984'
         end
-        
-        describe "#build_endpoint" do
-          before(:each) do
-            V1::Config.stub(:dpla) {{
-                'repository' => {
-                  'admin' => {
-                    'user' => 'dpla-admin',
-                    'pass' => 'adminpass',
-                  },
-                  'reader' => {
-                    'user' => 'dpla-reader',
-                    'pass' => 'readerpass',
-                  }
+      end
+      describe "#node_host" do
+        it "defaults to correct host and IP when no hosts are defined" do
+          V1::Config.stub(:dpla) {{
+              'repository' => {  }
+            }}
+          expect(subject.node_host).to eq "127.0.0.1:5984"
+        end
+      end
+      
+      describe "#build_endpoint" do
+        before(:each) do
+          V1::Config.stub(:dpla) {{
+              'repository' => {
+                'admin' => {
+                  'user' => 'dpla-admin',
+                  'pass' => 'adminpass',
+                },
+                'reader' => {
+                  'user' => 'dpla-reader',
+                  'pass' => 'readerpass',
                 }
-              }}
-          end
-          it "builds an endpoint" do
-            expect(subject.build_endpoint('repohost:1234')).to eq 'repohost:1234'
-          end
-          it "builds an endpoint with a role" do
-            expect(subject.build_endpoint('repohost:1234', 'admin'))
-              .to eq 'dpla-admin:adminpass@repohost:1234'
-          end
-          it "builds an endpoint with a role and a suffix with no leading slash" do
-            expect(subject.build_endpoint('repohost:1234', 'admin', 'dbname'))
-              .to eq 'dpla-admin:adminpass@repohost:1234/dbname'
-          end
-          it "builds an endpoint with a role and a suffix with a leading slash" do
-            expect(subject.build_endpoint('repohost:1234', 'admin', '/dbname'))
-              .to eq 'dpla-admin:adminpass@repohost:1234/dbname'
-          end
-          it "builds an endpoint with a role that is not defined in the config" do
-            expect(subject.build_endpoint('repohost:1234', 'undefined_role'))
-              .to eq 'repohost:1234'
-          end
+              }
+            }}
         end
-
-        describe "#cluster_endpoint" do
-          it "delegates to build_endpoint with correct host param" do
-            cluster_stub = stub
-            subject.stub(:cluster_host) { cluster_stub }
-            endpoint = stub 
-            subject.should_receive(:build_endpoint).with(cluster_stub, anything, anything) { endpoint }
-            
-            expect(subject.cluster_endpoint()).to eq endpoint
-          end
+        it "builds an endpoint" do
+          expect(subject.build_endpoint('repohost:1234')).to eq 'repohost:1234'
         end
-
-        describe "#admin_cluster_database" do
-          it "delegates correctly" do
-            subject.should_receive(:cluster_endpoint).with('reader', subject.repo_name)
-            subject.reader_cluster_database
-          end
+        it "builds an endpoint with a role" do
+          expect(subject.build_endpoint('repohost:1234', 'admin'))
+            .to eq 'dpla-admin:adminpass@repohost:1234'
         end
-
+        it "builds an endpoint with a role and a suffix with no leading slash" do
+          expect(subject.build_endpoint('repohost:1234', 'admin', 'dbname'))
+            .to eq 'dpla-admin:adminpass@repohost:1234/dbname'
+        end
+        it "builds an endpoint with a role and a suffix with a leading slash" do
+          expect(subject.build_endpoint('repohost:1234', 'admin', '/dbname'))
+            .to eq 'dpla-admin:adminpass@repohost:1234/dbname'
+        end
+        it "builds an endpoint with a role that is not defined in the config" do
+          expect(subject.build_endpoint('repohost:1234', 'undefined_role'))
+            .to eq 'repohost:1234'
+        end
       end
 
+      describe "#cluster_endpoint" do
+        it "delegates to build_endpoint with correct host param" do
+          cluster_stub = stub
+          subject.stub(:cluster_host) { cluster_stub }
+          endpoint = stub 
+          subject.should_receive(:build_endpoint).with(cluster_stub, anything, anything) { endpoint }
+          
+          expect(subject.cluster_endpoint()).to eq endpoint
+        end
+      end
+
+      describe "#admin_cluster_database" do
+        it "delegates correctly" do
+          subject.should_receive(:cluster_endpoint).with('reader', subject.repo_name)
+          subject.reader_cluster_database
+        end
+      end
+      
     end
 
     describe "#service_status" do
@@ -377,6 +398,55 @@ module V1
         }.to raise_error /Connection Refused/i
       end
       
+    end
+
+    context "API keys" do
+
+      describe "#authenticate_api_key" do
+        let(:key_id) { '6c30d962ed96c45c7f007635ef011354' }
+        let(:active_key) { {'_id' => key_id} }
+        let(:disabled_key) { {'_id' => key_id, 'disabled' => true} }
+        it "returns false for a key not in hex format" do
+          expect(subject.authenticate_api_key('`cat /etc/passwd`')).to be_false
+        end
+        it "returns false for a key that does not exists" do
+          CouchRest.stub_chain(:database, :get) { raise RestClient::ResourceNotFound }
+          expect(subject.authenticate_api_key(key_id)).to be_false
+        end
+        it "returns false for a key that exists but is disabled" do
+          CouchRest.stub_chain(:database, :get) { disabled_key }
+          expect(subject.authenticate_api_key(key_id)).to be_false
+        end
+        it "returns true for an existing key that is not disabled" do
+          CouchRest.stub_chain(:database, :get) { active_key }
+          expect(subject.authenticate_api_key(key_id)).to be_true
+        end
+        it "allows a connection refused exception to bubble up if one is raised" do
+          CouchRest.stub_chain(:database, :get) { raise Errno::ECONNREFUSED }
+          
+          expect {
+            subject.authenticate_api_key(key_id)
+          }.to raise_error Errno::ECONNREFUSED
+        end
+        
+      end
+
+      describe "#create_api_key" do
+        it "calls key.new with the correct params" do
+          db = stub
+          owner = stub
+          CouchRest.stub(:database).with(subject.admin_cluster_auth_database) { db }
+          key_stub = stub(:save => nil)
+          ApiKey.should_receive(:new)
+            .with({
+                    'db' => db,
+                    'owner' => owner
+                  }) { key_stub }
+          expect(subject.create_api_key(owner)).to eq key_stub
+        end
+        
+      end
+
     end
 
   end

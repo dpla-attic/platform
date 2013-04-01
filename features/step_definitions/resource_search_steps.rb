@@ -18,20 +18,20 @@ When /^I (.+)-search for( the phrase)? "(.*?)"( in the "(.*?)" field)?$/ do |res
   @query_string = keyword
   
   # phrase queries get wrapped in double quotes
-  @params = {
+  @params.merge!({
     @query_field => is_phrase.nil? ? @query_string : '"' + @query_string + '"'
-  }
+  })
 end
 
 # When /^I search the "(.*?)" field for records with a date between "(.*?)" and "(.*?)"$/ do |field, start_date, end_date|
-#   @params = {
+#   @params.merge!({
 #     "#{field}.after" => start_date,
 #     "#{field}.before" => end_date,
-#   }
+#   })
 # end
 
 # When /^I search the "(.*?)" field for records with a date (before|after) "(.*?)"$/ do |field, modifier, target_date|
-#   @params = { "#{field}.#{modifier}" => target_date }
+#   @params.merge!({ "#{field}.#{modifier}" => target_date })
 # end
 
 # Then /^the API should return records? (.*?)$/ do |id_list|
@@ -56,7 +56,7 @@ end
 # end
 
 # When /^I search for records with "(.*?)" near coordinates "(.*?)"( with a range of (\d+) miles)?$/ do |field, lat_long, junk, distance|
-#   @params = {field => lat_long}
+#   @params.merge!({field => lat_long})
 #   if distance
 #     distance_field = field.gsub(/^(.+)\.(.+)$/, '\1.distance')
 #     @params[distance_field] = distance + 'mi'

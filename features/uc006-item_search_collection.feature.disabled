@@ -4,7 +4,7 @@ Feature: Search for items by collection (UC006)
   API users should be able to perform searches based on collections
 
   Background:
-    Given that I have have a valid API key
+    Given that I have a valid API key
     And the default test dataset is loaded
 
   Scenario: Search for all items within a single collection

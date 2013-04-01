@@ -4,7 +4,7 @@ Feature: Retrieve detailed information about collections (UC007)
   API users should be able to retrieve information about collections
 
   Background:
-    Given that I have have a valid API key
+    Given that I have a valid API key
     And the default test dataset is loaded
 
   Scenario: Try to retrieve a collection that doesn't exist in the repository

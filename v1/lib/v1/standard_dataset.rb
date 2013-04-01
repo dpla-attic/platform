@@ -11,6 +11,13 @@ module V1
     ITEMS_JSON_FILE = File.expand_path("../../../spec/items.json", __FILE__)
     COLLECTIONS_JSON_FILE = File.expand_path("../../../spec/collections.json", __FILE__)
 
+    def self.dataset_files
+      [
+       ITEMS_JSON_FILE,
+       COLLECTIONS_JSON_FILE
+      ]
+    end
+
     def self.recreate_env!
       recreate_index!
       import_test_dataset
@@ -19,7 +26,7 @@ module V1
 
     def self.doc_count
       url = V1::Config.search_endpoint + '/' + V1::Config::SEARCH_INDEX + '/' + '_status'
-      HTTParty.get(url)['indices'][V1::Config::SEARCH_INDEX]['docs']['num_docs'] rescue 'ERROR'
+      HTTParty.get(url)['indices'][V1::Config::SEARCH_INDEX]['docs']['num_docs'] rescue 'Error'
     end
 
     def self.process_input_file(json_file, inject_type)
@@ -30,13 +37,12 @@ module V1
         return docs
       rescue JSON::ParserError => e
         # Try to output roughly 1 test doc so they can see the error.
-        raise "JSON parse error: #{e.to_s.split(/\n/).first(25).join("\n")} \n[SNIP]..."
+        raise JSON::ParserError, "JSON parse error: #{e.to_s.split(/\n/).first(25).join("\n")} \n[SNIP]..."
       end
     end
 
     def self.import_test_dataset
-      import_data_file(ITEMS_JSON_FILE)
-      import_data_file(COLLECTIONS_JSON_FILE)
+      dataset_files.each {|file| import_data_file file}
     end
 
     def self.import_data_file(file)
@@ -54,20 +60,28 @@ module V1
       #TODO: add production env check
       endpoint_config_check
 
+      # Delete the river here to avoid it tripping all over itself and getting
+      # confused when we create it later
       delete_river!
       sleep 1
 
       Tire.index(V1::Config::SEARCH_INDEX) do |tire|
         tire.delete
-        #TODO: add '_meta' => {'created' => $timestamp}
-        #ToDO: also consider using [settings.]index.mapping.ignore_malformed => true
-        tire.create( { 'mappings' => V1::Schema::ELASTICSEARCH_MAPPING } )
+
+        # inject the timestamp because it's nice to see in the search_schema rake task
+        timestamp = Time.now.to_s
+        dated_mapping = V1::Schema::ELASTICSEARCH_MAPPING.dup.each do |res,fields|
+          fields['_meta'] = { 'created' => timestamp }
+        end
+
+        tire.create( { 'mappings' => dated_mapping } )
         if tire.response.code != 200
-          raise "ERROR: #{ JSON.parse(tire.response.body)['error'] }" 
+          raise "Error: #{ JSON.parse(tire.response.body)['error'] }" 
         end
       end
 
-      recreate_river!
+      #TODO: add optional arg to this method to control creating the river here
+      create_river
     end
 
     def self.endpoint_config_check
@@ -87,7 +101,7 @@ module V1
       if failures.any?
         result_count = result['items'].size
         puts "Imported #{result_count - failures.size}/#{result_count} docs OK"
-        puts "\nERROR: The following docs failed to import correctly:"
+        puts "\nError: The following docs failed to import correctly:"
         failures.each do |item|
           puts "#{ item['index']['_id'] }: #{ item['index']['error'] }"
         end

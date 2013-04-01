@@ -15,7 +15,7 @@ module Contentqa
       api_params = params.delete_if { |key,value| PARAMETERS.exclude? key}
       api_params = api_params.delete_if { |key,value| value.to_s == '' }
       api_params = api_params.merge({'facets' => FACETS.join(",")})
-      logger.debug "PHUNKSEARCH: Search params: #{api_params}"
+
       search_result = item_search(api_params)
 
       @count, @start, @limit = search_result['count'], search_result['start'], search_result['limit']

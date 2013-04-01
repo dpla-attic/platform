@@ -8,7 +8,7 @@ Feature: Search for items by location (UC004)
 # - searching based on geonames.org linked data URIs
 
   Background:
-    Given that I have have a valid API key
+    Given that I have a valid API key
       And the default test dataset is loaded
       And the default search radius for location search is 20 miles
 

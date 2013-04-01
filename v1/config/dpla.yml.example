@@ -33,6 +33,19 @@ repository:
     pass: their-password
 
 search:
-  #ElasticSearch host and port
+  # ElasticSearch host and port
   endpoint: 127.0.0.1:9200
+
+api_auth:
+  # You're probably going to want to run with the following options commented out.
+  # By default, the API requires a valid API key, which is definitely the way you'll
+  # want to run it unless you have an excellent reason. (API keys help guard against
+  # accidental DDOS attacks by wonky client apps.)
+
+  # Set to true to accept *any* api_key param value as long as it is not blank
+  # allow_all_keys: false
+
+  # Set to true to *not* require an api_key param at all. This overrides allow_all_keys and
+  # makes the API completely open. This is not recommended for actual production use.
+  # skip_key_auth_completely: false
 

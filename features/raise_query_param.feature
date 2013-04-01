@@ -1,4 +1,9 @@
-Feature: API Http Status Code Feature
+Feature: API Http Status Code Raise Feature
+
+  Background:
+    Given that I have a valid API key
+      And the default test dataset is loaded
+
   Scenario: Successful Request
     When I query with a raise parameter of "200"
     Then I should get http status code "200"

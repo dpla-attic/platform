@@ -6,7 +6,7 @@ Feature: Search for items using collection-specific fields (UC009)
   And are specific to individual collections or contributors
   
   Background:
-    Given that I have have a valid API key
+    Given that I have a valid API key
     And the default test dataset is loaded
   
   Scenario: Search by collection-specific text field 

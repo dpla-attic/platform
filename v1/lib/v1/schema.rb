@@ -163,7 +163,7 @@ module V1
           'ingestType' => { 'type' => 'object', 'enabled' => false },
           'ingestDate' => { 'type' => 'object', 'enabled' => false },
         }
-      }
+      }  #/item
     }.freeze
 
     def self.field(resource, name, modifier=nil)
