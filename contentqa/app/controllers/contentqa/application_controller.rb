@@ -20,6 +20,8 @@ module Contentqa
 
     #TODO: use v1_api.items_url
     def item_fetch_link(id)
+      puts "BURI+: #{baseuri}"
+      puts "url: #{baseuri}"
       baseuri + v1_api.items_path + '/' + id + "?api_key=#{ @@api_auth_key }"
     end
 
