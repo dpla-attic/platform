@@ -18,57 +18,81 @@ module V1
       end
 
       describe "#build_all" do
-        it "applies the spatial_coordinates filter if one was generated from the params" do
-          subject.stub(:geo_coordinates_filter) { ['fake', 'filter'] }
+
+        let(:built_filters) {
+          [
+           ['distance', 'coords' => '42,-71'],
+           ['bbox', 'left' => '41,-70', 'right' => '43,-72']
+          ]
+        }
+        
+        it "Passes all the generated filters to its search arg" do
+          subject.stub(:build_geo_filters).with(resource, anything()) { built_filters } 
+
           search = mock(:filter => nil)
-          search.should_receive(:filter).with(*['fake', 'filter'])
+          search.should_receive(:filter).with( *['distance', 'coords' => '42,-71'])
+          search.should_receive(:filter).with( *['bbox', 'left' => '41,-70', 'right' => '43,-72'])
+
           subject.build_all(resource, search, stub)
         end
 
-        it "does not apply the spatial_coordinates filter if one was not generated from the params" do
-          subject.stub(:geo_coordinates_filter) { nil }
+        it "returns true if it generated any filters" do
+          subject.stub(:build_geo_filters).with(resource, anything()) { built_filters } 
+
           search = mock(:filter => nil)
-          search.should_not_receive(:filter)
-          subject.build_all(resource, search, stub)
+          expect(subject.build_all(resource, search, stub)).to be_true
         end
         
       end
 
-      describe "#geo_coordinates_filter" do
+      describe "#build_geo_filters" do
+        it "creates a geo_bounding_box filter when applicable" do
+          field = stub(:geo_point? => true)
+          Schema.stub(:field).with(resource, 'coordinates') { field }
+          params = {'coordinates' => '41,-70:43,-72'}
+
+          subject.should_receive(:geo_bounding_box).with('coordinates', '41,-70:43,-72')
+          subject.should_not_receive(:geo_distance)
+          subject.build_geo_filters(resource, params)
+        end
+        
+        it "creates a geo_distance filter when applicable" do
+          field = stub(:geo_point? => true)
+          Schema.stub(:field).with(resource, 'coordinates') { field }
+          params = {'coordinates' => '41,-70'}
+
+          subject.should_not_receive(:geo_bounding_box)
+          subject.should_receive(:geo_distance).with('coordinates', params)
+          subject.build_geo_filters(resource, params)
+        end
+        
+      end
+
+      describe "#geo_distance" do
 
         it "handles coordinate queries without a range" do
           name = 'some_field.coordinates'
-          V1::Schema.stub(:field).with(resource, name) { stub(:geo_point? => true) }
           params = {name => "42.1,-71"}
           expect(
-                 subject.geo_coordinates_filter(resource, params)
+                 subject.geo_distance(name, params)
                  ).to eq ['geo_distance', {name => "42.1,-71", 'distance' => Filter::DEFAULT_GEO_DISTANCE} ]
         end
         
         it "handles coordinate queries with a range" do
           name = 'some_field.coordinates'
-          V1::Schema.stub(:field).with(resource, name) { stub(:geo_point? => true) }
+
           params = {name => "42.1,-71", 'some_field.distance' => '11mi'}
           expect(
-                 subject.geo_coordinates_filter(resource, params)
+                 subject.geo_distance(name, params)
                  ).to eq ['geo_distance', {name => "42.1,-71", 'distance' => '11mi'} ]
-        end
-
-        it "returns nil when there is no coordinates_field query" do
-          name = 'q'
-          params = {name => 'banana'}
-          V1::Schema.stub(:field).with(resource, name)
-          expect(
-                 subject.geo_coordinates_filter(resource, params)
-                 ).to eq nil
         end
 
         it "raises an API-specific exception if spatial.distance is supplied but lacks units" do
           name = 'some_field.coordinates'
-          V1::Schema.stub(:field).with(resource, name) { stub(:geo_point? => true) }
+
           params = {name => "42.1,-71", 'some_field.distance' => '11'}
           expect {
-            subject.geo_coordinates_filter(resource, params)
+            subject.geo_distance(name, params)
           }.to raise_error V1::BadRequestSearchError, "Missing or invalid units for some_field.distance"
         end
 

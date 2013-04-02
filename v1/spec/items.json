@@ -316,6 +316,20 @@
         }
     },
     {
+        "_id": "L",
+        "id": "L",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "NYC bounding box test",
+            "spatial": {
+                "name": "End Point Office",
+                "coordinates": "40.73,-73.98", 
+                "state": "New York",
+                "city": "New York City"
+            }
+        }
+    },
+    {
         "_id": "Doppel1",
         "id": "Doppel1",
         "ingestType": "item",

@@ -40,21 +40,7 @@ Then /^the API should return no records$/ do
   expect(json.size).to eq 0
 end
 
-Given /^the default search radius for location search is (\d+) miles$/ do |arg1|
-  expect(V1::Searchable::Filter::DEFAULT_GEO_DISTANCE).to eq "#{arg1}mi"
-end
-
-When /^I search for records with "(.*?)" near coordinates "(.*?)"( with a range of (\d+) miles)?$/ do |field, lat_long, junk, distance|
-  @params.merge!({field => lat_long})
-  if distance
-    distance_field = field.gsub(/^(.+)\.(.+)$/, '\1.distance')
-    @params[distance_field] = distance + 'mi'
-  end
-end
-
 Then /^the API should not return record (.+)$/ do |id|
   json = item_query_to_json(@params)
-  expect(
-    json.map {|doc| doc['_source']['_id'] }.include?(id)
-  ).to be_false
+  expect( json.any? {|doc| doc['_id'] == id } ).to be_false
 end

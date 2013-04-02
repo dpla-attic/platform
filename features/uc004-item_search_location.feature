@@ -16,15 +16,23 @@ Feature: Search for items by location (UC004)
     When I search for "Cambridge" in the "sourceResource.spatial" field 
     Then the API should return record M
 
-  Scenario: Location search 
+  Scenario: Location search hit
     When I search for records with "sourceResource.spatial.coordinates" near coordinates "42.3,-71"
     Then the API should return record M
 
-  Scenario: Location search 
+  Scenario: Location search miss
     When I search for records with "sourceResource.spatial.coordinates" near coordinates "43.3,-71.1"
     Then the API should not return record M
 
-  Scenario: Location search with expanded search radius
+  Scenario: Location search hit with expanded search radius
     When I search for records with "sourceResource.spatial.coordinates" near coordinates "41,-71" with a range of 100 miles
     Then the API should return record M
+
+  Scenario: Location bounding_box search hit
+    When I search for records with "sourceResource.spatial.coordinates" inside the bounding box defined by "41.44,-74.44" and "40.25,-73.28"
+    Then the API should return records L
+
+  Scenario: Location bounding_box search miss (search for boston coordiantes misses NYC location)
+    When I search for records with "sourceResource.spatial.coordinates" inside the bounding box defined by "42.93,-72.28" and "42.37,-71.11"
+    Then the API should not return record L
   

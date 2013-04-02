@@ -74,12 +74,17 @@
   <tr>
     <td>UC004</td>
     <td><%= link_to nil, v1_api.items_path('sourceResource.spatial.coordinates' => '42.3,-71') %></td>
-    <td>M (default range)</td>
+    <td>geo_point search (default range)</td>
   </tr>
   <tr>
     <td>UC004</td>
     <td><%= link_to nil, v1_api.items_path('sourceResource.spatial.coordinates' => '41,-71', 'sourceResource.spatial.distance' => '100mi') %></td>
-    <td>M (specific range expressed in miles)</td>
+    <td>geo_point search (specific range expressed in miles)</td>
+  </tr>
+  <tr>
+    <td>#3030</td>
+    <td><%= link_to nil, v1_api.items_path('sourceResource.spatial.coordinates' => "41.44,-74.44:40.25,-73.28") %></td>
+    <td>geo_point bounding_box search</td>
   </tr>
   <tr>
     <td>#2788</td>
