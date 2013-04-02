@@ -123,7 +123,13 @@ module V1
               'type' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
             }
           },  #/sourceResource
-          'dataProvider' => { 'type' => 'string' },
+          'dataProvider' => {
+            'type' => 'multi_field',
+            'fields' => {
+              'dataProvider' => { 'type' => 'string', 'sort' => 'field' },
+              'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true }
+            }
+          },
           'hasView' => {
             'properties' => {
               '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
