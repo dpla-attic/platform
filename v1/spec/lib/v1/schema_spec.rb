@@ -32,7 +32,7 @@ module V1
           it "has the correct number of fields for 'item/sourceResource'" do
             expect(
                    V1::Schema::ELASTICSEARCH_MAPPING[resource]['properties']['sourceResource']['properties']
-                   ).to have(17).items
+                   ).to have(18).items
           end
         end
 

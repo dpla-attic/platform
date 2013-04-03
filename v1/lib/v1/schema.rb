@@ -26,6 +26,18 @@ module V1
           'sourceResource' => {
             'properties' => {
               'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
+              'collection' => {
+                'properties' => {
+                  '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+                  'name' => {
+                    'type' => 'multi_field',
+                    'fields' => {
+                      'name' => { 'type' => 'string', 'sort' => 'field' },
+                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                    }
+                  }                      
+                }
+              },
               'contributor' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
               'creator' => { 'type' => 'string' },
               'date' => {
@@ -139,16 +151,7 @@ module V1
             }
           },
           'isPartOf' => {
-            'properties' => {
-              '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-              'name' => {
-                'type' => 'multi_field',
-                'fields' => {
-                  'name' => { 'type' => 'string', 'sort' => 'field' },
-                  'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
-                }
-              }                      
-            }
+            'type' => 'object', 'enabled' => false
           },
           'isShownAt' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
           'object' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
