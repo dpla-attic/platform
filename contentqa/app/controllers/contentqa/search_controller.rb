@@ -4,12 +4,12 @@ module Contentqa
   class SearchController < ApplicationController
     include Contentqa::SearchHelper
 
-    DISPLAY = %w[id sourceResource.title sourceResource.description sourceResource.creator sourceResource.type sourceResource.publisher sourceResource.format sourceResource.rights sourceResource.contributor sourceResource.date sourceResource.spatial sourceResource.temporal sourceResource.subject sourceResource.ingestDate isPartOf sourceResource.language.name]
-    SEARCH = %w[id sourceResource.title sourceResource.description sourceResource.creator sourceResource.type sourceResource.publisher sourceResource.format sourceResource.rights sourceResource.contributor sourceResource.spatial sourceResource.date.after sourceResource.date.before sourceResource.subject.name isPartOf]
-    FACETS = %w[sourceResource.type sourceResource.format sourceResource.language.name sourceResource.spatial.name sourceResource.spatial.state sourceResource.spatial.city sourceResource.subject.name isPartOf.name sourceResource.contributor]
+    DISPLAY = %w[id sourceResource.title sourceResource.description sourceResource.creator sourceResource.type sourceResource.publisher sourceResource.format sourceResource.rights sourceResource.contributor sourceResource.date sourceResource.spatial sourceResource.temporal sourceResource.subject sourceResource.ingestDate sourceResource.collection sourceResource.language.name]
+    SEARCH = %w[id sourceResource.title sourceResource.description sourceResource.creator sourceResource.type sourceResource.publisher sourceResource.format sourceResource.rights sourceResource.contributor sourceResource.spatial sourceResource.date.after sourceResource.date.before sourceResource.subject.name sourceResource.collection]
+    FACETS = %w[sourceResource.type sourceResource.format sourceResource.language.name sourceResource.spatial.name sourceResource.spatial.state sourceResource.spatial.city sourceResource.subject.name sourceResource.collection.name sourceResource.contributor]
 
     # add facets to PARAMETERS because anything facetable should also be searchable. Dupes are harmless here
-    PARAMETERS = FACETS + %w[sourceResource.title sourceResource.description sourceResource.creator sourceResource.type sourceResource.publisher sourceResource.format sourceResource.rights  sourceResource.contributor sourceResource.date.before sourceResource.date.after sourceResource.spatial.name sourceResource.spatial.state sourceResource.temporal.after sourceResource.temporal.before isPartOf id q page_size facet_size page sourceResource.subject.name]
+    PARAMETERS = FACETS + %w[sourceResource.title sourceResource.description sourceResource.creator sourceResource.type sourceResource.publisher sourceResource.format sourceResource.rights sourceResource.contributor sourceResource.date.before sourceResource.date.after sourceResource.spatial.name sourceResource.spatial.state sourceResource.temporal.after sourceResource.temporal.before sourceResource.collection id q page_size facet_size page sourceResource.subject.name]
 
     def index
       api_params = params.delete_if { |key,value| PARAMETERS.exclude? key}

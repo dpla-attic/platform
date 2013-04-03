@@ -15,7 +15,7 @@ module V1
           'fakefacet' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
           'ingestType' => { 'enabled' => false },
           'ingestDate' => { 'enabled' => false },
-          '_rev' => { 'type' => 'string', 'index' => 'not_analyzed' },
+          '_rev' => { 'type' => 'string'},
         }
       },  #/collection
       'item' => {
@@ -151,7 +151,16 @@ module V1
             }
           },
           'isPartOf' => {
-            'type' => 'object', 'enabled' => false
+            'properties' => {
+              '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+              'name' => {
+                'type' => 'multi_field',
+                'fields' => {
+                  'name' => { 'type' => 'string', 'sort' => 'field' },
+                  'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                }
+              }                      
+            }
           },
           'isShownAt' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
           'object' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
@@ -172,7 +181,7 @@ module V1
           'originalRecord' => { 'type' => 'object', 'enabled' => false },
           'ingestType' => { 'enabled' => false },
           'ingestDate' => { 'enabled' => false },
-          '_rev' => { 'type' => 'string', 'index' => 'not_analyzed' },
+          '_rev' => { 'type' => 'string'},
         }
       }  #/item
     }.freeze
