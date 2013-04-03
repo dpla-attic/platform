@@ -55,6 +55,29 @@ module V1
       return display_import_result(import_result)
     end
 
+    def self.update_schema
+      endpoint_config_check
+
+      index = Tire.index(V1::Config::SEARCH_INDEX)
+      schema_mapping.each do |resource, mapping|
+        print "Updating schema for '#{resource}': "
+        begin
+          index.mapping!( resource, mapping )
+          puts "OK"
+        rescue => e
+          puts e.to_s
+        end
+      end
+    end
+
+    def self.schema_mapping
+      # inject the timestamp because it's nice to see in the search_schema rake task
+      timestamp = Time.now.to_s
+      V1::Schema::ELASTICSEARCH_MAPPING.each do |res, fields|
+        fields['_meta'] = { 'created' => timestamp }
+      end
+    end
+    
     def self.recreate_index!
       # Delete and create the search index
       #TODO: add production env check
@@ -62,19 +85,11 @@ module V1
 
       # Delete the river here to avoid it tripping all over itself and getting
       # confused when we create it later
-      delete_river!
-      sleep 1
-
-      # inject the timestamp because it's nice to see in the search_schema rake task
-      timestamp = Time.now.to_s
-      dated_mapping = V1::Schema::ELASTICSEARCH_MAPPING.dup.each do |res,fields|
-        fields['_meta'] = { 'created' => timestamp }
-      end
+      delete_river
 
       Tire.index(V1::Config::SEARCH_INDEX) do |tire|
         tire.delete
-
-        tire.create( { 'mappings' => dated_mapping } )
+        tire.create( 'mappings' => schema_mapping )
         if tire.response.code != 200
           raise "Error: #{ JSON.parse(tire.response.body)['error'] }" 
         end
@@ -112,8 +127,7 @@ module V1
     def self.recreate_river!
       # Pause after a successful delete to give ElasticSearch a chance to actually 
       # shut down and delete the existing river.
-      sleep 3 if delete_river!.code == 200
-
+      delete_river
       create_river
     end
 
@@ -163,8 +177,10 @@ module V1
       end
     end
 
-    def self.delete_river!
-      Tire::Configuration.client.delete(river_endpoint)
+    def self.delete_river
+      result = Tire::Configuration.client.delete(river_endpoint)
+      # Give a successful river delete a chance to finish on the search server
+      sleep 3 if result.code == 200
     end
 
     def self.river_status
@@ -187,11 +203,11 @@ module V1
       end
     end
 
-    def self.search_schema(resource=nil)
-      uri = V1::Config.search_endpoint + '/' + V1::Config::SEARCH_INDEX
-      uri += "/#{resource}" if resource
-      uri += '/_mapping?pretty'
+    def self.search_schema
+      endpoint_config_check
+      uri = V1::Config.search_endpoint + '/' + V1::Config::SEARCH_INDEX + '/_mapping?pretty'
       begin
+        # Tire.index(V1::Config::SEARCH_INDEX).mapping
         HTTParty.get(uri).body
       rescue Exception => e
         "Error: #{e}"

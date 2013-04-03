@@ -11,6 +11,11 @@ namespace :v1 do
     V1::StandardDataset.test_river
   end
 
+  desc "Updates existing ElasticSearch schema *without* deleting the current index"
+  task :update_search_schema => :environment do
+    V1::StandardDataset.update_schema
+  end
+
   desc "Re-creates ElasticSearch index, schema, river"
   task :recreate_search_index => :environment do
     V1::StandardDataset.recreate_index!
@@ -28,7 +33,7 @@ namespace :v1 do
 
   desc "Deletes ElasticSearch river"
   task :delete_river do
-    V1::StandardDataset.delete_river!
+    V1::StandardDataset.delete_river
   end
 
   desc "Gets ElasticSearch river status"
@@ -52,8 +57,8 @@ namespace :v1 do
   end
 
   desc "Displays the schema that ElasticSearch is currently using, according to ElasticSearch."
-  task :search_schema, [:resource] do |t, args|
-    puts V1::StandardDataset.search_schema(args.resource)
+  task :search_schema => :environment do
+    puts V1::StandardDataset.search_schema
   end
 
   desc "Show API 'is_valid?' auth for a key"

@@ -11,10 +11,11 @@ module V1
           'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
           '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
           'title' => { 'type' => 'string', 'sort' => 'script' },
-          'description' => { 'type' => 'string' },          
+          'description' => { 'type' => 'string' },
           'fakefacet' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-          'ingestType' => { 'type' => 'object', 'enabled' => false },
-          'ingestDate' => { 'type' => 'object', 'enabled' => false },
+          'ingestType' => { 'enabled' => false },
+          'ingestDate' => { 'enabled' => false },
+          '_rev' => { 'type' => 'string', 'index' => 'not_analyzed' },
         }
       },  #/collection
       'item' => {
@@ -166,14 +167,17 @@ module V1
           '@context' => { 'type' => 'object', 'enabled' => false },
           'admin' => { 'type' => 'object', 'enabled' => false },
           'originalRecord' => { 'type' => 'object', 'enabled' => false },
-          'ingestType' => { 'type' => 'object', 'enabled' => false },
-          'ingestDate' => { 'type' => 'object', 'enabled' => false },
+          'ingestType' => { 'enabled' => false },
+          'ingestDate' => { 'enabled' => false },
+          '_rev' => { 'type' => 'string', 'index' => 'not_analyzed' },
         }
       }  #/item
     }.freeze
 
     def self.field(resource, name, modifier=nil)
       # A "resource" is a top-level DPLA resource: 'item', 'collection', 'creator'
+      # TODO: memoize a hash value for every $name and return it if it exists. The modifier
+      # is a concern, though.
       raise "Invalid resource: #{resource}" unless ELASTICSEARCH_MAPPING[resource]
 
       field_names = name.split('.')

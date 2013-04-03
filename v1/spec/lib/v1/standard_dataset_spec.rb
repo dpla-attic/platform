@@ -45,7 +45,7 @@ module V1
           tire = mock
           tire.stub_chain(:response, :code) { 200 }
           subject.stub(:sleep)
-          subject.should_receive(:delete_river!)
+          subject.should_receive(:delete_river)
           Tire.should_receive(:index).with(V1::Config::SEARCH_INDEX).and_yield(tire)
           tire.should_receive(:delete)
           tire.should_receive(:create).with( { 'mappings' => V1::Schema::ELASTICSEARCH_MAPPING } )
@@ -112,16 +112,6 @@ module V1
           expect {
             expect(subject.process_input_file('foo', stub))
           }.to raise_error /JSON parse error/i
-        end
-      end
-
-      describe "#recreate_river" do
-        it "sleeps after river successful delete" do
-
-          subject.should_receive(:delete_river!) { stub(:code => 200) }
-          subject.should_receive(:sleep).with(any_args)
-          subject.should_receive(:create_river)
-          subject.recreate_river!
         end
       end
 
