@@ -65,14 +65,14 @@ module V1
       delete_river!
       sleep 1
 
+      # inject the timestamp because it's nice to see in the search_schema rake task
+      timestamp = Time.now.to_s
+      dated_mapping = V1::Schema::ELASTICSEARCH_MAPPING.dup.each do |res,fields|
+        fields['_meta'] = { 'created' => timestamp }
+      end
+
       Tire.index(V1::Config::SEARCH_INDEX) do |tire|
         tire.delete
-
-        # inject the timestamp because it's nice to see in the search_schema rake task
-        timestamp = Time.now.to_s
-        dated_mapping = V1::Schema::ELASTICSEARCH_MAPPING.dup.each do |res,fields|
-          fields['_meta'] = { 'created' => timestamp }
-        end
 
         tire.create( { 'mappings' => dated_mapping } )
         if tire.response.code != 200
