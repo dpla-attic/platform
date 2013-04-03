@@ -50,6 +50,7 @@ Dpla::Application.configure do
 
   # Disable delivery errors, bad email addresses will be ignored
   # config.action_mailer.raise_delivery_errors = false
+  config.action_mailer.raise_delivery_errors = true
 
   # Enable threaded mode
   # config.threadsafe!
@@ -64,4 +65,13 @@ Dpla::Application.configure do
   # Log the query plan for queries taking more than this (works
   # with SQLite, MySQL, and PostgreSQL)
   # config.active_record.auto_explain_threshold_in_seconds = 0.5
+
+  ActionMailer::Base.delivery_method = :smtp
+  ActionMailer::Base.default from: "api-support@dp.la"
+  ActionMailer::Base.smtp_settings = {  
+    :address              => "127.0.0.1",
+    :port                 => 25,
+    :domain               => "dp.la",
+    :enable_starttls_auto => false
+  }
 end
