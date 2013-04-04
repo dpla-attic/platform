@@ -5,6 +5,8 @@ config/database.yml
 tmp/
 var/
 vendor/bundle/
+logs/
+public/assets/
 pgsql/
 *.swp
 .sass-cache/
