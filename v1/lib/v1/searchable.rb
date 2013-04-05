@@ -21,7 +21,7 @@ module V1
     DEFAULT_SORT_ORDER = 'asc'
 
     # General query params that are not resource-specific
-    BASE_QUERY_PARAMS = %w( q controller action sort_by sort_by_pin sort_order page page_size facets facet_size fields callback ).freeze
+    BASE_QUERY_PARAMS = %w( q controller action sort_by sort_by_pin sort_order page page_size facets facet_size fields callback _ x ).freeze
 
     def resource
       raise "Modules extending Searchable must define resource() method"
