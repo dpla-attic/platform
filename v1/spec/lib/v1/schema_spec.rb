@@ -1,5 +1,5 @@
 require 'v1/schema'
-require 'v1/field'
+#require 'v1/field'
 
 module V1
 
@@ -13,7 +13,6 @@ module V1
           expect(V1::Schema::ELASTICSEARCH_MAPPING.frozen?).to be_true
         end
         it "has the expected top level structure" do
-          expect(V1::Schema::ELASTICSEARCH_MAPPING).to be_a Hash
           expect(V1::Schema::ELASTICSEARCH_MAPPING).to have_key 'item'
           expect(V1::Schema::ELASTICSEARCH_MAPPING).to have_key 'collection'
         end

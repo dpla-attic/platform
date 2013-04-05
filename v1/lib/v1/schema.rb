@@ -8,8 +8,8 @@ module V1
       'collection' => {
         'date_detection' => false,
         'properties' => {
-          'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
           '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
+          'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
           'title' => { 'type' => 'string', 'sort' => 'script' },
           'description' => { 'type' => 'string' },
           'fakefacet' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
@@ -21,21 +21,29 @@ module V1
       'item' => {
         'date_detection' => false,
         'properties' => {
-          'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
           '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
+          'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
           'sourceResource' => {
             'properties' => {
               'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
               'collection' => {
                 'properties' => {
                   '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+                  'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
                   'name' => {
                     'type' => 'multi_field',
                     'fields' => {
                       'name' => { 'type' => 'string', 'sort' => 'field' },
                       'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
                     }
-                  }                      
+                  },
+                  'title' => {
+                    'type' => 'multi_field',
+                    'fields' => {
+                      'title' => { 'type' => 'string', 'sort' => 'field' },
+                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                    }
+                  }
                 }
               },
               'contributor' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
@@ -123,7 +131,7 @@ module V1
                       'name' => { 'type' => 'string', 'sort' => 'script' },
                       'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
                     }
-                  }                      
+                  }
                 }
               },
               'temporal' => {
