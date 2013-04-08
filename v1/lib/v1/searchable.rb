@@ -1,9 +1,9 @@
-require 'v1/search_error'
-require 'v1/repository'
-require 'v1/schema'
-require 'v1/searchable/query'
-require 'v1/searchable/filter'
-require 'v1/searchable/facet'
+require_relative 'search_error'
+require_relative 'repository'
+require_relative 'schema'
+require_relative 'searchable/query'
+require_relative 'searchable/filter'
+require_relative 'searchable/facet'
 require 'tire'
 require 'active_support/core_ext'
 
@@ -27,15 +27,19 @@ module V1
       raise "Modules extending Searchable must define resource() method"
     end
 
+    def build_queries(resource, search, params)
+      queries_ran = []
+      queries_ran << Searchable::Query.build_all(resource, search, params)
+      queries_ran << Searchable::Filter.build_all(resource, search, params)
+      Searchable::Facet.build_all(resource, search, params, !queries_ran.any?)
+    end
+
     def search(params={})
       validate_query_params(params)
       validate_field_params(params)
 
-      search = Tire.search(V1::Config::SEARCH_INDEX + '/' + resource) do |search|
-        queries_ran = []
-        queries_ran << V1::Searchable::Query.build_all(resource, search, params)
-        queries_ran << V1::Searchable::Filter.build_all(resource, search, params)
-        V1::Searchable::Facet.build_all(resource, search, params, !queries_ran.any?)
+      search = Tire.search(Config::SEARCH_INDEX + '/' + resource) do |search|
+        build_queries(resource, search, params)
 
         #TODO: move sorting to its own module
         sort_attrs = build_sort_attributes(params)
@@ -77,7 +81,7 @@ module V1
       end
 
       # Validate sort_by
-      sort_by = V1::Schema.field(resource, sort_by_name)
+      sort_by = Schema.field(resource, sort_by_name)
       if sort_by.nil?
         raise BadRequestSearchError, "Invalid field(s) specified in sort_by parameter: #{sort_by_name}"
       end
@@ -115,7 +119,7 @@ module V1
 
     def wrap_results(search, params)
       results = search.results
-      facet_size = V1::Searchable::Facet.facet_size(params)
+      facet_size = get_facet_size(params)
       
       {
         'count' => results.total,
@@ -220,14 +224,14 @@ module V1
       # Raises exception if any unrecognized search params are present. Query-based 
       # extensions (e.g: spatial.distance) are added here as well. Does not examine
       # contents of fields containing field names, such as sorting, facets, etc.
-      invalid = params.keys - (BASE_QUERY_PARAMS + V1::Schema.queryable_field_names(resource))
+      invalid = params.keys - (BASE_QUERY_PARAMS + Schema.queryable_field_names(resource))
       if invalid.any?
         raise BadRequestSearchError, "Invalid field(s) specified in query: #{invalid.join(',')}"
       end
     end
 
     def validate_field_params(params)
-      invalid = params['fields'].to_s.split(/,\s*/) - V1::Schema.queryable_field_names(resource)
+      invalid = params['fields'].to_s.split(/,\s*/) - Schema.queryable_field_names(resource)
       if invalid.any?  
         raise BadRequestSearchError, "Invalid field(s) specified for fields parameter: #{invalid.join(',')}" 
       end
@@ -271,8 +275,8 @@ module V1
         raise NotFoundSearchError, "Document not found"
       end
 
-      fetches = V1::Repository.fetch(id_map.values)
-      # fetched docs that were deleted will have a nil 'doc' field
+      fetches = Repository.fetch(id_map.values)
+      # fetched docs that were deleted in the repo will have a nil 'doc' field
       fetches['docs'].delete_if {|doc| doc.nil?}
 
       misses = ids - fetches['docs'].map {|doc| doc['id']}
@@ -286,55 +290,8 @@ module V1
       }
     end
 
-    def fetchORIG(ids)
-      # Transparently translate "id" values from query to the "_id" values CouchDB expects
-      # Accepts an array of ids or a string containing a comma separated list of ids
-      ids = ids.split(/,\s*/) if ids.is_a?(String)
-
-      doc_ids = []
-      missing_ids = []
-
-#      puts "REquested ids: #{ids}"
-      ids.each do |id|
-        result = search({'id' => id})
-        
-        if result['count'] == 1
-          #Save the doc's '_id' if search returned a single 'id' match
-          doc_ids << result['docs'].first['_id']
-        elsif result['count'] == 0
-          #Save the 'id' as missing if search did not find the doc 
-          missing_ids << id 
-        end
-      end
-
-      if doc_ids.empty? && ids.count == 1
-        raise NotFoundSearchError, "Document not found"
-      end
-
-      # puts "TRanslated to..."
-      # puts "_id values: #{doc_ids}"
-      # puts "missingval #{missing_ids}"
-
-      results = V1::Repository.fetch(doc_ids)
-      # results.map do |result|
-      #   # For any deleted or not_found doc create standard "not found" result hash
-      #   # { 'id' => id, 'error' => '404'} that the client can expect
-
-      #   # couchdb miss and doc deleted from couch, respectively
-      #   # if result['error'] == 'not_found' || (result['value'] && result['value']['deleted'])
-      #   #   next
-      #   # end
-        
-      #   puts "FR mapping: #{result}"
-      # end.compact        
-
-      #TODO: handle exception for search hit but fetch miss
-      
-      if missing_ids.any?
-        results['docs'].concat( missing_ids.map { |id| { 'id' => id, 'error' => '404'} } )
-      end
-
-      results
+    def get_facet_size(params)
+      Searchable::Facet.facet_size(params)
     end
 
     def verbose_debug(search)

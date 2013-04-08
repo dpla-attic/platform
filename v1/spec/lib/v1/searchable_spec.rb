@@ -3,7 +3,7 @@ require 'v1/searchable'
 module V1
 
   module SearchableItem
-    extend V1::Searchable
+    extend Searchable
     def self.resource; 'test_resource'; end
   end
 
@@ -43,7 +43,7 @@ module V1
     
     describe "#validate_query_params" do
       before(:each) do
-        stub_const("V1::Searchable::BASE_QUERY_PARAMS", %w( q controller action ) )
+        stub_const("Searchable::BASE_QUERY_PARAMS", %w( q controller action ) )
       end
       it "compares against both BASE_QUERY_PARAMS and queryable_field_names" do
         Schema.stub(:queryable_field_names).with(resource) { %w( title description ) }
@@ -93,27 +93,27 @@ module V1
         { "id" => "ccc", "error" => "404" }
       }
 
-       it "delegates transformed ids to V1::Repository.fetch" do
+       it "delegates transformed ids to Repository.fetch" do
         subject.should_receive(:id_to_private_id).with( [pub_a] ) { {pub_a => priv_a} }
-        V1::Repository.should_receive(:fetch).with([priv_a]) { fetch_result1 }
+        Repository.should_receive(:fetch).with([priv_a]) { fetch_result1 }
         expect(subject.fetch([pub_a])).to eq fetch_result1 
       end
 
       it "handles a fetch for an array of multiple IDs" do
         subject.stub(:id_to_private_id).with( [pub_a, pub_b] ) { {pub_a => priv_a, pub_b => priv_b} }
-        V1::Repository.should_receive(:fetch).with([priv_a, priv_b]) { result_ab }
+        Repository.should_receive(:fetch).with([priv_a, priv_b]) { result_ab }
         expect(subject.fetch([pub_a, pub_b])).to eq result_ab
       end
 
       it "handles a fetch for a string containing multiple IDs" do
         subject.stub(:id_to_private_id).with( [pub_a, pub_b] ) { {pub_a => priv_a, pub_b => priv_b} }
-        V1::Repository.stub(:fetch).with([priv_a, priv_b]) { result_ab }
+        Repository.stub(:fetch).with([priv_a, priv_b]) { result_ab }
         expect(subject.fetch("aaa,bbb")).to eq result_ab
       end
 
       it "handles partial search miss" do
         subject.stub(:id_to_private_id).with( [pub_a, pub_c] ) { {pub_a => priv_a} }
-        V1::Repository.should_receive(:fetch).with([priv_a]) { fetch_result1 }
+        Repository.should_receive(:fetch).with([priv_a]) { fetch_result1 }
         expect(subject.fetch([pub_a, pub_c]))
           .to eq({
                    "count" => 2,
@@ -140,7 +140,7 @@ module V1
 
       it "returns a valid sort_by when sort_order is 'asc'" do
         field = stub(:name => name, :sortable? => true, :sort => 'field')
-        V1::Schema.stub(:field).with(resource, name) { field }
+        Schema.stub(:field).with(resource, name) { field }
         params = {'sort_by' => name, 'sort_order' => 'asc'}
         expect(
                subject.build_sort_attributes(params)
@@ -149,7 +149,7 @@ module V1
 
       it "returns a valid sort_by when sort_order is 'desc'" do
         field = stub(:name => name, :sortable? => true, :sort => 'field')
-        V1::Schema.stub(:field).with(resource, name) { field }
+        Schema.stub(:field).with(resource, name) { field }
         params = {'sort_by' => name, 'sort_order' => 'desc'}
         expect(
                subject.build_sort_attributes(params)
@@ -158,7 +158,7 @@ module V1
 
       it "returns default sort_order if an invalid sort_order param present" do
         field = stub(:name => name, :sortable? => true, :sort => 'field')
-        V1::Schema.stub(:field).with(resource, name) { field }
+        Schema.stub(:field).with(resource, name) { field }
         params = {'sort_by' => name, 'sort_order' => 'apple'}
         expect(
                subject.build_sort_attributes(params)
@@ -167,7 +167,7 @@ module V1
 
       it "returns default sort_order f no sort_order param present" do
         field = stub(:name => name, :sortable? => true, :sort => 'field')
-        V1::Schema.stub(:field).with(resource, name) { field }
+        Schema.stub(:field).with(resource, name) { field }
         params = {'sort_by' => name}
         expect(
                subject.build_sort_attributes(params)
@@ -178,7 +178,7 @@ module V1
       it "returns correct array values for geo_point types" do
         params = {'sort_by' => 'coordinates', 'sort_by_pin' => '41,-71', 'order' => 'asc'}
         field = stub(:sort => 'geo_distance', :sortable? => true, :name => 'coordinates')
-        V1::Schema.stub(:field).with(resource, 'coordinates') { field }
+        Schema.stub(:field).with(resource, 'coordinates') { field }
         expect(
                subject.build_sort_attributes(params)
                ).to eq [ {'_geo_distance' => { 'coordinates' => '41,-71', 'order' => 'asc' } } ]
@@ -187,7 +187,7 @@ module V1
       it "returns correct array for script sort" do
         params = {'sort_by' => 'title'}
         field = stub(:sort => 'script', :sortable? => true, :name => 'title')
-        V1::Schema.stub(:field).with(resource, 'title') { field }
+        Schema.stub(:field).with(resource, 'title') { field }
         expect(
                subject.build_sort_attributes(params)
                ).to eq( 
@@ -203,7 +203,7 @@ module V1
       end
 
       it "raises a BadRequestSearchError on an invalid sort_by param" do
-        V1::Schema.stub(:field).with(resource, 'some_invalid_field') { nil }
+        Schema.stub(:field).with(resource, 'some_invalid_field') { nil }
         params = {'sort_by' => 'some_invalid_field'}
         expect  { 
           subject.build_sort_attributes(params)
@@ -212,7 +212,7 @@ module V1
 
       it "raises a BadRequestSearchError on a non-sortable sort_by param" do
         params = {'sort_by' => 'some_analyzed_field'}
-        V1::Schema.stub(:field) { stub(:sortable? => false) }
+        Schema.stub(:field) { stub(:sortable? => false) }
         expect  { 
           subject.build_sort_attributes(params)
         }.to raise_error BadRequestSearchError, /non-sortable field.* sort_by parameter: some_analyzed_field/i
@@ -221,14 +221,14 @@ module V1
 
     describe "#validate_field_params" do
       it "raises BadRequestSearchError if invalid field was sent" do
-        V1::Schema.stub(:queryable_field_names).with(resource) { %w( title ) }
+        Schema.stub(:queryable_field_names).with(resource) { %w( title ) }
         params = {'fields' => 'some_invalid_field'}
         expect  { 
           subject.validate_field_params(params) 
         }.to raise_error BadRequestSearchError, /fields parameter/
       end
       it "does not raise an error when all fields are valid" do
-        V1::Schema.stub(:queryable_field_names).with(resource) { %w( title description ) }
+        Schema.stub(:queryable_field_names).with(resource) { %w( title description ) }
         params = {'fields' => 'title,description'}
         expect {
           subject.validate_field_params(params)
@@ -298,7 +298,7 @@ module V1
         subject.stub(:format_results) { formatted_results }
         subject.stub(:format_facets) { facets }
         params = stub
-        V1::Searchable::Facet.stub(:facet_size)
+        subject.stub(:get_facet_size)
 
         expect(subject.wrap_results(search, params))
           .to eq({
@@ -509,6 +509,26 @@ module V1
 
     end
 
+    describe "#get_facet_size" do
+      it "delegates to Facet module" do
+        params = stub
+        facet_size = stub
+        Searchable::Facet.should_receive(:facet_size).with(params) { facet_size }
+        expect(subject.get_facet_size(params)).to eq facet_size
+      end
+    end
+
+    describe "#build_queries" do
+      it "calls query, filter and facet build_all methods with correct params" do
+        search = stub
+        params = {'q' => 'banana'}
+        Searchable::Query.should_receive(:build_all).with(resource, search, params) { true }
+        Searchable::Filter.should_receive(:build_all).with(resource, search, params) { false }
+        Searchable::Facet.should_receive(:build_all).with(resource, search, params, !true)
+        subject.build_queries(resource, search, params)
+      end
+    end
+
     describe "#search" do
       let(:mock_search) { mock('mock_search').as_null_object }
 
@@ -517,9 +537,7 @@ module V1
         subject.stub(:wrap_results)
         subject.stub(:validate_query_params)
         subject.stub(:validate_field_params)
-        V1::Searchable::Query.stub(:build_all)
-        V1::Searchable::Filter.stub(:build_all)
-        V1::Searchable::Facet.stub(:build_all)
+        subject.stub(:build_queries)
       end
 
       it "validates params and field params" do
@@ -531,15 +549,13 @@ module V1
 
       it "restricts all searches to a resource" do
         params = {'q' => 'banana'}
-        Tire.should_receive(:search).with(V1::Config::SEARCH_INDEX + '/' + resource)
+        Tire.should_receive(:search).with(Config::SEARCH_INDEX + '/' + resource)
         subject.search(params)
       end
 
-      it "calls query, filter and facet build_all methods with correct params" do
+      it "calls build_querie with correct params" do
         params = {'q' => 'banana'}
-        V1::Searchable::Query.should_receive(:build_all).with(resource, mock_search, params) { true }
-        V1::Searchable::Filter.should_receive(:build_all).with(resource, mock_search, params) { false }
-        V1::Searchable::Facet.should_receive(:build_all).with(resource, mock_search, params, !true)
+        subject.should_receive(:build_queries).with(resource, mock_search, params)
         subject.search(params)
       end
 

@@ -12,7 +12,7 @@ module V1
 
         # it "should set up proper 'boolean.must' blocks for each search field" do
         #   params = {'title' => 'title1'  , 'description' => 'description2'}
-        #   subject.should_receive(:field_queries).with(params) { ['titleQString', 'descQString'] }
+        #   subject.should_receive(:string_queries).with(params) { ['titleQString', 'descQString'] }
         #   mock_boolean = mock('boolean')
         #   subject.should_receive(:lambda).twice.and_yield(mock_boolean)
 
@@ -21,11 +21,11 @@ module V1
 
         #   mock_must.should_receive(:string).with('titleQString')
         #   mock_must.should_receive(:string).with('descQString')
-        #   subject.build_field_queries(resource, params)
+        #   subject.build_string_queries(resource, params)
         # end
 
         # it "returns generated queries as flattened array" do
-        #   subject.stub(:build_field_queries) { [:fq1, :fq2] }
+        #   subject.stub(:build_string_queries) { [:fq1, :fq2] }
         #   subject.stub(:build_temporal_query) { [:tq1, :tq2] }
         #   expect(subject.build_all(stub, {})).to match_array [:fq1, :fq2, :tq1, :tq2]
         # end
@@ -52,62 +52,74 @@ module V1
             .to match_array([])
         end
       end
-        
 
-      describe "#field_queries" do
+      describe "#default_attributes" do
+        it "contains the expects attrs" do
+        expect(subject.default_attributes)
+          .to eq ({
+                  'default_operator' => 'AND',
+                  'lenient' => true
+                  })
+        end
+      end
+
+      describe "#string_queries" do
         it "returns correct query string for a free text search" do
           params = {'q' => 'something'}
-          expect(subject.field_queries(resource, params))
+          attrs = subject.default_attributes.merge( {'fields'=>['_all']} )
+          expect(subject.string_queries(resource, params))
             .to match_array(
-                            [['something', {"fields"=>["_all"]}]]
+                            [['something', attrs]]
                             )
         end
         
         it "returns correct query string for field search" do
           name = 'sourceResource.title'
           field = stub(:name => name, :geo_point? => false, :subfields? => false)
-          V1::Schema.stub(:field).with(resource, name) { field }
+          Schema.stub(:field).with(resource, name) { field }
           params = {name => 'some title'}
-          expect(subject.field_queries(resource, params))
+          attrs = subject.default_attributes.merge( {'fields'=>[name]} )
+          expect(subject.string_queries(resource, params))
             .to match_array(
-                            [['some title', {'fields' => [name], 'lenient' => true}]]
+                            [['some title', attrs]]
                             )
         end
 
         it "handles 'sourceResource.spatial.state' as a normal field search" do
           name = 'sourceResource.spatial.state'
           field = stub(:name => name, :geo_point? => false, :subfields? => false)
-          V1::Schema.stub(:field).with(resource, name) { field }
+          Schema.stub(:field).with(resource, name) { field }
           params = {name => 'MA'}
-          expect(subject.field_queries(resource, params))
+          attrs = subject.default_attributes.merge( {'fields'=>[name]} )
+          expect(subject.string_queries(resource, params))
             .to match_array(
-                            [['MA', {'fields' => [name], 'lenient' => true}]]
+                            [['MA', attrs]]
                             )
         end
-
 
         it "ignores geo_point field" do
           name = 'sourceResource.spatial.coordinates'
           field = stub(:name => name, :geo_point? => true)
-          V1::Schema.stub(:field).with(resource, name) { field }
+          Schema.stub(:field).with(resource, name) { field }
           params = {name => '42,-71'}
-          expect(subject.field_queries(resource, params)).to match_array []
+          expect(subject.string_queries(resource, params)).to match_array []
         end
 
         it "searches all subfields of 'sourceResource.date'" do
           name = 'sourceResource.date'
           field = stub(:name => name, :geo_point? => false, :subfields? => true)
-          V1::Schema.stub(:field).with(resource, name) { field }
+          Schema.stub(:field).with(resource, name) { field }
           params = {name => '1999-08-07'}
-          expect(subject.field_queries(resource, params))
+          attrs = subject.default_attributes.merge( {'fields' => ['sourceResource.date.*']} )
+          expect(subject.string_queries(resource, params))
             .to match_array(
-                            [['1999-08-07', {'fields' => ['sourceResource.date.*'],'lenient' => true }]]
+                            [['1999-08-07', attrs]]
                             )
         end
 
         it "handles an empty search correctly" do
           params = {}
-          expect(subject.field_queries(resource, params)).to match_array []
+          expect(subject.string_queries(resource, params)).to match_array []
         end
       end
 

@@ -20,8 +20,12 @@ Feature: Search for items by keyword (UC002)
     When I item-search for "cambridge" in the "sourceResource.spatial.city" field
     Then the API should return record M
     
-  Scenario: Basic keyword search of analyzed multi_field field with multiple query terms
-    When I item-search for "perplexed doodle" in the "sourceResource.subject.name" field
+  Scenario: Basic keyword search with default "AND" boolean behavior preventing "OR" hits
+    When I item-search for "banana two" in the "sourceResource.title" field
+    Then the API should return no records
+
+  Scenario: Basic keyword search with default "AND" boolean behavior returning hits
+    When I item-search for "three title" in the "sourceResource.title" field
     Then the API should return record 3
     
   Scenario: Basic keyword search of analyzed multi_field field with multiple query terms

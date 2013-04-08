@@ -80,7 +80,7 @@
                 "@id": "http://lccn.loc.gov/sh85140205",
                 "@type": "LCSH"
             },
-            "isPartOf": {
+            "collection": {
                 "@id": "http://dp.la/api/collections/coll-P",
                 "name": "Civil War-Era Letters of the Neves Family of Greenville County" 
             }
@@ -99,7 +99,7 @@
             "description": "facettest, coll-P, contrib 42",
             "subject": {
             },
-            "isPartOf": {
+            "collection": {
                 "@id": "http://dp.la/api/collections/coll-P",
                 "name": "Civil War-Era Letters of the Neves Family of Greenville County" 
             }
@@ -118,7 +118,7 @@
             "description": "facettest, coll-P, contrib 13",
             "subject": {
             },
-            "isPartOf": {
+            "collection": {
                 "@id": "http://dp.la/api/collections/coll-P",
                 "name": "Civil War-Era Letters of the Neves Family of Greenville County" 
             }

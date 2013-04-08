@@ -12,7 +12,7 @@ Feature: Search for items by location (UC004)
       And the default test dataset is loaded
       And the default search radius for location search is 20 miles
 
-  Scenario: Location search by text string
+  Scenario: Location search by text string with subfield hit
     When I search for "Cambridge" in the "sourceResource.spatial" field 
     Then the API should return record M
 

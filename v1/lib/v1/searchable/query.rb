@@ -9,13 +9,13 @@ module V1
 
       def self.build_all(resource, search, params)
         # Returns boolean for "did we run any queries?"
-        field_queries = field_queries(resource, params)
+        string_queries = string_queries(resource, params)
         date_range_queries = date_range_queries(params)
         ids_queries = ids_query(resource, params)
 
         # Only call search.query.boolean if we have some queries to pass it.
         # Otherwise we'll get incorrect search results.
-        return false if (field_queries + date_range_queries + ids_queries).empty?
+        return false if (string_queries + date_range_queries + ids_queries).empty?
 
         search.query do |query|
           if ids_queries.any?
@@ -24,7 +24,7 @@ module V1
 
           query.boolean do |boolean|
 
-            field_queries.each do |query_string|
+            string_queries.each do |query_string|
               boolean.must do |must|
                 must.string *query_string
               end
@@ -50,19 +50,20 @@ module V1
         [ids.split(/,\s*/), resource]
       end
 
-      def self.field_queries(resource, params)
+      def self.string_queries(resource, params)
         # Only handles 'q' and basic field/subfield searches
 
         query_strings = []
-        # Skip all query types that are handled elsewhere
         params.each do |name, value|
+          # Skip all query types that are handled elsewhere
           next if value.to_s == ''
           next if name =~ /^.+\.(before|after)$/
-
+          pair = nil
+          
           if name == 'q'
-            query_strings << [value, 'fields' => ['_all']]
+            pair = [ value, 'fields' => ['_all'] ]
           else
-            field = V1::Schema.field(resource, name)
+            field = Schema.field(resource, name)
 
             # it probably has some kind of modifier that we do not handle here
             next if field.nil?
@@ -70,16 +71,26 @@ module V1
             next if field.geo_point?
 
             fields = {
-              'lenient' => true,
               'fields' => field.subfields? ? ["#{field.name}.*"] : [field.name]
             }
-            query_strings << [ value, fields ]
+            pair = [ value, fields ]
           end
+
+          pair << default_attributes.merge(pair.pop)
+          query_strings << pair
         end
 
         query_strings.map {|query| Array.wrap(query)}
       end
-      
+
+      def self.default_attributes
+        # Default attributes applies to all field queries
+        {
+          'default_operator' => 'AND',  # non-default behavior for unquoted mult-word queries
+          'lenient' => true,            # ignore "query string from date field" type errors
+        }
+      end
+
       def self.date_range_queries(params)
         ranges = []
         params.each do |name, value|
