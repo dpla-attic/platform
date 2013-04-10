@@ -10,12 +10,11 @@ module V1
         'properties' => {
           '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
           'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
-          'title' => { 'type' => 'string', 'sort' => 'script' },
           'description' => { 'type' => 'string' },
-          'fakefacet' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+          'title' => { 'type' => 'string', 'sort' => 'script' },
           'ingestType' => { 'enabled' => false },
           'ingestDate' => { 'enabled' => false },
-          '_rev' => { 'type' => 'string'},
+          '_rev' => { 'enabled' => false },
         }
       },  #/collection
       'item' => {
@@ -30,18 +29,12 @@ module V1
                 'properties' => {
                   '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
                   'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-                  'name' => {
-                    'type' => 'multi_field',
-                    'fields' => {
-                      'name' => { 'type' => 'string', 'sort' => 'field' },
-                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
-                    }
-                  },
+                  'description' => { 'type' => 'string' },
                   'title' => {
                     'type' => 'multi_field',
                     'fields' => {
-                      'title' => { 'type' => 'string', 'sort' => 'field' },
-                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                      'title' => { 'type' => 'string', 'sort' => 'script' },
+                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true }
                     }
                   }
                 }
@@ -189,7 +182,7 @@ module V1
           'originalRecord' => { 'type' => 'object', 'enabled' => false },
           'ingestType' => { 'enabled' => false },
           'ingestDate' => { 'enabled' => false },
-          '_rev' => { 'type' => 'string'},
+          '_rev' => { 'enabled' => false },
         }
       }  #/item
     }.freeze
@@ -212,7 +205,7 @@ module V1
         current_mapping = current_mapping['properties'][word] rescue nil
       end
 
-      return V1::Field.new(resource, name, current_mapping, modifier) if current_mapping
+      return Field.new(resource, name, current_mapping, modifier) if current_mapping
     end
 
     def self.all_fields(resource)
@@ -223,7 +216,7 @@ module V1
       top_level_names = ELASTICSEARCH_MAPPING[resource]['properties'].keys
       
       top_level_names.map do |name|
-        field = V1::Schema.field(resource, name)
+        field = Schema.field(resource, name)
         next unless field.enabled?
 
         names[field.name] = field

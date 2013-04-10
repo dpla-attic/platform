@@ -8,29 +8,29 @@ module V1
 
     context "Module constants" do
 
-      describe "V1::Schema::ELASTICSEARCH_MAPPING" do
+      describe "Schema::ELASTICSEARCH_MAPPING" do
         it "is frozen" do
-          expect(V1::Schema::ELASTICSEARCH_MAPPING.frozen?).to be_true
+          expect(Schema::ELASTICSEARCH_MAPPING.frozen?).to be_true
         end
         it "has the expected top level structure" do
-          expect(V1::Schema::ELASTICSEARCH_MAPPING).to have_key 'item'
-          expect(V1::Schema::ELASTICSEARCH_MAPPING).to have_key 'collection'
+          expect(Schema::ELASTICSEARCH_MAPPING).to have_key 'item'
+          expect(Schema::ELASTICSEARCH_MAPPING).to have_key 'collection'
         end
         
         context "item resource" do
           let(:resource) { 'item' }
           it "has the expected top level structure" do
-            expect(V1::Schema::ELASTICSEARCH_MAPPING[resource]['date_detection']).to be_false
-            expect(V1::Schema::ELASTICSEARCH_MAPPING[resource]).to have_key 'properties'
+            expect(Schema::ELASTICSEARCH_MAPPING[resource]['date_detection']).to be_false
+            expect(Schema::ELASTICSEARCH_MAPPING[resource]).to have_key 'properties'
           end
           it "has the correct number of fields for resource" do
             expect(
-                   V1::Schema::ELASTICSEARCH_MAPPING[resource]['properties']
+                   Schema::ELASTICSEARCH_MAPPING[resource]['properties']
                    ).to have(15).items
           end
           it "has the correct number of fields for 'item/sourceResource'" do
             expect(
-                   V1::Schema::ELASTICSEARCH_MAPPING[resource]['properties']['sourceResource']['properties']
+                   Schema::ELASTICSEARCH_MAPPING[resource]['properties']['sourceResource']['properties']
                    ).to have(18).items
           end
         end
@@ -38,13 +38,13 @@ module V1
         context "collection resource" do
           let(:resource) { 'collection' }
           it "has the expected top level structure" do
-            expect(V1::Schema::ELASTICSEARCH_MAPPING[resource]['date_detection']).to be_false
-            expect(V1::Schema::ELASTICSEARCH_MAPPING[resource]).to have_key 'properties'
+            expect(Schema::ELASTICSEARCH_MAPPING[resource]['date_detection']).to be_false
+            expect(Schema::ELASTICSEARCH_MAPPING[resource]).to have_key 'properties'
           end
           it "has the correct number of fields for resource" do
             expect(
-                   V1::Schema::ELASTICSEARCH_MAPPING[resource]['properties']
-                   ).to have(8).items
+                   Schema::ELASTICSEARCH_MAPPING[resource]['properties']
+                   ).to have(7).items
           end
         end
       end
@@ -145,7 +145,7 @@ module V1
 
       describe "#all_fields" do
 
-        let(:all_field_names) { V1::Schema.all_fields(resource).map(&:name) }
+        let(:all_field_names) { Schema.all_fields(resource).map(&:name) }
 
         it "returns the expected list of fields" do
           expect(all_field_names)
@@ -197,7 +197,7 @@ module V1
       end
 
       describe "#queryable_field_names" do
-        let(:queryable_field_names) { V1::Schema.queryable_field_names(resource) }
+        let(:queryable_field_names) { Schema.queryable_field_names(resource) }
 
         it "includes $field.before and $field.after for top-level date fields" do
           expect(queryable_field_names).to include 'sourceResource.date.before'
@@ -219,107 +219,107 @@ module V1
 
         it "raises an exception for an invalid resource" do
           expect {
-            V1::Schema.field('fake_resource', 'some_field')
+            Schema.field('fake_resource', 'some_field')
           }.to raise_error /invalid resource: fake_resource/i
         end
 
         it "creates a top level field with no subfields correctly" do
           fieldstub = stub
           name = 'dataProvider'
-          V1::Field.should_receive(:new)
+          Field.should_receive(:new)
             .with(resource,
                   name,
                   item_mapping[name],
                   nil
                   ) { fieldstub }
-          expect(V1::Schema.field(resource, name)).to eq fieldstub
+          expect(Schema.field(resource, name)).to eq fieldstub
         end
 
         it "creates a top level field with subfields correctly" do
           fieldstub = stub
           name = 'sourceResource.temporal'
-          V1::Field.should_receive(:new)
+          Field.should_receive(:new)
             .with(resource,
                   name,
                   item_mapping['sourceResource']['properties']['temporal'],
                   nil
                   ) { fieldstub }
-          expect(V1::Schema.field(resource, name)).to eq fieldstub
+          expect(Schema.field(resource, name)).to eq fieldstub
         end
 
         it "creates a subfield field correctly" do
           subfieldstub = stub
           name = 'sourceResource.temporal.begin'
-          V1::Field.should_receive(:new)
+          Field.should_receive(:new)
             .with(
                   resource,
                   name,
                   item_mapping['sourceResource']['properties']['temporal']['properties']['begin'],
                   nil
                   ) { subfieldstub }
-          expect(V1::Schema.field(resource, name)).to eq subfieldstub
+          expect(Schema.field(resource, name)).to eq subfieldstub
         end
 
         it "passes modifier to Field.new" do
           fieldstub = stub
           name = 'dataProvider'
-          V1::Field.should_receive(:new)
+          Field.should_receive(:new)
             .with(resource,
                   name,
                   item_mapping[name],
                   '.some_extra'
                   ) { fieldstub }
-          expect(V1::Schema.field(resource, name, '.some_extra')).to eq fieldstub
+          expect(Schema.field(resource, name, '.some_extra')).to eq fieldstub
         end
 
         it "handles mid-level field with subfields" do
           midfield = stub
           name = 'sourceResource.level1.level2'
-          V1::Field.should_receive(:new)
+          Field.should_receive(:new)
             .with(
                   resource,
                   name,
                   item_mapping['sourceResource']['properties']['level1']['properties']['level2'],
                   nil
                   ) { midfield }
-          expect(V1::Schema.field(resource, name)).to eq midfield
+          expect(Schema.field(resource, name)).to eq midfield
         end
 
         it "handles deeply nested field" do
           subfieldstub = stub
           name = 'sourceResource.level1.level2.level3A'
-          V1::Field.should_receive(:new)
+          Field.should_receive(:new)
             .with(
                   resource,
                   name,
                   item_mapping['sourceResource']['properties']['level1']['properties']['level2']['properties']['level3A'],
                   nil
                   ) { subfieldstub }
-          expect(V1::Schema.field(resource, name)).to eq subfieldstub
+          expect(Schema.field(resource, name)).to eq subfieldstub
         end
 
         it "returns nil for an invalid top level mapping" do
           name = 'some_invalid_field'
-          V1::Field.should_not_receive(:new)
-          expect(V1::Schema.field(resource, name)).to eq nil
+          Field.should_not_receive(:new)
+          expect(Schema.field(resource, name)).to eq nil
         end 
 
         it "returns nil for an invalid subfield of an invalid top level mapping" do
           name = 'some_invalid_field.fake_subfield'
-          V1::Field.should_not_receive(:new)
-          expect(V1::Schema.field(resource, name)).to eq nil
+          Field.should_not_receive(:new)
+          expect(Schema.field(resource, name)).to eq nil
         end 
 
         it "returns nil for an invalid subfield of a valid top level mapping" do
           name = 'level1.invalid_subfield'
-          V1::Field.should_not_receive(:new)
-          expect(V1::Schema.field(resource, name)).to eq nil
+          Field.should_not_receive(:new)
+          expect(Schema.field(resource, name)).to eq nil
         end 
 
         it "returns nil for an invalid deeply nested subfield of a valid top level mapping" do
           name = 'level1.invalid_subfield.another_invalid_field'
-          V1::Field.should_not_receive(:new)
-          expect(V1::Schema.field(resource, name)).to eq nil
+          Field.should_not_receive(:new)
+          expect(Schema.field(resource, name)).to eq nil
         end 
 
       end      
