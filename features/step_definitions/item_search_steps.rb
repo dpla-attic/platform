@@ -1,6 +1,8 @@
 Then /^the API should return (\d+) items with "(.*?)"$/ do |count, keyword|
   json = item_query_to_json(@params)
+
   expect(json).to have(count).items
+
   json.each_with_index do |result, idx|
     expect(result).to have_content(keyword)
   end

@@ -33,6 +33,7 @@ module V1
         it "calls the correct methods in the correct order" do
           subject.should_receive(:recreate_index!)
           subject.should_receive(:import_test_dataset)
+          subject.should_receive(:create_river)
           subject.stub(:doc_count)
           subject.stub(:puts)
           subject.recreate_env!
@@ -49,7 +50,6 @@ module V1
           Tire.should_receive(:index).with(V1::Config::SEARCH_INDEX).and_yield(tire)
           tire.should_receive(:delete)
           tire.should_receive(:create).with( { 'mappings' => V1::Schema::ELASTICSEARCH_MAPPING } )
-          subject.should_receive(:create_river)
           
           subject.recreate_index!
         end

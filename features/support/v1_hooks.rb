@@ -28,8 +28,7 @@ else
   # possibility of pagination causing false negatives between test runs on different systems.
 
   V1::StandardDataset.recreate_index!
-  V1::Repository.recreate_env
-  V1::StandardDataset.recreate_river!
+  V1::Repository.recreate_env(true)
 
   # Sleep a bit to let CouchDB finish doing its thing internally, as well as letting 
   # the river catch up on indexing the docs added to CouchDB.

@@ -137,7 +137,7 @@ module V1
       db = CouchRest.database(admin_cluster_auth_database)
       keys = YAML.load_file(File.expand_path("../../../config/test_api_keys.yml", __FILE__))
 
-      puts "Test API keys: #{'ONLY FOR: ' + owner.to_s}"
+      puts "Test API keys: #{"ONLY FOR: owner.to_s" if owner}"
       keys.each do |key, body|
         # Only import key for this owner
         next if owner && owner != body['owner']

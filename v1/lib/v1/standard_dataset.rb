@@ -21,6 +21,7 @@ module V1
     def self.recreate_env!
       recreate_index!
       import_test_dataset
+      create_river
       puts "ElasticSearch docs: #{ doc_count }"
     end
 
@@ -94,9 +95,6 @@ module V1
           raise "Error: #{ JSON.parse(tire.response.body)['error'] }" 
         end
       end
-
-      #TODO: add optional arg to this method to control creating the river here
-      create_river
     end
 
     def self.endpoint_config_check
