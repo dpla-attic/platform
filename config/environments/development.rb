@@ -37,5 +37,7 @@ Dpla::Application.configure do
 
   # Set Default ActionMailerURL for devise
   config.action_mailer.default_url_options = { :host => 'localhost:3000' }
-
+  
+  ActionMailer::Base.default from: "api-support@dp.la"
+  
 end

@@ -9,7 +9,7 @@ module V1
       status = :ok
       message = 'API key sent via email'
 
-      key = V1::Repository.find_api_key_by_owner(owner)
+      key = Repository.find_api_key_by_owner(owner)
       if key
         email_key(owner, key)
       else        
@@ -18,7 +18,7 @@ module V1
       end
       
       respond_to do |format|
-        format.json { render :json => {:message => message}, :status => :ok }
+        format.json { render :json => {:message => message}, :status => status }
       end
     end
 
@@ -26,10 +26,10 @@ module V1
       owner = params['owner']
       
       # TODO: don't create if a key already exists for this user, just email it and return HTTP 200
-      key = V1::Repository.create_api_key(owner)
+      key = Repository.create_api_key(owner)
       Rails.logger.info "API_KEY: Created API key for #{owner}: #{key.to_hash}"
 
-      message = 'API key created and sent via email'
+      message = 'API key created and sent via email. Be sure to check your Spam folder, too.'
       status = :created
       error = nil
 
@@ -40,7 +40,7 @@ module V1
         status = :error
         error = e
       rescue => e
-        message = "API key created but could not be sent via email due to an error."
+        message = "API key created but could not be sent via email due to an unexpected error."
         status = :error
         error = e
       end

@@ -8,7 +8,7 @@ module V1
     end
 
     def to_s
-      "#{ @msg || self.class }"
+      (@msg || self.class).to_s
     end
 
   end

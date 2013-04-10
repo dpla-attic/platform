@@ -20,7 +20,9 @@ V1::Engine.routes.draw do
   # API Auth
   # format bit needed to keep parts of the owner email swallowed up as the request format
   post "/api_key(.:format)/*owner" => "api_key#create", :defaults => { :format => 'json' }
-  get  "/api_key(.:format)/*owner" => "api_key#show", :defaults => { :format => 'json' }
+
+  # not fully implemented yet
+  #get  "/api_key(.:format)/*owner" => "api_key#show", :defaults => { :format => 'json' }
 
   # General Utils
   get "/repo/status" => "search#repo_status"
