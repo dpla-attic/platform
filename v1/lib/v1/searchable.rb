@@ -21,17 +21,17 @@ module V1
     DEFAULT_SORT_ORDER = 'asc'
 
     # General query params that are not resource-specific
-    BASE_QUERY_PARAMS = %w( q controller action sort_by sort_by_pin sort_order page page_size facets facet_size fields callback _ x ).freeze
+    BASE_QUERY_PARAMS = %w( q controller action sort_by sort_by_pin sort_order page page_size facets facet_size filter_facets fields callback _ x ).freeze
 
     def resource
       raise "Modules extending Searchable must define resource() method"
     end
 
     def build_queries(resource, search, params)
-      queries_ran = []
-      queries_ran << Searchable::Query.build_all(resource, search, params)
-      queries_ran << Searchable::Filter.build_all(resource, search, params)
-      Searchable::Facet.build_all(resource, search, params, !queries_ran.any?)
+      queries = []
+      queries << Searchable::Query.build_all(resource, search, params)
+      queries << Searchable::Filter.build_all(resource, search, params)
+      Searchable::Facet.build_all(resource, search, params, !queries.any?)
     end
 
     def search(params={})
@@ -257,6 +257,7 @@ module V1
 
     def id_to_private_id(ids)
       #TODO: only request _id field
+      #TODO: use a cacheable filter here instead?
       search({'id' => ids.join(' OR ')})['docs'].inject({}) do |memo, doc|
         memo[doc['id']] = doc['_id']
         memo
@@ -295,7 +296,6 @@ module V1
     end
 
     def verbose_debug(search)
-      #puts "JSON: #{search.to_json}"
       puts "CURL: #{search.to_curl}"
     end
 

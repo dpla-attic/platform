@@ -1,8 +1,6 @@
 # This file will end up with resource-agnostic versions of all the item steps
 
 Then /^the API should return (\d+) (collection)s with "(.*?)"$/ do |count, resource, keyword|
-  # puts "L1 resource: #{resource}"
-  # puts "L2 @resource: #{@resource}"
   expect(@resource).to eq resource
   
   json = resource_query_to_json(@resource, @params)
@@ -16,10 +14,11 @@ When /^I (.+)-search for( the phrase)? "(.*?)"( in the "(.*?)" field)?$/ do |res
   @resource = resource
   @query_field = query_field || 'q'
   @query_string = keyword
-  
   # phrase queries get wrapped in double quotes
+  query_phrase = '"' + @query_string + '"'
+
   @params.merge!({
-    @query_field => is_phrase.nil? ? @query_string : '"' + @query_string + '"'
+    @query_field => is_phrase.nil? ? @query_string : query_phrase
   })
 end
 

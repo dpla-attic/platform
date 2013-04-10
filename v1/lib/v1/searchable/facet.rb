@@ -1,5 +1,5 @@
-require 'v1/schema'
-require 'v1/search_error'
+require_relative '../schema'
+require_relative '../search_error'
 
 module Tire
   module Search
@@ -24,6 +24,19 @@ module V1
       MAXIMUM_FACET_SIZE = 2000
       DEFAULT_GEO_DISTANCE_MILES = 100
       DEFAULT_GEO_BUCKETS = 20
+      FILTER_FACET_FLAGS = %w( CASE_INSENSITIVE DOTALL )
+
+      def self.default_facet_size
+        DEFAULT_FACET_SIZE
+      end
+      
+      def self.maximum_facet_size
+        MAXIMUM_FACET_SIZE
+      end
+      
+      def self.filter_facet_flags
+        FILTER_FACET_FLAGS
+      end
 
       def self.build_all(resource, search, params, global=false)
         # Run facets from params['facets'] against the search object
@@ -82,11 +95,11 @@ module V1
       end
 
       def self.facet_size(params)
-        size = params['facet_size'] == 'max' ? MAXIMUM_FACET_SIZE : params['facet_size']
+        size = params['facet_size'] == 'max' ? maximum_facet_size : params['facet_size']
         if size.to_s == ''
-          DEFAULT_FACET_SIZE
-        elsif size.to_i > MAXIMUM_FACET_SIZE
-          MAXIMUM_FACET_SIZE
+          default_facet_size
+        elsif size.to_i > maximum_facet_size
+          maximum_facet_size
         else
           size
         end
@@ -103,13 +116,15 @@ module V1
           args = [$1, $2]
         end
         # the gist here is that args may contain a facet_modifier
-        V1::Schema.field(resource, *args)
+        Schema.field(resource, *args)
       end
 
       def self.facet_options(type, field, params)
         # Returns options for variable facet types.
+        #TODO: refactor into subclasses here or something.
 
         # NOTE: Tire requires the :interval key in options, if present, to be a symbol
+        #TODO: standardize strings/symbols as hash keys
         options = {}
         
         if type == 'geo_distance'
@@ -140,7 +155,8 @@ module V1
             :order => 'count'
           }
         elsif type == 'range'
-          # Each range covers 2000 years and ends on 2100, which is arbitrary
+          # Each range covers 2000 years and ends on 2100, which is just a number
+          # that seems useful (it's not a magic number at all.)
           end_year = 2100
 
           if field.facet_modifier == 'decade'
@@ -163,11 +179,50 @@ module V1
           # terms facet. No other facet type supports size attr
           options = {
             :size => facet_size(params),
-            :order => 'count'
+            :order => 'count',
           }
+          options.merge!(filter_facet(field.name, params))
         end
         
         options
+      end
+
+      def self.filter_facet(name, params)
+        filtered = params['filter_facets'].to_s.split(/,\s*/)
+        query = params[name].to_s
+        return {} unless (filtered.include?(name) && query != '')
+        
+        words = query.split
+        regex = nil
+
+        #TODO: better support for multiple words *with* wildcards. Perhaps do the wildcard
+        #pass first, then do current elsif block
+
+        if query =~ /\*/
+          #wildcards "so*city"
+          regex = query.gsub(/\*/, '.*')
+        elsif words.size == 1
+          regex = words.first
+        elsif query =~ /^"(.+)"$/
+          #double-quoted string
+          regex = $1
+        elsif false
+          #plus or minus signs
+        elsif query =~ / OR /
+          #multiple words with boolean operator
+          # 1.9.3p194 :023 > 'foo bar baz' =~ Regexp.union(/bar/, /foo/i)
+          regex = '(' + words.select {|w| w != 'OR'}.join('|') + ')'
+        else
+          # multiple bare words, emulates default_operator 'AND' in query_string queries
+          # positive lookahead regex for each word
+          regex = '' + words.map {|w| "(?=.*#{w})"}.join + ''
+        end
+
+        #TODO: Can we test that this is a valid regex first?
+        # Regexp.try_convert(/#{regex}/) rescue false
+        {
+          "script_field" => "term.toLowerCase() ~= '.*#{regex.downcase}.*'"
+        }
       end
 
       def self.facet_ranges(start, size, count, endcaps=false)
@@ -212,7 +267,7 @@ module V1
         names.each do |name|
           new_facets = []
 
-          field = V1::Schema.field(resource, name)
+          field = Schema.field(resource, name)
           if field
             # top level field is facetable
             new_facets << name if field.facetable?

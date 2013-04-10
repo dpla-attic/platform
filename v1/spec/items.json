@@ -12,11 +12,9 @@
                 "begin": "1977-01-01",
                 "end": "1977-01-01"
             },
-            "format": "",
-            "rights": "",
-            "relation": "",
-            "source": "",
-            "contributor": ""
+            "spatial": {
+                "city": "Boston"
+            }
         }
     },
     {
@@ -32,12 +30,7 @@
             "date": {
                 "begin": "1978-01-01",
                 "end": "1979-01-01"
-            },
-            "format": "",
-            "rights": "",
-            "relation": "",
-            "source": "",
-            "contributor": ""
+            }
         }
     },
     {
@@ -56,11 +49,7 @@
             "subject": {
                 "name": "perplexed subject3 doodle"
             },
-            "format": "text/xml",
-            "rights": "",
-            "relation": "",
-            "source": "",
-            "contributor": ""
+            "format": "text/xml"
         }
     },
     {
@@ -507,5 +496,64 @@
                 }
             ]
         }
+    },
+    {
+        "_id": "FF1",
+        "id": "ff1",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "filter facet test",
+            "subject": [
+                { "name": "Mountain West" },
+                { "name": "cookie" }
+            ]
+        }
+    },
+    {
+        "_id": "FF2",
+        "id": "ff2",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "filter facet test",
+            "subject": [
+                { "name": "Mountain West" }
+            ]
+        }
+    },
+    {
+        "_id": "FF3",
+        "id": "ff3",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "filter facet test",
+            "subject": [
+                { "name": "Splash Mountain" }
+            ]
+        }
+    },
+    {
+        "_id": "FF4",
+        "id": "ff4",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "filter facet test",
+            "subject": [
+                { "name": "Old Man Winter" },
+                { "name": "blueberry" }
+            ]
+        }
+    },
+    {
+        "_id": "FF5",
+        "id": "ff5",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "filter facet test",
+            "subject": [
+                { "name": "Old Man Winter" },
+                { "name": "cranberry" }
+            ]
+        }
     }
+
 ]

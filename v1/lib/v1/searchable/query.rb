@@ -24,6 +24,7 @@ module V1
 
           query.boolean do |boolean|
 
+            #TODO: Could we use a match query instead of a query_string for faster, simplified searches?
             string_queries.each do |query_string|
               boolean.must do |must|
                 must.string *query_string
@@ -40,6 +41,8 @@ module V1
         end
         true
       end
+    # "_source.sourceResource.spatial.city"
+    # "foo": 
 
       
       def self.ids_query(resource, params)

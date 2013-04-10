@@ -6,6 +6,26 @@ When /^request facet size of "(.*?)"$/ do |arg1|
   @params['facet_size'] = arg1
 end
 
+When(/^filter facets on "(.*?)"$/) do |facet_list|
+  @params['filter_facets'] = facet_list
+end
+
+Then(/^the API returns facets with the filtered values "(.*?)"$/) do |arg1|
+  expected_terms = arg1.split('|').map {|t| t.downcase}
+
+  @results = resource_query(@resource, @params)
+  if !@results['facets']
+    # if it goes wrong, it goes wrong here
+    raise Exception, "Test error: No facets found\nResponse: #{@results['message']}"
+  end
+
+  facets = @results['facets'][ @params['facets'] ]
+  returned_terms = facets['terms'].map {|t| t['term'].downcase}
+
+  expect(returned_terms).to match_array(expected_terms)
+end
+
+
 Then /^the "(.*?)" terms facets contains the requested number of facets$/ do |facet_list|
   @facets = facet_list.split(/,\s*/)
   @facets.each do |facet|

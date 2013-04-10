@@ -23,6 +23,9 @@ module V1
         it "DEFAULT_GEO_BUCKETS has correct value" do
           expect(subject::DEFAULT_GEO_BUCKETS).to eq 20
         end
+        it "FILTER_FACET_FLAGS has the correct value" do
+          expect(subject::FILTER_FACET_FLAGS).to match_array %w( CASE_INSENSITIVE DOTALL )
+        end
       end
       
       describe "#build_all" do
@@ -33,30 +36,91 @@ module V1
         it "calls the search.facet block with the correct params"
       end
 
+      describe "#filter_facet" do
+        let(:facet_name) { 'city' }
+
+        it "returns an empty hash if there is nothing to do" do
+          params = {'q' => 'foo'}
+          expect(subject.filter_facet(facet_name, params)).to eq({})
+        end
+
+        it "returns correct regex for a single word" do
+          params = {"filter_facets" => facet_name, facet_name => 'house'}
+          expect(subject.filter_facet(facet_name, params))
+            .to eq({
+                     'script_field' => "term.toLowerCase() ~= '.*house.*'"
+                   })
+        end
+
+        it "returns correct regex for a double quoted string" do
+          params = {"filter_facets" => facet_name, facet_name => '"haunted house"'}
+          expect(subject.filter_facet(facet_name, params))
+            .to eq({
+                     'script_field' => "term.toLowerCase() ~= '.*haunted house.*'"
+                   })
+        end
+
+        it "returns correct regex for a string containing a '*' wildcard" do
+          params = {"filter_facets" => facet_name, facet_name => 'haunted *ouse'}
+          expect(subject.filter_facet(facet_name, params))
+            .to eq({
+                     'script_field' => "term.toLowerCase() ~= '.*haunted .*ouse.*'"
+                   })
+        end
+
+        it "returns correct regex for multiple bare words (default AND boolean search)" do
+          params = {"filter_facets" => facet_name, facet_name => 'haunted house'}
+          expect(subject.filter_facet(facet_name, params))
+            .to eq({
+                     'script_field' => "term.toLowerCase() ~= '.*(?=.*haunted)(?=.*house).*'"
+                   })
+        end
+
+        it "returns correct regex for multiple words joined by OR boolean operator" do
+          params = {"filter_facets" => facet_name, facet_name => 'haunted OR house'}
+          expect(subject.filter_facet(facet_name, params))
+            .to eq({
+                     'script_field' => "term.toLowerCase() ~= '.*(haunted|house).*'"
+                   })
+        end
+
+        # it "only applies filter_facet on facets for which it was requested" do
+        #   params = {"filter_facets" => "date.begin,#{facet_name}", facet_name => 'house'}
+        #   expect(subject.filter_facet(facet_name, params))
+        #     .to eq({
+        #              'script_field' => "term.toLowerCase() ~= '.*house.*'"
+        #            })
+        # end
+
+        # OR!
+
+        #  => 0
+      end
+
       describe "#parse_facet_name" do
-        it "returns the result of V1::Schema.field" do
+        it "returns the result of Schema.field" do
           field = stub
-          V1::Schema.should_receive(:field).with(resource, 'format') { field }
+          Schema.should_receive(:field).with(resource, 'format') { field }
           expect(subject.parse_facet_name(resource, 'format')).to eq field
         end
         it "parses geo_distance facet name with no modifier" do
-          V1::Schema.should_receive(:field).with(resource, 'spatial.coordinates')
+          Schema.should_receive(:field).with(resource, 'spatial.coordinates')
           subject.parse_facet_name(resource, 'spatial.coordinates')
         end
         it "parses geo_distance facet name with modifier" do
-          V1::Schema.should_receive(:field).with(resource, 'spatial.coordinates', '42.3:-71:20mi')
+          Schema.should_receive(:field).with(resource, 'spatial.coordinates', '42.3:-71:20mi')
           subject.parse_facet_name(resource, 'spatial.coordinates:42.3:-71:20mi')
         end
         it "parses date facet name with no modifier" do
-          V1::Schema.should_receive(:field).with(resource, 'date')
+          Schema.should_receive(:field).with(resource, 'date')
           subject.parse_facet_name(resource, 'date')
         end
         it "parses date facet name with modifier" do
-          V1::Schema.should_receive(:field).with(resource, 'date', 'year')
+          Schema.should_receive(:field).with(resource, 'date', 'year')
           subject.parse_facet_name(resource, 'date.year')
         end
         it "parses date facet subfield name with modifier" do
-          V1::Schema.should_receive(:field).with(resource, 'temporal.begin', 'year')
+          Schema.should_receive(:field).with(resource, 'temporal.begin', 'year')
           subject.parse_facet_name(resource, 'temporal.begin.year')
         end
       end
@@ -103,9 +167,10 @@ module V1
         it "returns correct options for date_histogram facet with a native interval"  do
           field = stub(:name => 'date', :facet_modifier => 'year')
           expect(subject.facet_options('date', field, {}))
-            .to eq(
-                   {:interval => 'year', :order => 'count'}
-                   )
+            .to eq({
+                     :interval => 'year',
+                     :order => 'count'
+                   })
         end
         it "raises an error for an unrecognized interval on a date_histogram facet" do
           field = stub(:name => 'date', :facet_modifier => 'invalid_interval')
@@ -116,40 +181,39 @@ module V1
         it "returns correct default interval for date_histogram facet with no interval"  do
           field = stub(:name => 'date', :facet_modifier => nil)
           expect(subject.facet_options('date', field, {}))
-            .to eq(
-                   { :interval => 'day', :order => 'count' }
-                   )
+            .to eq({
+                     :interval => 'day',
+                     :order => 'count'
+                   })
         end
         it "returns correct hash for decade date range facet"  do
           field = stub(:name => 'date', :facet_modifier => 'decade')
           ranges_stub = stub
           subject.stub(:facet_ranges).with(100, 10, 200, false) { ranges_stub}
           expect(subject.facet_options('range', field, {}))
-            .to eq(
-                   options = {
+            .to eq({
                      'field' => 'date',
                      'ranges' => ranges_stub
-                   }
-                   )
+                   })
         end
         it "returns correct hash for century date range facet"  do
           field = stub(:name => 'date', :facet_modifier => 'century')
           ranges_stub = stub
           subject.stub(:facet_ranges).with(100, 100, 20, false) { ranges_stub}
           expect(subject.facet_options('range', field, {}))
-            .to eq(
-                   options = {
+            .to eq({
                      'field' => 'date',
                      'ranges' => ranges_stub
-                   }
-                   )
+                   })
         end
         it "returns size and order hash for terms filter" do
-          field = stub(:string? => true)
+          subject.stub(:filter_facet) {{}}
+          field = stub(:name => 'subject.name', :string? => true)
           expect(subject.facet_options('terms', field, {}))
-            .to eq(
-                   { :size => 50, :order => 'count' }
-                   )
+            .to eq({
+                     :size => 50,
+                     :order => 'count'
+                   })
         end
       end
 
@@ -258,14 +322,14 @@ module V1
         it "returns all facetable subfields for a non-facetable field" do
           subfield = stub(:facetable? => true, :name => 'somefield.sub2a', :geo_point? => false)
           field = stub(:facetable? => false, :name => 'somefield', :subfields => [subfield], :geo_point? => false)
-          V1::Schema.stub(:field).with(resource, 'somefield') { field }
+          Schema.stub(:field).with(resource, 'somefield') { field }
           expect(
                  subject.expand_facet_fields(resource, %w( somefield ) )
                  ).to match_array %w( somefield.sub2a )
         end
         it "returns a facetable field with no subfields" do
           field = stub(:facetable? => true, :name => 'id', :subfields => [])
-          V1::Schema.stub(:field).with(resource, 'id') { field }
+          Schema.stub(:field).with(resource, 'id') { field }
           expect(
                  subject.expand_facet_fields(resource, %w( id ) )
                  ).to match_array %w( id )
@@ -273,7 +337,7 @@ module V1
 
         it "returns a non-facetable field with no facetable subfields" do
           field = stub(:facetable? => false, :name => 'description', :subfields => [])
-          V1::Schema.stub(:field).with(resource, 'description') { field }
+          Schema.stub(:field).with(resource, 'description') { field }
           expect(
                  subject.expand_facet_fields(resource, %w( description ) )
                  ).to match_array %w( description )
@@ -283,7 +347,7 @@ module V1
           sub1 = stub(:facetable? => true, :name => 'somefield.sub2a', :geo_point? => false)
           sub2 = stub(:facetable? => true, :name => 'somefield.sub2a_geo', :geo_point? => true)
           field = stub(:facetable? => false, :name => 'somefield', :subfields => [sub1, sub2], :geo_point? => false)
-          V1::Schema.stub(:field).with(resource, 'somefield') { field }
+          Schema.stub(:field).with(resource, 'somefield') { field }
           expect(
                  subject.expand_facet_fields(resource, %w( somefield ) )
                  ).to match_array %w( somefield.sub2a )
@@ -292,10 +356,10 @@ module V1
         it "returns the correct values when called with a mix of fields" do
           subfield = stub(:facetable? => true, :name => 'somefield.sub2a', :geo_point? => false)
           somefield = stub(:facetable? => false, :name => 'somefield', :subfields => [subfield], :geo_point? => false)
-          V1::Schema.stub(:field).with(resource, 'somefield') { somefield }
+          Schema.stub(:field).with(resource, 'somefield') { somefield }
 
           id_field = stub(:facetable? => true, :name => 'id', :subfields => [])
-          V1::Schema.stub(:field).with(resource, 'id') { id_field }
+          Schema.stub(:field).with(resource, 'id') { id_field }
 
           expect(
                  subject.expand_facet_fields(resource, %w( somefield id  ) )
@@ -317,10 +381,12 @@ module V1
 
       describe "#facet_size" do
         before(:each) do
-          stub_const("V1::Searchable::Facet::DEFAULT_FACET_SIZE", 19)
-          stub_const("V1::Searchable::Facet::MAXIMUM_FACET_SIZE", 42)
+          # stub_const("V1::Searchable::Facet::DEFAULT_FACET_SIZE", 19)
+          # stub_const("V1::Searchable::Facet::MAXIMUM_FACET_SIZE", 42)
+          subject.stub(:default_facet_size) { 19 }
+          subject.stub(:maximum_facet_size) { 42 }
         end
-        it "returns MAXIMUM_FACET_SIZE when 'max' is passed" do
+        it "returns maximum_facet_size when 'max' is passed" do
           params = {'facet_size' => 'max'}
           expect(subject.facet_size(params)).to eq 42
         end
