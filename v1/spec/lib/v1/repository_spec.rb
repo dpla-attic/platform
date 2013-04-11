@@ -40,12 +40,12 @@ module V1
         end
         
         it "has all the right moves by default" do
-          V1::StandardDataset.should_not_receive(:recreate_river!)
+          StandardDataset.should_not_receive(:recreate_river!)
           subject.recreate_env
         end
 
         it "has all the right moves and creates the river if requested" do
-          V1::StandardDataset.should_receive(:recreate_river!)
+          StandardDataset.should_receive(:recreate_river!)
           subject.recreate_env(true)
         end
       end
@@ -155,7 +155,7 @@ module V1
       it "calls import_docs with correct params" do
         data_file = stub
         processed_input_file = stub
-        V1::StandardDataset.should_receive(:process_input_file).with(data_file, false) { processed_input_file }
+        StandardDataset.should_receive(:process_input_file).with(data_file, false) { processed_input_file }
         subject.should_receive(:import_docs).with(processed_input_file)
         subject.import_data_file(data_file)
       end
@@ -163,8 +163,8 @@ module V1
 
     describe "#import_test_dataset" do
       it "imports test data for all resources" do
-        subject.should_receive(:import_data_file).with(V1::StandardDataset::ITEMS_JSON_FILE)
-        subject.should_receive(:import_data_file).with(V1::StandardDataset::COLLECTIONS_JSON_FILE)
+        subject.should_receive(:import_data_file).with(StandardDataset::ITEMS_JSON_FILE)
+        subject.should_receive(:import_data_file).with(StandardDataset::COLLECTIONS_JSON_FILE)
         subject.import_test_dataset
       end
     end
@@ -212,7 +212,7 @@ module V1
       
       before :each do
         subject.stub(:sleep)
-        V1::Config.stub(:dpla) {{
+        Config.stub(:dpla) {{
             'repository' => {
               'reader' => {
                 'user' => 'dpla-reader',
@@ -299,7 +299,7 @@ module V1
     context "config accessors" do
       #TODO: comment this before block out
       before :each do
-        V1::Config.stub(:dpla) {{
+        Config.stub(:dpla) {{
           "read_only_user" => { "username" => "u", "password" => "pw" },
           "repository" => { "admin_endpoint" => "http://admin:apass@abc.com" }
         }}
@@ -308,13 +308,13 @@ module V1
       
        describe "#cluster_host" do
         it "returns the cluster_host var when it is defined" do
-          V1::Config.stub(:dpla) {{
+          Config.stub(:dpla) {{
               'repository' => { 'cluster_host' => '1.2.3.4:5986' }
             }}
           expect(subject.cluster_host).to eq '1.2.3.4:5986'
         end
         it "returns the node_host var when cluster_host is not defined" do
-          V1::Config.stub(:dpla) {{
+          Config.stub(:dpla) {{
               'repository' => { 'node_host' => '1.2.3.4:5984' }
             }}
           expect(subject.cluster_host).to eq '1.2.3.4:5984'
@@ -322,7 +322,7 @@ module V1
       end
       describe "#node_host" do
         it "defaults to correct host and IP when no hosts are defined" do
-          V1::Config.stub(:dpla) {{
+          Config.stub(:dpla) {{
               'repository' => {  }
             }}
           expect(subject.node_host).to eq "127.0.0.1:5984"
@@ -331,7 +331,7 @@ module V1
       
       describe "#build_endpoint" do
         before(:each) do
-          V1::Config.stub(:dpla) {{
+          Config.stub(:dpla) {{
               'repository' => {
                 'admin' => {
                   'user' => 'dpla-admin',

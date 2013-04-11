@@ -48,7 +48,7 @@ module V1
     def self.recreate_env(include_river=false)
       recreate_doc_database
       recreate_api_keys_database
-      V1::StandardDataset.recreate_river! if include_river
+      StandardDataset.recreate_river! if include_river
       recreate_users
       import_test_api_keys
       import_test_dataset
@@ -62,11 +62,11 @@ module V1
     end
 
     def self.import_test_dataset
-      V1::StandardDataset::dataset_files.each {|file| import_data_file file}
+      StandardDataset::dataset_files.each {|file| import_data_file file}
     end
 
     def self.import_data_file(file)
-      import_docs(V1::StandardDataset.process_input_file(file, false))
+      import_docs(StandardDataset.process_input_file(file, false))
     end
 
     def self.import_docs(docs)
@@ -112,7 +112,7 @@ module V1
       raise "Error: #{result}" unless result['ok']
     end
 
-    #TODO: Move api management methods into a V1::ApiAuth module
+    #TODO: Move api management methods into a ApiAuth module
     def self.create_api_key(owner)
       #TODO: tests
       key = ApiKey.new(
@@ -137,7 +137,10 @@ module V1
       db = CouchRest.database(admin_cluster_auth_database)
       keys = YAML.load_file(File.expand_path("../../../config/test_api_keys.yml", __FILE__))
 
-      puts "Test API keys: #{"ONLY FOR: owner.to_s" if owner}"
+      print "Test API keys: "
+      print "ONLY FOR: #{owner}" if owner
+      puts ""
+      
       keys.each do |key, body|
         # Only import key for this owner
         next if owner && owner != body['owner']
@@ -182,7 +185,7 @@ module V1
     end
 
     def self.recreate_user
-      config = V1::Config.dpla['repository']
+      config = Config.dpla['repository']
       username = config['reader']['user'] rescue nil
       password = config['reader']['pass'] rescue nil
 
@@ -279,17 +282,17 @@ module V1
     end
 
     def self.repo_name
-      V1::Config::REPOSITORY_DATABASE
+      Config::REPOSITORY_DATABASE
     end
 
     def self.cluster_host
       # supplies default value if not defined in config file
-      V1::Config.dpla['repository'].fetch('cluster_host', node_host)
+      Config.dpla['repository'].fetch('cluster_host', node_host)
     end
 
     def self.node_host
       # supplies default value if not defined in config file
-      V1::Config.dpla['repository'].fetch('node_host', '127.0.0.1:5984')
+      Config.dpla['repository'].fetch('node_host', '127.0.0.1:5984')
     end
 
     def self.cluster_endpoint(role=nil, suffix='')
@@ -313,7 +316,7 @@ module V1
     end
 
     def self.build_endpoint(host, role=nil, suffix=nil)
-      config = V1::Config.dpla['repository']
+      config = Config.dpla['repository']
 
       auth_string = ''
       if role

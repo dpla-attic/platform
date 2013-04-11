@@ -20,8 +20,6 @@ module Contentqa
 
     #TODO: use v1_api.items_url
     def item_fetch_link(id)
-      puts "BURI+: #{baseuri}"
-      puts "url: #{baseuri}"
       baseuri + v1_api.items_path + '/' + id + "?api_key=#{ @@api_auth_key }"
     end
 
@@ -37,8 +35,13 @@ module Contentqa
       uri += "&api_key=#{ @@api_auth_key }"
       search = HTTParty.get(uri, request_options)
       raise ApiAuthFailed if search.code == 401
-      raise "API Query Error: #{ search.message }: #{search.code}" unless search.code == 200
-      search.parsed_response
+
+      response = search.parsed_response
+      if search.code != 200
+        raise "API Query Error (HTTP #{search.code}): #{ response['message'] rescue response }"
+      end
+
+      response
     end
 
     def request_options

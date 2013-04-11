@@ -15,9 +15,8 @@ When(/^provide a valid API key$/) do
 end
 
 When(/^I visit the QA app homepage$/) do
-  # TODO: http://stackoverflow.com/questions/6536503/capybara-with-subdomains-default-host
-  # puts qa_app.search_url
-  # visit '/qa' #/qa_app.search_path
+  # TODO: try http://stackoverflow.com/questions/6536503/capybara-with-subdomains-default-host
+  #visit '/qa/compare'
 end
 
 
