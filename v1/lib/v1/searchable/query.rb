@@ -7,6 +7,10 @@ module V1
 
     module Query
 
+      # not escaped, but probably could be: '&&', '||'
+      # not escaped, because they don't seem to need it: '+', '-',
+      ESCAPED_METACHARACTERS = [ '!', '(', ')', '{', '}', '[', ']', '^', '~', '?', ':', '\\' ]
+
       def self.build_all(resource, search, params)
         # Returns boolean for "did we run any queries?"
         string_queries = string_queries(resource, params)
@@ -41,9 +45,6 @@ module V1
         end
         true
       end
-    # "_source.sourceResource.spatial.city"
-    # "foo": 
-
       
       def self.ids_query(resource, params)
         # This is not actually available via the front-end, but it could be if we wanted
@@ -53,37 +54,44 @@ module V1
         [ids.split(/,\s*/), resource]
       end
 
+      def self.escaped_metacharacters
+        ESCAPED_METACHARACTERS
+      end
+
+      def self.protect_metacharacters(string)
+        escaped_metacharacters.each do |mc|
+          string.gsub!(mc, '\\' + mc.split('').join('\\\\') )
+        end
+
+        string
+      end
+
       def self.string_queries(resource, params)
-        # Only handles 'q' and basic field/subfield searches
+        # Only handles 'q' and non-geo field searches
 
         query_strings = []
         params.each do |name, value|
           # Skip all query types that are handled elsewhere
           next if value.to_s == ''
           next if name =~ /^.+\.(before|after)$/
-          pair = nil
-          
+
           if name == 'q'
-            pair = [ value, 'fields' => ['_all'] ]
+            fields = '_all'
           else
             field = Schema.field(resource, name)
-
-            # it probably has some kind of modifier that we do not handle here
             next if field.nil?
-
             next if field.geo_point?
 
-            fields = {
-              'fields' => field.subfields? ? ["#{field.name}.*"] : [field.name]
-            }
-            pair = [ value, fields ]
+            fields = field.subfields? ? "#{field.name}.*" : field.name
           end
 
-          pair << default_attributes.merge(pair.pop)
-          query_strings << pair
+          query_strings << [
+                            protect_metacharacters(value.dup),
+                            default_attributes.merge({'fields' => [fields]})
+                           ]
         end
 
-        query_strings.map {|query| Array.wrap(query)}
+        query_strings
       end
 
       def self.default_attributes

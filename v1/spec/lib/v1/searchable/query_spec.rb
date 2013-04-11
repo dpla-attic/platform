@@ -151,6 +151,29 @@ module V1
         end
       end
 
+      describe "#protect_metacharacters" do
+        
+        it "escapes multiple meta-characters" do
+          string = 'harvard (lol)'
+          expect(subject.protect_metacharacters(string)).to eq 'harvard \\(lol\\)'
+        end
+        
+        it "does not escape '*' or '\"' meta-characters" do
+          string = '"harv*"'
+          expect(subject.protect_metacharacters(string)).to eq string
+        end
+
+        it "escapes meta-characters at the beginning of a string" do
+          string = '?harv'
+          expect(subject.protect_metacharacters(string)).to eq '\\?harv'
+        end
+
+        it "escapes meta-characters just absolutely everywhere" do
+          string = '}?harv[a:z]('
+          expect(subject.protect_metacharacters(string)).to eq '\\}\\?harv\\[a\\:z\\]\\('
+        end
+      end
+
     end
 
   end

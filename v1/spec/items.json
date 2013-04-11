@@ -25,7 +25,7 @@
             "id": "partnerhubid1",
             "title": "title two",
             "description": "perplexed two",
-            "creator": "",
+            "creator": "foo-bar-baz",
             "publisher": "",
             "date": {
                 "begin": "1978-01-01",
@@ -40,7 +40,7 @@
         "sourceResource": {
             "title": "title three",
             "description": "perplexed three",
-            "creator": "",
+            "creator": "gold bar",
             "publisher": "",
             "date": {
                 "begin": "2000-06-01",
@@ -553,6 +553,14 @@
                 { "name": "Old Man Winter" },
                 { "name": "cranberry" }
             ]
+        }
+    },
+    {
+        "_id": "MC1",
+        "id": "mc1",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "metachar test (lol)"
         }
     }
 

@@ -34,7 +34,8 @@ else
   # the river catch up on indexing the docs added to CouchDB.
   # Note: A HTTP 419 error from CouchDB means you need to increase that sleep value
   # a second or two, I believe.
-  sleep 3
+  sleep 5
+  puts "Search docs       : #{V1::StandardDataset.doc_count}"
 end
 
 

@@ -18,8 +18,8 @@ When /^I (.+)-search for( the phrase)? "(.*?)"( in the "(.*?)" field)?$/ do |res
   query_phrase = '"' + @query_string + '"'
 
   @params.merge!({
-    @query_field => is_phrase.nil? ? @query_string : query_phrase
-  })
+                   @query_field => is_phrase.nil? ? @query_string : query_phrase
+                 })
 end
 
 # When /^I search the "(.*?)" field for records with a date between "(.*?)" and "(.*?)"$/ do |field, start_date, end_date|
@@ -63,6 +63,8 @@ When /^I search for records with "(.*?)" near coordinates "(.*?)"( with a range 
 end
 
 When(/^I search for records with "(.*?)" inside the bounding box defined by "(.*?)" and "(.*?)"$/) do |field, upper_left, lower_right|
+  # puts "UL: #{upper_left}"
+  # puts "LR: #{lower_right}"
   @params[field] = upper_left + ':' + lower_right
 end
 
