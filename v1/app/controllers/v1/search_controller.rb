@@ -1,19 +1,18 @@
 require_dependency "v1/application_controller"
 
-#TODO: eliminate new duplication between resources here and break this into V1::ItemsController and V1::CollectionsController (to invert the current topology)
+#TODO: eliminate new duplication between resources here and break this into ItemsController and CollectionsController (to invert the current topology)
+#TODO: Consider handling all our own exception classes in a: rescue_from SearchError
 
 module V1
   class SearchController < ApplicationController
     before_filter :authenticate!, :except => [:repo_status]  #, :links  #links is just here for testing auth
     rescue_from Errno::ECONNREFUSED, :with => :connection_refused
+    rescue_from Exception, :with => :generic_exception_handler
 
     def authenticate!
-      # Authenticate their api_key for API access
       if !authenticate_api_key(params['api_key'])
         logger.info "UnauthorizedSearchError for api_key: #{ params['api_key'] || '(none)' }"
-        e = UnauthorizedSearchError.new "Missing, invalid or inactive api_key param"
-
-        render :json => render_json({:message => e.message}, params), :status => e.http_status
+        render_error(UnauthorizedSearchError.new, params)
       end
       # Delete this key now that we're done with it
       params.delete 'api_key'
@@ -21,46 +20,36 @@ module V1
 
     def items
       begin
-        results = V1::Item.search(params)
-        # TODO: Uncomment this when we have renamed the format field in the schema
-        # respond_to do |format|
-        #   format.json  { render :json => render_json(results, params) }
-        # end
-        render :json => render_json(results, params)
+        render :json => render_json(Item.search(params), params)
       rescue SearchError => e
-        render :json => render_json({:message => e.message}, params), :status => e.http_status
+        render_error(e, params)
       end
     end
 
     def fetch
       results = []
       begin 
-        results = V1::Item.fetch(params[:ids].split(/,\s*/))
-        status = 200
+        render :json => render_json(Item.fetch(params[:ids].split(/,\s*/)), params)
       rescue NotFoundSearchError => e
-        status = e.http_status
+        render_error(e, params)
       end
-      render :json => render_json(results, params), :status => status
     end
 
     def collections
       begin
-        results = V1::Collection.search(params)
-        render :json => render_json(results, params)
+        render :json => render_json(Collection.search(params), params)
       rescue SearchError => e
-        render :json => render_json({:message => e.message}, params), :status => e.http_status
+        render_error(e, params)
       end
     end
 
     def fetch_collections
-      results = []
       begin 
-        results = V1::Collection.fetch(params[:ids].split(/,\s*/))
-        status = 200
+        render :json => render_json(Collection.fetch(params[:ids].split(/,\s*/)), params)
       rescue NotFoundSearchError => e
-        status = e.http_status
+        render_error(e, params)
       end
-      render :json => render_json(results, params), :status => status
+
     end
 
     def render_json(results, params)
@@ -77,7 +66,7 @@ module V1
       message = nil
 
       begin
-        response = JSON.parse(V1::Repository.service_status(true))
+        response = JSON.parse(Repository.service_status(true))
         
         if response['doc_count'].to_s == ''
           status = :error
@@ -95,33 +84,42 @@ module V1
       head status
     end
     
-    def connection_refused
+    def connection_refused(exception)
       logger.warn "search_controller#connection_refused handler firing"
-      e = ServiceUnavailableSearchError.new
-      render :json => render_json({:message => e.message}, params), :status => e.http_status
+      render_error(ServiceUnavailableSearchError.new, params)
     end
     
     def authenticate_api_key(key_id)
-      logger.debug "PHUNK: authenticate_key firing with key: '#{key_id}'"
+      logger.debug "API_AUTH: authenticate_key firing for key: '#{key_id}'"
       
-      if V1::Config.skip_key_auth_completely?
+      if Config.skip_key_auth_completely?
         logger.warn "API_AUTH: skip_key_auth_completely? is true"
         return true
       end
 
-      if V1::Config.accept_any_api_key? && key_id.to_s != ''
+      if Config.accept_any_api_key? && key_id.to_s != ''
         logger.warn "API_AUTH: accept_any_api_key? is true and an API key is present"
         return true
       end
 
       #TODO: Rails.cache this
       begin
-        return V1::Repository.authenticate_api_key(key_id)
+        return Repository.authenticate_api_key(key_id)
       rescue Errno::ECONNREFUSED
+        # Avoid refusing api auth if we could not connect to the api auth server
         logger.warn "API_AUTH: Connection Refused trying to auth api key '#{key_id}'"
         return true
       end
     end    
+
+    def generic_exception_handler(exception)
+      logger.warn "#{self.class}.generic_exception_handler firing for: #{exception.class}: #{exception}"
+      render_error(InternalServerSearchError.new, params)
+    end
+
+    def render_error(e, params)
+      render :json => render_json({:message => e.message}, params), :status => e.http_status
+    end
 
     def links; end
 

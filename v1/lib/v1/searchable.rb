@@ -41,7 +41,6 @@ module V1
       search = Tire.search(Config::SEARCH_INDEX + '/' + resource) do |search|
         build_queries(resource, search, params)
 
-        #TODO: move sorting to its own module
         sort_attrs = build_sort_attributes(params)
         search.sort { by(*sort_attrs) } if sort_attrs
 
