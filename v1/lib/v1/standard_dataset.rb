@@ -234,7 +234,7 @@ module V1
       if !import_result['ok']
         # it already exist, so we need to update it
         # fetch doc from couchdb to get latst _rev
-        update_result = V1::Repository.do_fetch([test_doc_id]).first
+        update_result = V1::Repository.raw_fetch([test_doc_id]).first
 
         # update doc with required _rev info and new title
         doc = update_result['doc'].merge('title' => doc['title'])
