@@ -70,11 +70,13 @@ module V1
       # end
 
       describe "#date_range" do
+        let(:expected_range) { [ 'range', 'datefield' => {'gte' => '1973', 'lte' => '1973'} ] }
+
+        it "strips double-quote wrapping from dates" do
+          expect(subject.date_range('datefield', '"1973"')).to eq( expected_range )
+        end
         it "returns the expected array" do
-          expect(subject.date_range('datefield', '1973'))
-            .to eq(
-                   [ 'range', 'datefield' => {'gte' => '1973', 'lte' => '1973'} ]
-                 )
+          expect(subject.date_range('datefield', '1973')).to eq( expected_range )
         end
       end
 

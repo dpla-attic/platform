@@ -42,7 +42,9 @@ module V1
       end
 
       def self.date_range(name, value)
-        [ 'range', name => {'gte' => value, 'lte' => value} ]
+        # As a courtesy, remove double-quote wrapping
+        date = value =~ /^"(.+)"$/ ? $1 : value
+        [ 'range', name => {'gte' => date, 'lte' => date} ]
       end
 
       # def self.build_geo_filters(resource, params)
