@@ -562,6 +562,49 @@
         "sourceResource": {
             "title": "metachar test (lol)"
         }
+    },
+    {
+        "_id": "DATERANGE1",
+        "id": "daterange1",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "date range test",
+            "date": {
+                "end": "1973-04-04"
+            }
+        }
+    },
+    {
+        "_id": "DATERANGE2",
+        "id": "daterange2",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "date range test",
+            "date": {
+                "end": "1973-10-10"
+            }
+        }
+    },
+    {
+        "_id": "DATERANGE3",
+        "id": "daterange3",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "date range test",
+            "date": {
+                "end": "1973-12-12"
+            }
+        }
+    },
+    {
+        "_id": "DATERANJ4",
+        "id": "dateranj4",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "date ranj test",
+            "date": {
+                "end": "1973-12-12"
+            }
+        }
     }
-
 ]

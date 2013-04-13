@@ -15,20 +15,24 @@ module V1
         # Returns boolean for "did we run any queries?"
         string_queries = string_queries(resource, params)
         date_range_queries = date_range_queries(params)
-        ids_queries = ids_query(resource, params)
+        # ids_queries = ids_query(resource, params)
+        
+        if (string_queries + date_range_queries).empty?
+          search.query do |q|
+            q.all
+          end
+          return false
+        end
 
         # Only call search.query.boolean if we have some queries to pass it.
         # Otherwise we'll get incorrect search results.
-        return false if (string_queries + date_range_queries + ids_queries).empty?
-
         search.query do |query|
-          if ids_queries.any?
-            query.ids *ids_queries
-          end
+          # if ids_queries.any?
+          #   query.ids *ids_queries
+          # end
 
           query.boolean do |boolean|
 
-            #TODO: Could we use a match query instead of a query_string for faster, simplified searches?
             string_queries.each do |query_string|
               boolean.must do |must|
                 must.string *query_string
@@ -46,13 +50,14 @@ module V1
         true
       end
       
-      def self.ids_query(resource, params)
-        # This is not actually available via the front-end, but it could be if we wanted
-        ids = params['ids'].to_s
-        return [] if ids == ''
+      # def self.ids_query(resource, params)
+      #   # This is not actually available via the front-end, but it could be if we wanted
+      #TODO: This should actually be done as a filter 
+      #   ids = params['ids'].to_s
+      #   return [] if ids == ''
 
-        [ids.split(/,\s*/), resource]
-      end
+      #   [ids.split(/,\s*/), resource]
+      # end
 
       def self.escaped_metacharacters
         ESCAPED_METACHARACTERS
@@ -62,7 +67,6 @@ module V1
         escaped_metacharacters.each do |mc|
           string.gsub!(mc, '\\' + mc.split('').join('\\\\') )
         end
-
         string
       end
 
@@ -80,6 +84,7 @@ module V1
           else
             field = Schema.field(resource, name)
             next if field.nil?
+            next if field.date?  #TODO: TEST
             next if field.geo_point?
 
             fields = field.subfields? ? "#{field.name}.*" : field.name
@@ -103,6 +108,7 @@ module V1
       end
 
       def self.date_range_queries(params)
+        #TODO: Could these be filters?
         ranges = []
         params.each do |name, value|
           next unless name =~ /^(.+)\.(before|after)$/

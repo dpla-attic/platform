@@ -22,12 +22,13 @@ module V1
         let(:built_filters) {
           [
            ['distance', 'coords' => '42,-71'],
-           ['bbox', 'left' => '41,-70', 'right' => '43,-72']
+           ['bbox', 'left' => '41,-70', 'right' => '43,-72'],
+           ['range', 'datefield' => {'gte' => '1973', 'lte' => '1973'}],
           ]
         }
         
         it "Passes all the generated filters to its search arg" do
-          subject.stub(:build_geo_filters).with(resource, anything()) { built_filters } 
+          subject.stub(:build_filters).with(resource, anything()) { built_filters } 
 
           search = mock(:filter => nil)
           search.should_receive(:filter).with( *['distance', 'coords' => '42,-71'])
@@ -37,7 +38,7 @@ module V1
         end
 
         it "returns true if it generated any filters" do
-          subject.stub(:build_geo_filters).with(resource, anything()) { built_filters } 
+          subject.stub(:build_filters).with(resource, anything()) { built_filters } 
 
           search = mock(:filter => nil)
           expect(subject.build_all(resource, search, stub)).to be_true
@@ -45,27 +46,36 @@ module V1
         
       end
 
-      describe "#build_geo_filters" do
-        it "creates a geo_bounding_box filter when applicable" do
-          field = stub(:geo_point? => true)
-          Schema.stub(:field).with(resource, 'coordinates') { field }
-          params = {'coordinates' => '41,-70:43,-72'}
+      # describe "#build_geo_filters" do
+      #   it "creates a geo_bounding_box filter when applicable" do
+      #     field = stub(:geo_point? => true)
+      #     Schema.stub(:field).with(resource, 'coordinates') { field }
+      #     params = {'coordinates' => '41,-70:43,-72'}
 
-          subject.should_receive(:geo_bounding_box).with('coordinates', '41,-70:43,-72')
-          subject.should_not_receive(:geo_distance)
-          subject.build_geo_filters(resource, params)
-        end
+      #     subject.should_receive(:geo_bounding_box).with('coordinates', '41,-70:43,-72')
+      #     subject.should_not_receive(:geo_distance)
+      #     subject.build_geo_filters(resource, params)
+      #   end
         
-        it "creates a geo_distance filter when applicable" do
-          field = stub(:geo_point? => true)
-          Schema.stub(:field).with(resource, 'coordinates') { field }
-          params = {'coordinates' => '41,-70'}
+      #   it "creates a geo_distance filter when applicable" do
+      #     field = stub(:geo_point? => true)
+      #     Schema.stub(:field).with(resource, 'coordinates') { field }
+      #     params = {'coordinates' => '41,-70'}
 
-          subject.should_not_receive(:geo_bounding_box)
-          subject.should_receive(:geo_distance).with('coordinates', params)
-          subject.build_geo_filters(resource, params)
-        end
+      #     subject.should_not_receive(:geo_bounding_box)
+      #     subject.should_receive(:geo_distance).with('coordinates', params)
+      #     subject.build_geo_filters(resource, params)
+      #   end
         
+      # end
+
+      describe "#date_range" do
+        it "returns the expected array" do
+          expect(subject.date_range('datefield', '1973'))
+            .to eq(
+                   [ 'range', 'datefield' => {'gte' => '1973', 'lte' => '1973'} ]
+                 )
+        end
       end
 
       describe "#geo_distance" do
@@ -93,7 +103,7 @@ module V1
           params = {name => "42.1,-71", 'some_field.distance' => '11'}
           expect {
             subject.geo_distance(name, params)
-          }.to raise_error V1::BadRequestSearchError, "Missing or invalid units for some_field.distance"
+          }.to raise_error BadRequestSearchError, "Missing or invalid units for some_field.distance"
         end
 
       end

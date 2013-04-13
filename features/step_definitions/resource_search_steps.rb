@@ -68,9 +68,7 @@ When(/^I search for records with "(.*?)" inside the bounding box defined by "(.*
   @params[field] = upper_left + ':' + lower_right
 end
 
-# Then /^the API should not return record (.+)$/ do |id|
-#   json = item_query_to_json(@params)
-#   expect(
-#     json.map {|doc| doc['_source']['_id'] }.include?(id)
-#   ).to be_false
+# When(/^I (.+)-search for the date "(.*?)" in the "(.*?)" field$/) do |resource, date, field|
+#   @resource = resource
+#   @params[field] = date
 # end

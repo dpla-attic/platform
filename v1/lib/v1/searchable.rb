@@ -31,7 +31,12 @@ module V1
       queries = []
       queries << Searchable::Query.build_all(resource, search, params)
       queries << Searchable::Filter.build_all(resource, search, params)
-      Searchable::Facet.build_all(resource, search, params, !queries.any?)
+      #      Searchable::Facet.build_all(resource, search, params, !queries.any?)
+      queries.any?
+    end
+
+    def build_facets(resource, search, params, global)
+      Searchable::Facet.build_all(resource, search, params, global)
     end
 
     def search(params={})
@@ -39,8 +44,16 @@ module V1
       validate_field_params(params)
 
       search = Tire.search(Config::SEARCH_INDEX + '/' + resource) do |search|
-        build_queries(resource, search, params)
+        global_facets = nil
 
+        search.query do |query|
+          query.filtered do |filtered|
+            global_facets = !build_queries(resource, filtered, params)
+          end
+        end
+
+        build_facets(resource, search, params, global_facets)
+        
         sort_attrs = build_sort_attributes(params)
         search.sort { by(*sort_attrs) } if sort_attrs
 
@@ -48,7 +61,7 @@ module V1
         search.size search_page_size(params)
 
         search.fields(params['fields'].to_s.split(/,\s*/)) if params['fields'].present?
-        
+
         # for testability, this block should always return its search object
         search
       end
@@ -255,7 +268,6 @@ module V1
     end
 
     def id_to_private_id(ids)
-      #TODO: only request _id field
       #TODO: use a cacheable filter here instead?
       search({'id' => ids.join(' OR ')})['docs'].inject({}) do |memo, doc|
         memo[doc['id']] = doc['_id']

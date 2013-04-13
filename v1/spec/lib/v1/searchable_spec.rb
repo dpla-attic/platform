@@ -519,12 +519,12 @@ module V1
     end
 
     describe "#build_queries" do
-      it "calls query, filter and facet build_all methods with correct params" do
+      it "calls query, filter (but not facet) build_all methods with correct params" do
         search = stub
         params = {'q' => 'banana'}
         Searchable::Query.should_receive(:build_all).with(resource, search, params) { true }
         Searchable::Filter.should_receive(:build_all).with(resource, search, params) { false }
-        Searchable::Facet.should_receive(:build_all).with(resource, search, params, !true)
+        Searchable::Facet.should_not_receive(:build_all)
         subject.build_queries(resource, search, params)
       end
     end
@@ -538,6 +538,7 @@ module V1
         subject.stub(:validate_query_params)
         subject.stub(:validate_field_params)
         subject.stub(:build_queries)
+        subject.stub(:build_facets)
       end
 
       it "validates params and field params" do
@@ -553,11 +554,11 @@ module V1
         subject.search(params)
       end
 
-      it "calls build_querie with correct params" do
-        params = {'q' => 'banana'}
-        subject.should_receive(:build_queries).with(resource, mock_search, params)
-        subject.search(params)
-      end
+      # it "calls build_querie with correct params" do
+      #   params = {'q' => 'banana'}
+      #   subject.should_receive(:build_queries).with(resource, mock_search, params)
+      #   subject.search(params)
+      # end
 
       it "returns search.results() with dictionary wrapper" do
         params = {'q' => 'banana'}

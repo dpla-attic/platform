@@ -3,9 +3,6 @@ Feature: Search for items by date range (UC003)
   In order to find items through the DPLA
   API users should be able to perform searches based on date ranges
             
-  # Also, this assumes that any 'fuzzy' dates ranges (e.g. 'circa 16th Century') will have been
-  # converted to explicit date ranges (e.g. '1500 - 1599') during the ingestion process.
-
   Background:
     Given that I have a valid API key
     And the default test dataset is loaded

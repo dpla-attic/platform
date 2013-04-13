@@ -8,6 +8,11 @@ module V1
       let(:resource) { 'test_resource' }
 
       describe "#build_all" do
+        it "calls query all if no explicit queries are created" do
+          search = mock
+          search.should_receive(:query).with()
+          expect(subject.build_all(resource, search, {})).to be_false
+        end
         #TODO: all new unit tests for completely refactored implementation
 
         # it "should set up proper 'boolean.must' blocks for each search field" do
@@ -32,26 +37,26 @@ module V1
       end
 
 
-      describe "#ids_query" do
-        it "returns correct args for a single ID" do
-          params = {'ids' => 'aaa'}
-          expect(subject.ids_query(resource, params))
-            .to match_array([['aaa'], 'test_resource'])
+      # describe "#ids_query" do
+      #   it "returns correct args for a single ID" do
+      #     params = {'ids' => 'aaa'}
+      #     expect(subject.ids_query(resource, params))
+      #       .to match_array([['aaa'], 'test_resource'])
           
-        end
+      #   end
 
-        it "returns correct args for multiple IDs" do
-          params = {'ids' => 'aaa,bbb'}
-          expect(subject.ids_query(resource, params))
-            .to match_array([ %w(aaa bbb), 'test_resource'])
-        end
+      #   it "returns correct args for multiple IDs" do
+      #     params = {'ids' => 'aaa,bbb'}
+      #     expect(subject.ids_query(resource, params))
+      #       .to match_array([ %w(aaa bbb), 'test_resource'])
+      #   end
 
-        it "returns empty array when no ids query param exists" do
-          params = {}
-          expect(subject.ids_query(resource, params))
-            .to match_array([])
-        end
-      end
+      #   it "returns empty array when no ids query param exists" do
+      #     params = {}
+      #     expect(subject.ids_query(resource, params))
+      #       .to match_array([])
+      #   end
+      # end
 
       describe "#default_attributes" do
         it "contains the expects attrs" do
@@ -75,7 +80,7 @@ module V1
         
         it "returns correct query string for field search" do
           name = 'sourceResource.title'
-          field = stub(:name => name, :geo_point? => false, :subfields? => false)
+          field = stub(:name => name, :geo_point? => false, :date? => false, :subfields? => false)
           Schema.stub(:field).with(resource, name) { field }
           params = {name => 'some title'}
           attrs = subject.default_attributes.merge( {'fields'=>[name]} )
@@ -87,7 +92,7 @@ module V1
 
         it "handles 'sourceResource.spatial.state' as a normal field search" do
           name = 'sourceResource.spatial.state'
-          field = stub(:name => name, :geo_point? => false, :subfields? => false)
+          field = stub(:name => name, :geo_point? => false, :date? => false, :subfields? => false)
           Schema.stub(:field).with(resource, name) { field }
           params = {name => 'MA'}
           attrs = subject.default_attributes.merge( {'fields'=>[name]} )
@@ -99,7 +104,7 @@ module V1
 
         it "ignores geo_point field" do
           name = 'sourceResource.spatial.coordinates'
-          field = stub(:name => name, :geo_point? => true)
+          field = stub(:name => name, :geo_point? => true, :date? => false)
           Schema.stub(:field).with(resource, name) { field }
           params = {name => '42,-71'}
           expect(subject.string_queries(resource, params)).to match_array []
@@ -107,7 +112,7 @@ module V1
 
         it "searches all subfields of 'sourceResource.date'" do
           name = 'sourceResource.date'
-          field = stub(:name => name, :geo_point? => false, :subfields? => true)
+          field = stub(:name => name, :geo_point? => false, :date? => false, :subfields? => true)
           Schema.stub(:field).with(resource, name) { field }
           params = {name => '1999-08-07'}
           attrs = subject.default_attributes.merge( {'fields' => ['sourceResource.date.*']} )
