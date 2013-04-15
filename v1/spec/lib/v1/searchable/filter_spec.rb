@@ -46,37 +46,26 @@ module V1
         
       end
 
-      # describe "#build_geo_filters" do
-      #   it "creates a geo_bounding_box filter when applicable" do
-      #     field = stub(:geo_point? => true)
-      #     Schema.stub(:field).with(resource, 'coordinates') { field }
-      #     params = {'coordinates' => '41,-70:43,-72'}
-
-      #     subject.should_receive(:geo_bounding_box).with('coordinates', '41,-70:43,-72')
-      #     subject.should_not_receive(:geo_distance)
-      #     subject.build_geo_filters(resource, params)
-      #   end
-        
-      #   it "creates a geo_distance filter when applicable" do
-      #     field = stub(:geo_point? => true)
-      #     Schema.stub(:field).with(resource, 'coordinates') { field }
-      #     params = {'coordinates' => '41,-70'}
-
-      #     subject.should_not_receive(:geo_bounding_box)
-      #     subject.should_receive(:geo_distance).with('coordinates', params)
-      #     subject.build_geo_filters(resource, params)
-      #   end
-        
-      # end
-
       describe "#date_range" do
-        let(:expected_range) { [ 'range', 'datefield' => {'gte' => '1973', 'lte' => '1973'} ] }
+        let(:expected_range) { [ 'range', 'datefield' => {'gte' => '1973', 'lt' => '1974'} ] }
 
         it "strips double-quote wrapping from dates" do
           expect(subject.date_range('datefield', '"1973"')).to eq( expected_range )
         end
         it "returns the expected array" do
           expect(subject.date_range('datefield', '1973')).to eq( expected_range )
+        end
+      end
+
+      describe "#calculate_end_date" do
+        it "handles year" do
+          expect(subject.calculate_end_date('2012')).to eq '2013'
+        end
+        it "handles year-month" do
+          expect(subject.calculate_end_date('2012-03')).to eq '2012-04'
+        end
+        it "handles year-month-day" do
+          expect(subject.calculate_end_date('2012-03-04')).to eq '2012-03-05'
         end
       end
 

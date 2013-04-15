@@ -221,15 +221,14 @@ module V1
         'year' => '%Y'
       }      
 
-      # Default to 'day' format (e.g. '1993-01-31')
-      format = formats[interval] || '%F'
-
       # temporary hack to work around ElasticSearch adjusting timezones and breaking our dates
       offset = 5 * 60 * 60 * 1000 #5 hours in milliseconds
       # offset *= -1 if value < 0  #TODO: subtract for pre-epoch dates, add for post-epoch
       #      Rails.logger.debug "offset/value: #{offset} / #{value}"
       date = Time.at( (value+offset)/1000 ).to_date
-      date.strftime(format)
+
+      # Default to 'day' format (e.g. '1993-01-31')
+      date.strftime(formats[interval] || '%F')
     end
 
     def validate_query_params(params)

@@ -28,9 +28,9 @@ Feature: Search for items by date range (UC003)
     When I search the "sourceResource.temporal" field for records with a date after "1950"
     Then the API should return records A, B, C, F, Doppel1, Doppel2
                                                                            
-  # This demonstrates that date searches before a year should be treated as before December 31 of that year
+  # This demonstrates that date searches before a year should be treated as before January 1 of the next year
   Scenario: Date search before a date without specifying the month and year  
-    When I search the "sourceResource.temporal" field for records with a date before "1950"
+    When I search the "sourceResource.temporal" field for records with a date before "1951"
     Then the API should return records A, D
     
   Scenario: Date range search around a specific date
