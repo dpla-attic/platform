@@ -45,6 +45,8 @@ Dpla::Application.configure do
   #  config.cache_store = :file_store, "tmp/api-cache"
   
   # Use a different cache store in production
-  # config.cache_store = :dalli_store, *V1::Config.memcached_servers, { :namespace => 'V2', :compress => true}
+  if V1::Config.memcached_servers.any?
+    config.cache_store = :dalli_store, *V1::Config.memcached_servers, { :namespace => 'V2', :compress => true}
+  end
   
 end

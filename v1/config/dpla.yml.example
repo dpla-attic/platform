@@ -49,6 +49,7 @@ api_auth:
   # makes the API completely open. This is not recommended for actual production use.
   # skip_key_auth_completely: false
 
+# Define servers here to enable memcached caching. Don't define servers here if you don't want memcached caching.
 #caching:
 #  memcached_servers:
 #    - memcache-node1

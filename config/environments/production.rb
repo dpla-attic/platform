@@ -40,7 +40,9 @@ Dpla::Application.configure do
   # config.logger = ActiveSupport::TaggedLogging.new(SyslogLogger.new)
 
   # Use a different cache store in production
-  config.cache_store = :dalli_store, *V1::Config.memcached_servers, { :namespace => 'V2', :compress => true }
+  if V1::Config.memcached_servers.any?
+    config.cache_store = :dalli_store, *V1::Config.memcached_servers, { :namespace => 'V2', :compress => true}
+  end
 
   # You can optionally install the 'kgio' gem to give Dalli a 20-30% performance boost.
   
