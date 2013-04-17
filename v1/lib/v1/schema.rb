@@ -50,6 +50,7 @@ module V1
               },
               'description' => { 'type' => 'string' },
               'extent' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
+              'isPartOf' => { 'enabled' => false },
               'language' => {
                 'properties' => {
                   'name' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
