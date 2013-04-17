@@ -40,6 +40,11 @@ module V1
       logfile = File.expand_path("../../../../var/log/elasticsearch-#{env}.log", __FILE__)
       Tire.configure { logger logfile, :level => 'info' }
     end
+    
+    def self.memcached_servers
+      dpla['caching']['memcached_servers'] rescue []
+    end
+
 
   end
 

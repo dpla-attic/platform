@@ -49,3 +49,7 @@ api_auth:
   # makes the API completely open. This is not recommended for actual production use.
   # skip_key_auth_completely: false
 
+#caching:
+#  memcached_servers:
+#    - memcache-node1
+#    - memcache-node2
