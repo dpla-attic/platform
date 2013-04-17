@@ -27,11 +27,10 @@ module V1
       raise "Modules extending Searchable must define resource() method"
     end
 
-    def build_queries(resource, search, params)
+    def build_queries(resource, filtered_search, params)
       queries = []
-      queries << Searchable::Query.build_all(resource, search, params)
-      queries << Searchable::Filter.build_all(resource, search, params)
-      #      Searchable::Facet.build_all(resource, search, params, !queries.any?)
+      queries << Searchable::Query.build_all(resource, filtered_search, params)
+      queries << Searchable::Filter.build_all(resource, filtered_search, params)
       queries.any?
     end
 
@@ -67,8 +66,8 @@ module V1
       end
 
       begin
-        if defined?(Rails) && search.respond_to?(:to_curl)
-          Rails.logger.info "CURL: #{search.to_curl}"
+        if (Rails.env.development? rescue false)
+          Rails.logger.debug "CURL: #{search.to_curl}"
         end
         return wrap_results(search, params)
       rescue Tire::Search::SearchRequestFailed => e

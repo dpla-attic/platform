@@ -1,3 +1,5 @@
+require 'tire'
+
 module V1
 
   module Config
@@ -32,8 +34,11 @@ module V1
     def self.initialize_tire
       Tire::Configuration.url(search_endpoint)
       Tire::Configuration.wrapper(Hash)
-      logfile = File.expand_path('../../../../var/log/elasticsearch.log', __FILE__)
-      Tire.configure { logger logfile, :level => 'debug' }
+    end
+
+    def self.enable_tire_logging(env)
+      logfile = File.expand_path("../../../../var/log/elasticsearch-#{env}.log", __FILE__)
+      Tire.configure { logger logfile, :level => 'info' }
     end
 
   end

@@ -34,4 +34,7 @@ Dpla::Application.configure do
 
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
+
+  V1::Config.enable_tire_logging(Rails.env)
+
 end

@@ -23,6 +23,8 @@ end
 gem 'rspec-rails', :group => [:test, :development]
 
 group :test do
+  gem 'test-unit'
+  gem 'ruby-prof'
   gem 'rake'
   gem 'database_cleaner'
   gem 'cucumber-rails', :require => false
