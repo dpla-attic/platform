@@ -15,10 +15,12 @@ module V1
 
     def self.dpla
       #TODO: memoize
-      #TODO: just handle Errno::ENOENT exception
       config_file = File.expand_path("../../../config/dpla.yml", __FILE__)
-      raise "No config file found at #{config_file}" unless File.exists? config_file
-      YAML.load_file(config_file)
+      begin
+        return YAML.load_file(config_file)
+      rescue => e
+        raise "Error loading config file #{config_file}: #{e}"
+      end
     end
 
     def self.accept_any_api_key?
@@ -31,21 +33,50 @@ module V1
       (dpla['api_auth'] && dpla['api_auth']['skip_key_auth_completely'] === true)
     end
 
-    def self.initialize_tire
+    def self.initialize_search_engine
       Tire::Configuration.url(search_endpoint)
       Tire::Configuration.wrapper(Hash)
     end
 
-    def self.enable_tire_logging(env)
+    def self.configure_search_logging(env)
       logfile = File.expand_path("../../../../var/log/elasticsearch-#{env}.log", __FILE__)
+      #TODO: get level from config file
       Tire.configure { logger logfile, :level => 'info' }
     end
     
-    def self.memcached_servers
-      dpla['caching']['memcached_servers'] rescue []
+    def self.memcache_servers
+      dpla['caching']['memcache_servers'] rescue []
     end
 
+    def self.email_from_address
+      dpla['api']['email_from_address'] rescue 'dpla_default_sender@example.com'
+    end
 
+    def self.cache_results
+      dpla['caching']['cache_results'] rescue false
+    end
+
+    def self.cache_store
+      return :null_store unless cache_results
+
+      cache_store = dpla['caching']['store']
+
+      if cache_store == 'dalli_store'
+        if memcache_servers.nil? || !memcache_servers.any?
+          raise "No memcache servers specified for cache_store memcache"
+        end
+        store = cache_store.to_sym, *memcache_servers, { :namespace => 'V2', :compress => true}
+      elsif cache_store == 'file_store'
+        store = cache_store.to_sym, "tmp/api-cache"
+      elsif cache_store == 'null_store'
+        store = cache_store.to_sym
+      else
+        store = :null_store
+      end
+      
+      store
+    end
+    
   end
 
 end

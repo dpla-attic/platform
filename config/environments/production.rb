@@ -39,13 +39,6 @@ Dpla::Application.configure do
   # Use a different logger for distributed setups
   # config.logger = ActiveSupport::TaggedLogging.new(SyslogLogger.new)
 
-  # Use a different cache store in production
-  if V1::Config.memcached_servers.any?
-    config.cache_store = :dalli_store, *V1::Config.memcached_servers, { :namespace => 'V2', :compress => true}
-  end
-
-  # You can optionally install the 'kgio' gem to give Dalli a 20-30% performance boost.
-  
   # Enable serving of images, stylesheets, and JavaScripts from an asset server
   # config.action_controller.asset_host = "http://assets.example.com"
 
@@ -70,8 +63,9 @@ Dpla::Application.configure do
   # with SQLite, MySQL, and PostgreSQL)
   # config.active_record.auto_explain_threshold_in_seconds = 0.5
 
+  # from: is set in initializers/v1.rb 
   ActionMailer::Base.delivery_method = :smtp
-  ActionMailer::Base.default from: "api-support@dp.la"
+  #TODO: pull smpt values from V1::Config
   ActionMailer::Base.smtp_settings = {  
     :address              => "127.0.0.1",
     :port                 => 25,

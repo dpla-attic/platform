@@ -2,13 +2,13 @@ source 'https://rubygems.org'
 
 gem 'rails', '3.2.12'
 gem 'unicorn'
-gem 'rubygems-bundler', '1.1.1'
+gem 'rubygems-bundler'
 gem 'pg', :require => 'pg'
 gem 'sqlite3'  
 gem 'devise', '2.1.2'
 gem 'jquery-rails'
+gem 'turnout'
 gem 'dpla_search_api_v1', :path => 'v1'
-gem 'turnout'  #can this be moved to v1.gemspec?
 gem 'dpla_contentqa', :path => 'contentqa'
 
 group :assets do
@@ -23,8 +23,6 @@ end
 gem 'rspec-rails', :group => [:test, :development]
 
 group :test do
-  gem 'test-unit'
-  gem 'ruby-prof'
   gem 'rake'
   gem 'database_cleaner'
   gem 'cucumber-rails', :require => false

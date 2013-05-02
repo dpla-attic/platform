@@ -23,6 +23,10 @@ module Dpla
     # config.autoload_paths += %W(#{config.root}/lib)
     config.autoload_paths += Dir["#{config.root}/lib/**/"]
 
+    # Set cache_store based on dpla.yml settings
+    #TODO: Could we do this in a v1 initializer?
+    config.cache_store = V1::Config.cache_store
+
     # Only load the plugins named here, in the order given (default is alphabetical).
     # :all can be used as a placeholder for all plugins not explicitly named.
     # config.plugins = [ :exception_notification, :ssl_requirement, :all ]

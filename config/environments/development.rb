@@ -37,16 +37,5 @@ Dpla::Application.configure do
 
   # Set Default ActionMailerURL for devise
   config.action_mailer.default_url_options = { :host => 'localhost:3000' }
-  
-  ActionMailer::Base.default from: "api-support@dp.la"
 
-  V1::Config.enable_tire_logging(Rails.env)
-
-  #  config.cache_store = :file_store, "tmp/api-cache"
-  
-  # Use a different cache store in production
-  if V1::Config.memcached_servers.any?
-    config.cache_store = :dalli_store, *V1::Config.memcached_servers, { :namespace => 'V2', :compress => true}
-  end
-  
 end

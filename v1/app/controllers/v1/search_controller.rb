@@ -47,6 +47,7 @@ module V1
     end
     
     def items
+      logger.debug "PHUNKA: #{ActionController::Base.cache_store}"
       begin
         results = Rails.cache.fetch(search_cache_key('items', params), :raw => true) do
           Item.search(params).to_json
