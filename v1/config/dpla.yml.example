@@ -35,7 +35,9 @@ repository:
 search:
   # ElasticSearch host and port
   endpoint: 127.0.0.1:9200
-
+  # Log level for search queries logged by Tire gem
+  log_level: debug
+  
 api_auth:
   # You're probably going to want to run with the following options commented out.
   # By default, the API requires a valid API key, which is definitely the way you'll
@@ -52,8 +54,9 @@ api_auth:
 # Defaults to cache_results: false (which actually uses null_store behind the scenes)
 # Supported values for 'cache_results': true, false
 # Supported values for 'store': null_store, file_store, dalli_store
-#caching:
-#  cache_results: true
+caching:
+  cache_results: false
+#  store: dalli_store
 #  memcached_servers:
 #    - memcache-node1
 #    - memcache-node2

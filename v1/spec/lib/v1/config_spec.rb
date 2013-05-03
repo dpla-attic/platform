@@ -15,8 +15,8 @@ module V1
     end
 
     describe "#configure_search_logging" do
-      it "should receive a configure call (loose test)" do
-        Tire.should_receive(:configure)
+      it "should configure the Tire logger" do
+        Tire::Configuration.should_receive(:logger)
         subject.configure_search_logging('env_string')
       end
     end
@@ -139,7 +139,7 @@ module V1
           } }
         expect {
           subject.cache_store
-        }.to raise_error /No memcache servers specified for cache_store memcache/i
+        }.to raise_error /No memcache servers specified for cache_store: dalli_store/i
       end
       it "returns file_store params when requested" do
         subject.stub(:cache_results) { true }

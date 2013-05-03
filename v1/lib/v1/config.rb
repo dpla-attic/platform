@@ -40,8 +40,8 @@ module V1
 
     def self.configure_search_logging(env)
       logfile = File.expand_path("../../../../var/log/elasticsearch-#{env}.log", __FILE__)
-      #TODO: get level from config file
-      Tire.configure { logger logfile, :level => 'info' }
+      level = (dpla['search']['log_level'] || 'info') rescue 'info'
+      Tire::Configuration.logger(logfile, :level => level)
     end
     
     def self.memcache_servers
@@ -63,7 +63,7 @@ module V1
 
       if cache_store == 'dalli_store'
         if memcache_servers.nil? || !memcache_servers.any?
-          raise "No memcache servers specified for cache_store memcache"
+          raise "No memcache servers specified for cache_store: dalli_store"
         end
         store = cache_store.to_sym, *memcache_servers, { :namespace => 'V2', :compress => true}
       elsif cache_store == 'file_store'
