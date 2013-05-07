@@ -32,17 +32,17 @@ Feature: Search the DPLA using facets (UC010)
     Then the API returns the "sourceResource.subject.name" facets
       And the "sourceResource.subject.name" terms facets contains items for every unique field within the search index
 
-  Scenario: Retrieve date_histogram facet
+  Scenario: Retrieve date_histogram facet with default interval (day)
     When I make an empty search
       And request the "sourceResource.date.begin" facet
     Then the API returns the "sourceResource.date.begin" facets
-      And the "sourceResource.date.begin" date facet contains items for every unique field within the search index
+      And the "sourceResource.date.begin" date facet contains items for every unique value within the search index
 
-  Scenario: Retrieve date_histogram facet
+  Scenario: Retrieve date_histogram facet with default interval (day)
     When I make an empty search
       And request the "sourceResource.date.end" facet
     Then the API returns the "sourceResource.date.end" facets
-      And the "sourceResource.date.end" date facet contains items for every unique field within the search index
+      And the "sourceResource.date.end" date facet contains items for every unique value within the search index
 
   Scenario: Retrieve date_histogram facet with an interval
     When I make an empty search

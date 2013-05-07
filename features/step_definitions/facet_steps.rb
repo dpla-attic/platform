@@ -53,27 +53,40 @@ end
 
 Then /^the "(.*?)" terms facets contains items for every unique field within the (search index|results set)$/ do |facet_list, junk|
   @facets = facet_list.split(/,\s*/)
-  @source = compute_facet_counts(@facets, @query_string)
+  @test_data_facets = compute_facet_counts(@facets, @query_string)
   @facets.each do |facet|
     expect(
            @results['facets'][facet]['terms'].map {|f| f['term'] }
-           ).to match_array @source[facet].keys
+           ).to match_array @test_data_facets[facet].keys
   end
 end
 
-Then /^the "(.*?)" date facet contains items for every unique field within the (search index|results set)$/ do |facet_list, junk|
+Then /^the "(.*?)" date facet contains items for every unique value within the search index$/ do |facet_list| # , junk| |results set)
   @facets = facet_list.split(/,\s*/)
-  @source = compute_facet_counts(@facets, @query_string)
+  @test_data_facets = compute_facet_counts(@facets, @query_string)
 
-  @facets.each do |facet_name|
+  @facets.each do |facet|
+    # Canonicalize to 'day' format of each facet
+    adjusted = {}
+    @test_data_facets[facet].each do |date, count|
+      if date =~ /\d{4}-\d{2}-\d{2}/
+        adjusted[date] = count
+      else
+        formatted_date = (date+'-01-01').first(10)
+        # add this count to a count that may or may not already exist in this hash
+        adjusted[ formatted_date ] = adjusted[ formatted_date ].to_i + count
+      end
+    end
+
     # Simplify structure of this facet, from the results set
-    returned_facets = @results['facets'][facet_name]['entries'].inject({}) do |memo, tuple|
-      memo[tuple['time']] = tuple['count']
+    returned_facets = @results['facets'][facet]['entries'].inject({}) do |memo, tuple|
+      memo[ tuple['time'] ] = tuple['count']
       memo
     end
 
     # Compare hashes
-    expect( returned_facets ).to eq @source[facet_name]
+    @test_data_facets[facet] = adjusted
+    expect( returned_facets ).to eq @test_data_facets[facet]
   end
 
 end
@@ -83,7 +96,7 @@ Then /^each item within each facet contains a count of matching "(.*)" facet ite
   @facets.each do |facet|
     expect(
            @results['facets'][facet]['terms'].map {|f| [f['term'], f['count']] }.flatten
-           ).to match_array @source[facet].flatten
+           ).to match_array @test_data_facets[facet].flatten
   end
 end
 
