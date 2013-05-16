@@ -4,6 +4,18 @@ module V1
   class ApiKeyController < ApplicationController
     #TODO: rescue_from here
 
+    def show_placeholder
+      message = "Error: If you are attempting to request an API key, you need to send a POST request to "
+      message += "this API endpoint, not a GET request like this one. "
+      message += "Please see http://dp.la/info/developers/codex/policies/#get-a-key"
+      render :json => {:message => message}, :status => :error
+    end
+
+    def index
+      #TODO: add a helpful error message (and define a route)
+      render :text => 'This page intentionally left blank. Print it out for a free piece of paper!'
+    end
+
     def show
       owner = params['owner']
       status = :ok
