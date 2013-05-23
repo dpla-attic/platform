@@ -18,4 +18,5 @@ services:
 branches:
   only:
     - develop
+    - caching
 

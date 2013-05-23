@@ -1,3 +1,5 @@
+require 'cucumber/rspec/doubles'
+
 # API additions
 
 Before do
@@ -33,7 +35,7 @@ else
   # Sleep a bit to let CouchDB finish doing its thing internally, as well as letting 
   # the river catch up on indexing the docs added to CouchDB.
   # Note: A HTTP 419 error from CouchDB means you need to increase that sleep value
-  # a second or two, I believe.
+  # a second or two.
   sleep 5
   puts "Search docs       : #{V1::StandardDataset.doc_count}"
 end

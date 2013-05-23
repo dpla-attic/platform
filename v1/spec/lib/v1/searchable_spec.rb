@@ -24,10 +24,6 @@ module V1
           expect(MAX_PAGE_SIZE).to eq 100
         end
 
-        it "DEFAULT_SORT_ORDER has the correct value" do
-          expect(DEFAULT_SORT_ORDER).to eq "asc"
-        end
-
         it "BASE_QUERY_PARAMS has the correct value" do
           expect(BASE_QUERY_PARAMS).to match_array %w( 
               q controller action sort_by sort_by_pin sort_order page page_size facets facet_size filter_facets fields callback _ x
@@ -128,95 +124,6 @@ module V1
         }.to raise_error(NotFoundSearchError)
       end
 
-    end
-
-    describe "#build_sort_attributes" do
-      let(:name) { 'id' }
-      
-      it "returns nil when sort params are not present" do
-        params = {}
-        expect(subject.build_sort_attributes(params)).to eq nil
-      end
-
-      it "returns a valid sort_by when sort_order is 'asc'" do
-        field = stub(:name => name, :sortable? => true, :sort => 'field')
-        Schema.stub(:field).with(resource, name) { field }
-        params = {'sort_by' => name, 'sort_order' => 'asc'}
-        expect(
-               subject.build_sort_attributes(params)
-               ).to eq [ {name => 'asc'} ]
-      end
-
-      it "returns a valid sort_by when sort_order is 'desc'" do
-        field = stub(:name => name, :sortable? => true, :sort => 'field')
-        Schema.stub(:field).with(resource, name) { field }
-        params = {'sort_by' => name, 'sort_order' => 'desc'}
-        expect(
-               subject.build_sort_attributes(params)
-               ).to eq [ {name => 'desc'} ]
-      end
-
-      it "returns default sort_order if an invalid sort_order param present" do
-        field = stub(:name => name, :sortable? => true, :sort => 'field')
-        Schema.stub(:field).with(resource, name) { field }
-        params = {'sort_by' => name, 'sort_order' => 'apple'}
-        expect(
-               subject.build_sort_attributes(params)
-               ).to eq [ {name => Searchable::DEFAULT_SORT_ORDER} ]
-      end
-
-      it "returns default sort_order f no sort_order param present" do
-        field = stub(:name => name, :sortable? => true, :sort => 'field')
-        Schema.stub(:field).with(resource, name) { field }
-        params = {'sort_by' => name}
-        expect(
-               subject.build_sort_attributes(params)
-               ).to eq [ {name => Searchable::DEFAULT_SORT_ORDER} ]
-      end
-
-
-      it "returns correct array values for geo_point types" do
-        params = {'sort_by' => 'coordinates', 'sort_by_pin' => '41,-71', 'order' => 'asc'}
-        field = stub(:sort => 'geo_distance', :sortable? => true, :name => 'coordinates')
-        Schema.stub(:field).with(resource, 'coordinates') { field }
-        expect(
-               subject.build_sort_attributes(params)
-               ).to eq [ {'_geo_distance' => { 'coordinates' => '41,-71', 'order' => 'asc' } } ]
-      end
-
-      it "returns correct array for script sort" do
-        params = {'sort_by' => 'title'}
-        field = stub(:sort => 'script', :sortable? => true, :name => 'title')
-        Schema.stub(:field).with(resource, 'title') { field }
-        expect(
-               subject.build_sort_attributes(params)
-               ).to eq( 
-                       [{
-                          '_script' => {
-                            'script' => "s='';foreach(val : doc['title'].values) {s += val + ' '} s",
-                            'type' => "string",
-                            'order' => 'asc'
-                          }
-                        }]
-                       )
-
-      end
-
-      it "raises a BadRequestSearchError on an invalid sort_by param" do
-        Schema.stub(:field).with(resource, 'some_invalid_field') { nil }
-        params = {'sort_by' => 'some_invalid_field'}
-        expect  { 
-          subject.build_sort_attributes(params)
-        }.to raise_error BadRequestSearchError, /invalid field.* sort_by parameter: some_invalid_field/i
-      end
-
-      it "raises a BadRequestSearchError on a non-sortable sort_by param" do
-        params = {'sort_by' => 'some_analyzed_field'}
-        Schema.stub(:field) { stub(:sortable? => false) }
-        expect  { 
-          subject.build_sort_attributes(params)
-        }.to raise_error BadRequestSearchError, /non-sortable field.* sort_by parameter: some_analyzed_field/i
-      end
     end
 
     describe "#validate_field_params" do
@@ -513,7 +420,7 @@ module V1
       it "delegates to Facet module" do
         params = stub
         facet_size = stub
-        Searchable::Facet.should_receive(:facet_size).with(params) { facet_size }
+        Searchable::FacetOptions.should_receive(:facet_size).with(params) { facet_size }
         expect(subject.get_facet_size(params)).to eq facet_size
       end
     end

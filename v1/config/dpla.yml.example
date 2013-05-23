@@ -60,3 +60,13 @@ caching:
 #  memcached_servers:
 #    - memcache-node1
 #    - memcache-node2
+
+field_boosts:
+  item:
+    sourceResource.title: 2
+    sourceResource.description: 1.5
+    sourceResource.subject: 0.8
+  collection:
+    title: 2.2
+
+        

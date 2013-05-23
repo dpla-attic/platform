@@ -606,5 +606,75 @@
                 "end": "1973"
             }
         }
+    },
+    {
+        "_id": "b1",
+        "id": "b1",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "title",
+            "description": "reddit",
+            "extent": "ferrari",
+            "creator": "audi"
+        }
+    },
+    {
+        "_id": "b2",
+        "id": "b2",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "reddit",
+            "description": "desc",
+            "date": {"displayDate": "ferrari"},
+            "publisher": "pomegranate seeds",
+            "spatial": { "region": "isengard" }
+        },
+        "isShownAt": "audi"
+    },
+    {
+        "_id": "b3",
+        "id": "b3",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "pomegranate seeds",
+            "description": "audi",
+            "subject": { "name": "reddit" },
+            "spatial": { "name": "isengard" }
+        }
+    },
+    {
+        "_id": "m1",
+        "id": "m1",
+        "ingestType": "item",
+        "sourceResource": {
+            "collection": {"@id": "nalgene versus nalgene", "id": "spoon", "description": "test data desc"}
+        }
+    },
+    {
+        "_id": "item-ts1",
+        "id": "item-ts1",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "titlesort",
+            "title": "title DDDfield AAAardvark"
+        }
+    },
+    {
+        "_id": "item-ts2",
+        "id": "item-ts2",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "titlesort",
+            "title": "title CCCfield"
+        }
+    },
+    {
+        "_id": "item-ts3",
+        "id": "item-ts3",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "titlesort",
+            "title": "title AAAfield"
+        }
     }
 ]

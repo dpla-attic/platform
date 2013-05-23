@@ -1,4 +1,5 @@
-require 'v1/schema'
+require_relative '../schema'
+require_relative '../field_boost'
 require 'active_support/core_ext'
 
 module V1
@@ -11,6 +12,11 @@ module V1
       # not escaped, because they don't seem to need it: '+', '-',
       ESCAPED_METACHARACTERS = [ '!', '(', ')', '{', '}', '[', ']', '^', '~', '?', ':', '\\' ]
 
+      def self.execute_empty_search(search)
+        # We need to be explicit with an empty search
+        search.query { |q| q.all }
+      end
+
       def self.build_all(resource, search, params)
         # Returns boolean for "did we run any queries?"
         string_queries = string_queries(resource, params)
@@ -18,9 +24,7 @@ module V1
         # ids_queries = ids_query(resource, params)
         
         if (string_queries + date_range_queries).empty?
-          search.query do |q|
-            q.all
-          end
+          execute_empty_search(search)
           return false
         end
 
@@ -80,23 +84,60 @@ module V1
           next if name =~ /^.+\.(before|after)$/
 
           if name == 'q'
-            fields = '_all'
+            fields = field_boost_for_all(resource) + ['_all']
           else
-            field = Schema.field(resource, name)
-            next if field.nil?
-            next if field.date?  #TODO: TEST
-            next if field.geo_point?
+            field = field_for(resource, name)
+            next if field.nil? || field.date? || field.geo_point?
 
-            fields = field.subfields? ? "#{field.name}.*" : field.name
+            fields = field_boost_deep(resource, field)
           end
 
           query_strings << [
                             protect_metacharacters(value.dup),
-                            default_attributes.merge({'fields' => [fields]})
+                            default_attributes.merge({'fields' => fields})
                            ]
         end
 
         query_strings
+      end
+      
+      def self.field_for(resource, name)
+        Schema.field(resource, name)
+      end
+      
+      def self.field_boost_for_all(resource)
+        FieldBoost.for_resource(resource).map do |name, boost|
+          field = field_for(resource, name)
+          field_boost(resource, field) if field
+        end.compact
+      end
+
+      def self.field_boost(resource, field)
+        # Handles subfields and parent fields that have their own subfields
+        name = field.name
+        name += ".*" if field.subfields?
+
+        boost = field_boost_for(resource, field)
+        name += "^#{boost}" if boost
+
+        name
+      end
+
+      def self.field_boost_deep(resource, field)
+        # Generate boosts for this field and any boosted subfields it has
+        boosted_subfields = field.subfields.map do |subfield|
+          field_boost(resource, subfield) if is_boosted?(resource, subfield)
+        end
+
+        [field_boost(resource, field)] + boosted_subfields.compact
+      end
+
+      def self.is_boosted?(resource, field)
+        FieldBoost.is_boosted?(resource, field.name)
+      end
+
+      def self.field_boost_for(resource, field)
+        FieldBoost.for_field(resource, field.name)
       end
 
       def self.default_attributes
@@ -108,7 +149,7 @@ module V1
       end
 
       def self.date_range_queries(params)
-        #TODO: Could these be filters?
+        #TODO: Reimplement as a filter
         ranges = []
         params.each do |name, value|
           next unless name =~ /^(.+)\.(before|after)$/

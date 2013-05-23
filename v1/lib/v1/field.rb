@@ -1,9 +1,6 @@
 module V1
 
   class Field
-    # f.facet_name  # => isPartOf.name => isPartOf.name.not_analyzed (its multi_field)
-    # f.facet_fields# results of expand_facet_name (always returns an array)
-    # f.options (?) # query params appended to field name (e.g. date.before)
 
     attr_reader :resource, :name, :facet_modifier
     
@@ -24,23 +21,22 @@ module V1
       @mapping['type']
     end
 
-    #TODO: Right now, sorting on a multi_field happens on its multi_field_default. Ideally,
-    # this would be changed to its not_analyzed field. Then the sort attr on the multi_field_default
-    # can be removed
-    def sort  #TEST
-      #TODO: multi_field support
-      @mapping['sort'] || multi_field_default && multi_field_default.sort
-    end
-
     def simple_name
       @simple_name ||= name.split('.').last
     end
 
-    def sortable?  #TEST
+    def sort
+      # the type of sort to use for this field, nil if !sortable?
+      @mapping['sort'] || multi_field_default && multi_field_default.sort
+    end
+
+    def sortable?
       !!sort || multi_field_default && multi_field_default.sortable?
     end
 
-    def multi_field_default  #TEST
+    def multi_field_default
+      # the field ElasticSearch uses as the "default" sub-multi_field for this field
+      # e.g. "sourceResource.collection.title" => "sourceResource.collection.title.title"
       return @multi_field_default if defined?(@multi_field_default)
       @multi_field_default = multi_fields.detect {|mf| mf.simple_name == simple_name }
     end
@@ -68,7 +64,7 @@ module V1
     end
 
     def build_multi_fields
-      type == 'multi_field' ? mapping_to_fields(@mapping['fields']) : []
+      multi_field? ? mapping_to_fields(@mapping['fields']) : []
     end
 
     def mapping_to_fields(mapping)
@@ -86,19 +82,22 @@ module V1
       # have a facetable subfield - you would need to expand this field to get its facetable
       # subfields in that situation.
       if @mapping['facet']
-        # this is a facetable field or subfield
         true
-      elsif type == 'multi_field'
-        # this has a facetable multi_field subfield
-        multi_fields.select {|mf| mf.name =~ /\.not_analyzed$/ && mf.facetable?}.any?
+      elsif multi_field?
+        not_analyzed_field && not_analyzed_field.facetable?
       else
         false
       end
     end
 
-    # def analyzed?
-    #   @mapping['index'] != 'not_analyzed'
-    # end
+    def not_analyzed_field
+      return nil unless multi_field?
+      multi_fields.detect {|mf| mf.name == name + '.not_analyzed'}
+    end
+
+    def analyzed?
+      @mapping['index'] != 'not_analyzed'
+    end
 
     def enabled?
       !(@mapping.has_key?('enabled') && @mapping['enabled'] == false)

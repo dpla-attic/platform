@@ -3,16 +3,36 @@ Given /^that I have a valid API key$/ do
 end
 
 Given /^the default page size is (\d+)$/ do |arg1|
-  expect(V1::Searchable::DEFAULT_PAGE_SIZE ).to eq 10  #TODO: Not 100% expressive/useful here
+  expect(V1::Searchable::DEFAULT_PAGE_SIZE ).to eq 10
 end
 
 Given /^the default test dataset is loaded$/ do
   expect(Tire.index(V1::Config::SEARCH_INDEX).exists?).to be_true
 end
 
-When /^I make an empty search$/ do
-  #nothing to do
-  true
+Given(/^the default test field boosts are defined$/) do
+  # Pull field_boosts from dpla.yml.travis so integration tests are guaranteed
+  # to run with the same boosts when run in dev and in Travis
+  begin
+    config_file = File.expand_path("../../../v1/config/dpla.yml.travis", __FILE__)
+    boosts = YAML.load_file(config_file)['field_boosts'] || {}
+    V1::FieldBoost.stub(:all) { boosts }
+  rescue => e
+    raise "Error loading field_boosts from test config file #{config_file}: #{e}"
+  end
+
+end
+
+When /^I make an empty ((\w+)-)?search$/ do |_, resource|
+  @resource = resource
+end
+
+When(/^set page to (\d+)$/) do |arg1|
+  @params['page'] = arg1
+end
+
+When(/^set page_size to (\d+)$/) do |arg1|
+  @params['page_size'] = arg1
 end
 
 When /^sort by "(.*?)"$/ do |arg1|
@@ -23,9 +43,15 @@ When /^sort by pin "(.*?)"$/ do |arg1|
   @params['sort_by_pin'] = arg1
 end
 
+When(/^order the sort by "(.*?)"$/) do |arg1|
+  @params['sort_order'] = arg1
+end
+
 Then /^I should get http status code "(.*?)"$/ do |arg1|
   #TODO: simplify this to only check status
-  resource_query('item', @params, false)
+  raise "wtf: #{@params}" unless @resource
+
+  resource_query(@resource, @params, false)
 
   if page.status_code.to_s != arg1
     puts "Server Response: #{ JSON.parse(page.source)['message'] || page.source }"

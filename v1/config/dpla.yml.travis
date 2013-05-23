@@ -1,5 +1,6 @@
 # This is a copy of dpla.yml that is copied into place by bin/travis-before-script.rb and
-# used by Travis CI (travis-ci.org). It is not used anywhere else in this app.
+# used by Travis CI (travis-ci.org). It is also used by our cucumber features to inject the
+# field_boosts section into the Config.dpla config data structure.
 
 repository:
   node_host: 127.0.0.1:5984
@@ -13,3 +14,15 @@ repository:
 
 search:
   endpoint: 127.0.0.1:9200
+
+field_boosts:
+  item:
+    sourceResource.title: 3
+    sourceResource.description: 2
+    sourceResource.subject.name: 1.5
+    sourceResource.spatial.name: 2
+    sourceResource.date: 1.25
+    isShowAt: 0.5
+  collection:
+    title: 3
+

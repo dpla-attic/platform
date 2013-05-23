@@ -25,5 +25,38 @@
         "description": "A list of things for your significant other to do",
         "ingestType": "collection",
         "ingestDate": "2013-02-07T00:00:00.200002"
+    },
+    {
+        "_id": "coll4",
+        "id": "coll4",
+        "ingestType": "collection",
+        "description": "altoid"
+    },
+    {
+        "_id": "coll5",
+        "id": "coll5",
+        "ingestType": "collection",
+        "title": "altoid"
+    },
+    {
+        "_id": "coll-ts1",
+        "id": "coll-ts1",
+        "ingestType": "collection",
+        "description": "titlesort",
+        "title": "rhubarb BBBfield"
+    },
+    {
+        "_id": "coll-ts2",
+        "id": "coll-ts2",
+        "ingestType": "collection",
+        "description": "titlesort",
+        "title": "rhubarb AAAfield"
+    },
+    {
+        "_id": "coll-ts3",
+        "id": "coll-ts3",
+        "ingestType": "collection",
+        "description": "titlesort",
+        "title": "rhubarb CCCfield AAAAA5letters"
     }
 ]

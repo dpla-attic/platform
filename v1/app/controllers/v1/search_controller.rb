@@ -10,6 +10,7 @@ module V1
     rescue_from Errno::ECONNREFUSED, :with => :connection_refused
     rescue_from Exception, :with => :generic_exception_handler
 
+    #TODO: refactor authentication into ApiAuth module
     def authenticate!
       if !authenticate_api_key(params['api_key'])
         logger.info "UnauthorizedSearchError for api_key: #{ params['api_key'] || '(none)' }"
@@ -19,6 +20,7 @@ module V1
       params.delete 'api_key'
     end
 
+    # TODO: Refactor cache helpers into ResultsCache module
     def base_cache_key(resource, action, unique_key='')
       [
        'v2',
@@ -47,7 +49,6 @@ module V1
     end
     
     def items
-      logger.debug "PHUNKA: #{ActionController::Base.cache_store}"
       begin
         results = Rails.cache.fetch(search_cache_key('items', params), :raw => true) do
           Item.search(params).to_json
@@ -102,6 +103,7 @@ module V1
     end
 
     def render_json(results, params)
+      #TODO: collapse this usage into render_as_json
       # Handles optional JSONP callback param
       if params['callback'].present?
         params['callback'] + '(' + results.to_s + ')'
@@ -163,6 +165,7 @@ module V1
 
     def generic_exception_handler(exception)
       logger.warn "#{self.class}.generic_exception_handler firing for: #{exception.class}: #{exception}"
+      logger.warn "#{exception.backtrace.first(15).join("\n")}\n[SNIP]"
       render_error(InternalServerSearchError.new, params)
     end
 

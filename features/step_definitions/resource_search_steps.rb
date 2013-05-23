@@ -1,5 +1,20 @@
 # This file will end up with resource-agnostic versions of all the item steps
 
+Then(/^the API should return results sorted by relevancy$/) do
+  json = resource_query_to_json(@resource, @params)
+
+  scores = json.map {|doc| doc['score'] }
+  expect(scores).to eq scores.sort.reverse
+end
+
+Then /^the API should return sorted records (.*?)$/ do |id_list|
+  json = resource_query_to_json(@resource, @params)
+
+  expect(
+    json.map {|doc| doc['_id'] }
+  ).to eq id_list.split(/,\s*/)
+end
+
 Then /^the API should return (\d+) (collection)s with "(.*?)"$/ do |count, resource, keyword|
   expect(@resource).to eq resource
   
@@ -72,3 +87,13 @@ end
 #   @resource = resource
 #   @params[field] = date
 # end
+
+Then /^the API should return (\d+) items with "(.*?)"$/ do |count, keyword|
+  json = item_query_to_json(@params)
+  expect(json).to have(count).items
+
+  json.each_with_index do |result, idx|
+    expect(result).to have_content(keyword)
+  end
+end
+

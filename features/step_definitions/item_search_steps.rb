@@ -1,13 +1,3 @@
-Then /^the API should return (\d+) items with "(.*?)"$/ do |count, keyword|
-  json = item_query_to_json(@params)
-
-  expect(json).to have(count).items
-
-  json.each_with_index do |result, idx|
-    expect(result).to have_content(keyword)
-  end
-end
-
 When /^I search for "(.*?)"( in the "(.*?)" field)?$/ do |keyword, junk, query_field|
   @query_field = query_field || 'q'
   @query_string = keyword
@@ -46,3 +36,4 @@ Then /^the API should not return record (.+)$/ do |id|
   json = item_query_to_json(@params)
   expect( json.any? {|doc| doc['_id'] == id } ).to be_false
 end
+

@@ -11,7 +11,13 @@ module V1
           '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
           'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
           'description' => { 'type' => 'string' },
-          'title' => { 'type' => 'string', 'sort' => 'script' },
+          'title' => {
+            'type' => 'multi_field',
+            'fields' => {
+              'title' => { 'type' => 'string', 'sort' => 'multi_field' },
+              'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+            }
+          },
           'ingestType' => { 'enabled' => false },
           'ingestDate' => { 'enabled' => false },
           '_rev' => { 'enabled' => false },
@@ -33,8 +39,8 @@ module V1
                   'title' => {
                     'type' => 'multi_field',
                     'fields' => {
-                      'title' => { 'type' => 'string', 'sort' => 'script' },
-                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true }
+                      'title' => { 'type' => 'string', 'sort' => 'multi_field' },
+                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
                     }
                   }
                 }
@@ -58,7 +64,13 @@ module V1
                 }
               },
               'format' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-              'publisher' => { 'type' => 'string' },
+              'publisher' => {
+                'type' => 'multi_field',
+                'fields' => {
+                  'publisher' => { 'type' => 'string' },
+                  'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'facet' => true }
+                }
+              },
               'rights' => { 'type' => 'string' },
               'relation' => { 'type' => 'string' },
               'stateLocatedIn' => {
@@ -72,42 +84,42 @@ module V1
                   'name' => {
                     'type' => 'multi_field',
                     'fields' => {
-                      'name' => { 'type' => 'string', 'sort' => 'script' },
+                      'name' => { 'type' => 'string', 'sort' => 'multi_field' },
                       'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
                     }
                   },
                   'country' => {
                     'type' => 'multi_field',
                     'fields' => {
-                      'country' => { 'type' => 'string', 'sort' => 'script' },
+                      'country' => { 'type' => 'string', 'sort' => 'multi_field' },
                       'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
                     }
                   },
                   'region' => {
                     'type' => 'multi_field',
                     'fields' => {
-                      'region' => { 'type' => 'string', 'sort' => 'script' },
+                      'region' => { 'type' => 'string', 'sort' => 'multi_field' },
                       'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
                     }
                   },
                   'county' => {
                     'type' => 'multi_field',
                     'fields' => {
-                      'county' => { 'type' => 'string', 'sort' => 'script' },
+                      'county' => { 'type' => 'string', 'sort' => 'multi_field' },
                       'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
                     }
                   },
                   'state' => {
                     'type' => 'multi_field',
                     'fields' => {
-                      'state' => { 'type' => 'string', 'sort' => 'script' },
+                      'state' => { 'type' => 'string', 'sort' => 'multi_field' },
                       'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
                     }
                   },
                   'city' => {
                     'type' => 'multi_field',
                     'fields' => {
-                      'city' => { 'type' => 'string', 'sort' => 'script' },
+                      'city' => { 'type' => 'string', 'sort' => 'multi_field' },
                       'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
                     }
                   },
@@ -122,7 +134,7 @@ module V1
                   'name' => {
                     'type' => 'multi_field',
                     'fields' => {
-                      'name' => { 'type' => 'string', 'sort' => 'script' },
+                      'name' => { 'type' => 'string', 'sort' => 'multi_field' },
                       'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
                     }
                   }
@@ -134,14 +146,20 @@ module V1
                   'end'  => { 'type' => 'date', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true, 'null_value' => '9999' }
                 }
               },
-              'title' => { 'type' => 'string', 'sort' => 'script' },
+              'title' => {
+                'type' => 'multi_field',
+                'fields' => {
+                  'title' => { 'type' => 'string', 'sort' => 'multi_field' },
+                  'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script'}
+                }
+              },
               'type' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
             }
           },  #/sourceResource
           'dataProvider' => {
             'type' => 'multi_field',
             'fields' => {
-              'dataProvider' => { 'type' => 'string', 'sort' => 'field' },
+              'dataProvider' => { 'type' => 'string', 'sort' => 'multi_field' },
               'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true }
             }
           },
@@ -158,7 +176,7 @@ module V1
               'name' => {
                 'type' => 'multi_field',
                 'fields' => {
-                  'name' => { 'type' => 'string', 'sort' => 'field' },
+                  'name' => { 'type' => 'string', 'sort' => 'multi_field' },
                   'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
                 }
               }                      
@@ -172,7 +190,7 @@ module V1
               'name' => {
                 'type' => 'multi_field',
                 'fields' => {
-                  'name' => { 'type' => 'string', 'sort' => 'field' },
+                  'name' => { 'type' => 'string', 'sort' => 'multi_field' },
                   'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
                 }
               }                      

@@ -1,9 +1,10 @@
 require_relative 'search_error'
 require_relative 'repository'
 require_relative 'schema'
-require_relative 'searchable/query'
-require_relative 'searchable/filter'
 require_relative 'searchable/facet'
+require_relative 'searchable/filter'
+require_relative 'searchable/query'
+require_relative 'searchable/sort'
 require 'tire'
 require 'active_support/core_ext'
 
@@ -17,9 +18,6 @@ module V1
     # Default max page size
     MAX_PAGE_SIZE = 100
     
-    # Default sort order for search results
-    DEFAULT_SORT_ORDER = 'asc'
-
     # General query params that are not resource-specific
     BASE_QUERY_PARAMS = %w( q controller action sort_by sort_by_pin sort_order page page_size facets facet_size filter_facets fields callback _ x ).freeze
 
@@ -38,6 +36,10 @@ module V1
       Searchable::Facet.build_all(resource, search, params, global)
     end
 
+    def build_sort(resource, search, params)
+      Searchable::Sort.build_sort(resource, search, params)
+    end
+
     def search(params={})
       validate_query_params(params)
       validate_field_params(params)
@@ -52,9 +54,7 @@ module V1
         end
 
         build_facets(resource, search, params, global_facets)
-        
-        sort_attrs = build_sort_attributes(params)
-        search.sort { by(*sort_attrs) } if sort_attrs
+        build_sort(resource, search, params)
 
         search.from search_offset(params)
         search.size search_page_size(params)
@@ -76,55 +76,23 @@ module V1
       end
     end
 
-    def build_sort_attributes(params)
-      #TODO: can also sort by multiple fields: sort { by [{'published_on' => 'desc'}, {'_score' => 'asc'}] }
-      #TODO: It would be cool if we detected "can't sort on string types with more than one value per doc"
-      # errors from elasticsearch and resent the query with a script sort, as well as cached that learned
-      # value for the next request to automatically do it right.
-      sort_by_name = params['sort_by'].to_s
-      return nil if sort_by_name == ''
+    
+    def search_offset(params)
+      page = params["page"].to_i
+      page == 0 ? 0 : search_page_size(params) * (page - 1)
+    end
 
-      # Validate sort_order
-      #TODO: Should carp about invalid sort_order
-      order = params['sort_order'].to_s.downcase
-      if !( %w(asc desc).include?(order) )
-        order = DEFAULT_SORT_ORDER 
-      end
-
-      # Validate sort_by
-      sort_by = Schema.field(resource, sort_by_name)
-      if sort_by.nil?
-        raise BadRequestSearchError, "Invalid field(s) specified in sort_by parameter: #{sort_by_name}"
-      end
-
-      if !sort_by.sortable?
-        raise BadRequestSearchError, "Non-sortable field(s) specified in sort_by parameter: #{sort_by_name}"
-      end
-
-      # TODO: if they request sorting on a multifield, use its not_analzyed version (which needs
-      # to have the correct sort attr in the schema.)
-      # Generate sort payload
-      if sort_by.sort == 'field'
-        [{
-           sort_by.name => order
-         }]
-      elsif sort_by.sort == 'script'
-        # script sort to work around ElasticSearch not supporting sort by array value fields
-        # Could be a potential performance issue.
-        [{
-           '_script' => {
-             'script' => "s='';foreach(val : doc['#{sort_by.name}'].values) {s += val + ' '} s",
-             'type' => 'string',
-             'order' => order
-           }
-         }]
-      elsif sort_by.sort == 'geo_distance'
-        if params['sort_by_pin'].to_s == ''
-          raise BadRequestSearchError, "Missing required sort_by_pin parameter when sorting on #{sort_by.name}"
-        end
-        [{
-           '_geo_distance' => { sort_by.name => params['sort_by_pin'], 'order' => order }
-         }]
+    def search_page_size(params)
+      #TODO: raise error for invalid value, a la validate_field_params
+      size = params["page_size"]
+      if size.to_s == '0'
+        0
+      elsif size.to_i == 0
+        DEFAULT_PAGE_SIZE
+      elsif size.to_i > MAX_PAGE_SIZE
+        MAX_PAGE_SIZE
+      else
+        size.to_i
       end
     end
 
@@ -246,24 +214,6 @@ module V1
         raise BadRequestSearchError, "Invalid field(s) specified for fields parameter: #{invalid.join(',')}" 
       end
     end
-    
-    def search_offset(params)
-      page = params["page"].to_i
-      page == 0 ? 0 : search_page_size(params) * (page - 1)
-    end
-
-    def search_page_size(params)
-      size = params["page_size"]
-      if size.to_s == '0'
-        0
-      elsif size.to_i == 0
-        DEFAULT_PAGE_SIZE
-      elsif size.to_i > MAX_PAGE_SIZE
-        MAX_PAGE_SIZE
-      else
-        size.to_i
-      end
-    end
 
     def id_to_private_id(ids)
       #TODO: use a cacheable filter here instead?
@@ -301,7 +251,7 @@ module V1
     end
 
     def get_facet_size(params)
-      Searchable::Facet.facet_size(params)
+      Searchable::FacetOptions.facet_size(params)
     end
 
     def verbose_debug(search)
