@@ -28,6 +28,11 @@ Feature: Search for items by location (UC004)
     When I search for records with "sourceResource.spatial.coordinates" near coordinates "41,-71" with a range of 100 miles
     Then the API should return record M
 
+  Scenario: Location search with missing range units
+    When I search for records with "sourceResource.spatial.coordinates" near coordinates "41,-71" with a range of 100
+    And I request a callback of jQuery_foo
+    Then the API should return a valid JSON error message wrapped in my callback
+
   Scenario: Location bounding_box search hit
     When I search for records with "sourceResource.spatial.coordinates" inside the bounding box defined by "41.44,-74.44" and "40.25,-73.28"
     Then the API should return records L

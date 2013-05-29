@@ -70,6 +70,7 @@ Given /^the default search radius for location search is (\d+) miles$/ do |arg1|
 end
 
 When /^I search for records with "(.*?)" near coordinates "(.*?)"( with a range of (\d+) miles)?$/ do |field, lat_long, junk, distance|
+  @resource = 'item'
   @params.merge!({field => lat_long})
   if distance
     distance_field = field.gsub(/^(.+)\.(.+)$/, '\1.distance')
@@ -77,9 +78,16 @@ When /^I search for records with "(.*?)" near coordinates "(.*?)"( with a range 
   end
 end
 
+When /^I search for records with "(.*?)" near coordinates "(.*?)" with a range of (\d+)?$/ do |field, lat_long, distance|
+  @resource = 'item'
+  @params.merge!({field => lat_long})
+  distance_field = field.gsub(/^(.+)\.(.+)$/, '\1.distance')
+  @params[distance_field] = distance
+
+end
+
 When(/^I search for records with "(.*?)" inside the bounding box defined by "(.*?)" and "(.*?)"$/) do |field, upper_left, lower_right|
-  # puts "UL: #{upper_left}"
-  # puts "LR: #{lower_right}"
+  @resource = 'item'
   @params[field] = upper_left + ':' + lower_right
 end
 
@@ -88,8 +96,41 @@ end
 #   @params[field] = date
 # end
 
+When(/^I request a callback of (\w+)$/) do |arg1|
+  @params['callback'] = arg1
+end
+
+Then(/^the API should return a valid JSON error message wrapped in my callback$/) do
+  resource_query(@resource, @params, false)
+  response = page.source
+  callback = @params['callback']
+  if response =~ /^#{callback}\((.+)\)$/
+    json = $1
+    begin
+      parsed = JSON.parse json
+    rescue JSON::ParserError
+      return false
+    end
+  else
+    raise RSpec::Expectations::ExpectationNotMetError, "Did not get expected callback-wrapped JSON from: #{response}"
+  end
+  
+end
+
+Then /^the API should return records? (.*?)$/ do |id_list|
+  json = resource_query_to_json(@resource, @params, true)
+  if json.nil?
+    raise RSpec::Expectations::ExpectationNotMetError, "Query unexpectedly returned zero results for params: #{@params}"
+  end
+
+  expect(
+    json.map {|doc| doc['_id'] }
+  ).to match_array id_list.split(/,\s*/)
+end
+
 Then /^the API should return (\d+) items with "(.*?)"$/ do |count, keyword|
-  json = item_query_to_json(@params)
+  @resource = 'item'
+  json = resource_query_to_json(@resource, @params)
   expect(json).to have(count).items
 
   json.each_with_index do |result, idx|

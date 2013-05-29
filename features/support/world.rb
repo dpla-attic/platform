@@ -52,11 +52,11 @@ module CukeApiHelper
 
   ## Collections additions/refactoring
   def resource_query_to_json(resource, params={}, expect_success=false)
-    #TODO: expect_success=false), false, really?
-    resource_query(resource, params, true)['docs']
+    resource_query(resource, params, expect_success)['docs'] rescue nil #was (_, _, true)...
   end
   
   def resource_query(resource, params={}, expect_success=false)
+    raise "Missing resource with params: #{params}" if resource.to_s == ''
     visit("/v2/#{resource}s?#{ params.to_param }")
 
     if expect_success && page.status_code != 200

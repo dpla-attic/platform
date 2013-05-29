@@ -68,3 +68,7 @@ Then /^I should get http status code "(.*?)" from the QA app$/ do |arg1|
   expect(page.status_code.to_s).to eq(arg1)
 end
 
+Then(/^I should get a valid JSON response$/) do
+  response = resource_query(@resource, @params, false)
+  puts response
+end

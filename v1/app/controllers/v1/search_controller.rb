@@ -96,17 +96,7 @@ module V1
     def render_as_json(results, params)
       # Handles optional JSONP callback param
       if params['callback'].present?
-        params['callback'] + '(' + results.to_s + ')'
-      else
-        results
-      end
-    end
-
-    def render_json(results, params)
-      #TODO: collapse this usage into render_as_json
-      # Handles optional JSONP callback param
-      if params['callback'].present?
-        params['callback'] + '(' + results.to_s + ')'
+        params['callback'] + '(' + results.to_json + ')'
       else
         results
       end
@@ -153,8 +143,8 @@ module V1
         return true
       end
 
-      #TODO: Rails.cache this
       begin
+        #TODO: Rails.cache this
         return Repository.authenticate_api_key(key_id)
       rescue Errno::ECONNREFUSED
         # Avoid refusing api auth if we could not connect to the api auth server
@@ -170,7 +160,7 @@ module V1
     end
 
     def render_error(e, params)
-      render :json => render_json({:message => e.message}, params), :status => e.http_status
+      render :json => render_as_json({:message => e.message}, params), :status => e.http_status
     end
 
     def links; end
