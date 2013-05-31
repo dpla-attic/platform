@@ -1,0 +1,22 @@
+language: ruby
+bundler_args: --without development
+rvm:
+  - 1.9.3
+before_install:
+  - sudo /usr/share/elasticsearch/bin/plugin -install elasticsearch/elasticsearch-lang-javascript/1.1.0
+  - sudo /usr/share/elasticsearch/bin/plugin -install elasticsearch/elasticsearch-river-couchdb/1.1.0
+  - sudo service elasticsearch start
+before_script:
+  - ./bin/travis-before-script.rb
+script:
+  - ./bin/test-full-app.sh
+notifications:
+  email:
+    - bgadoury@endpoint.com
+services:
+  - couchdb
+branches:
+  only:
+    - develop
+    - caching
+

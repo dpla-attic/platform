@@ -1,0 +1,237 @@
+<table border="1" width="1000px">
+  <tr>
+    <th>Use-case or<br/>Redmine #</th> 
+    <th>Example URL</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>UC027</td> 
+    <td><%= link_to nil, v1_api.collections_path('q' => 'apple') %> </td>
+    <td>Collections: Free text search</td>
+  </tr>
+  <tr>
+    <td>UC027</td> 
+    <td><%= link_to nil, v1_api.collections_path() %> </td>
+    <td>Collections: Successful empty search</td>
+  </tr>
+  <tr>
+    <td colspan=3><hr></td> 
+  </tr>
+  <tr>
+    <td>UC001</td> 
+    <td><%= link_to nil, v1_api.items_path('q' => 'banana') %> </td>
+    <td>Free text search</td>
+  </tr>
+  <tr>
+    <td>UC001</td> 
+    <td><%= link_to nil, v1_api.items_path('q' => 'perplexed', 'callback' => 'jsPhunktion') %></td>
+    <td>Free text search wrapped with JSONP </td>
+  </tr>
+  <tr>
+    <td>UC002</td> 
+    <td><%= link_to nil, v1_api.items_path('sourceResource.title' => 'banana') %> </td>
+    <td>Field-specific search</td>
+    </tr>
+  <tr>
+    <td>UC002</td> 
+    <td><%= link_to nil, v1_api.items_path('sourceResource.description' => 'notfound OR three', 'sourceResource.subject' => '*doodle') %>
+    <td>Field-specific boolean search, field-specific wildcard search (because it is not_analyzed)</td>
+  </tr>
+  <tr>
+    <td>UC002</td>
+    <td><%= link_to nil, v1_api.items_path('sourceResource.description' => 'banana') %></td>
+    <td>(zero results)</td>
+  <tr>
+    <td>UC003</td>
+    <td><%= link_to nil, v1_api.items_path('sourceResource.temporal.after' => '1950-01-01') %></td>
+    <td>(A, B, C)</td>
+  </tr>
+  <tr>
+    <td>UC003</td>
+    <td><%= link_to nil, v1_api.items_path('sourceResource.temporal.before' => '1955-07-15', 'callback' => 'jsPhunktion') %></td>
+    <td>(A, B, D as JSONP)</td>
+  </tr>
+  <tr>
+    <td>UC003</td>
+    <td><%= link_to nil, v1_api.items_path('sourceResource.temporal.after' => '1800-01-01', 'sourceResource.temporal.before' => '1850-12-31') %></td>
+    <td>(temporal date range, zero results)</td>
+  </tr>
+  <tr>
+    <td>UC004</td>
+    <td><%= link_to nil, v1_api.items_path('sourceResource.spatial' => 'Cambridge') %></td>
+    <td>M (spatial search, auto-expanded to search all spatial subfields)</td>
+  </tr>
+  <tr>
+    <td>UC004</td>
+    <td><%= link_to nil, v1_api.items_path('sourceResource.spatial.city' => 'Cambridge') %></td>
+    <td>M </td>
+  </tr>
+  <tr>
+    <td>UC004</td>
+    <td><%= link_to nil, v1_api.items_path('sourceResource.spatial.coordinates' => '42.3,-71') %></td>
+    <td>geo_point search (default range)</td>
+  </tr>
+  <tr>
+    <td>UC004</td>
+    <td><%= link_to nil, v1_api.items_path('sourceResource.spatial.coordinates' => '41,-71', 'sourceResource.spatial.distance' => '100mi') %></td>
+    <td>geo_point search (specific range expressed in miles)</td>
+  </tr>
+  <tr>
+    <td>#3030</td>
+    <td><%= link_to nil, v1_api.items_path('sourceResource.spatial.coordinates' => "41.44,-74.44:40.25,-73.28") %></td>
+    <td>geo_point bounding_box search</td>
+  </tr>
+  <tr>
+    <td>#2788</td>
+    <td><%= link_to nil, v1_api.items_path('q' => 'title', 'page_size' => '2') %></td>
+    <td>Pagination: page size </td> 
+  </tr>
+  <tr>
+    <td>#2788</td>
+    <td><%= link_to nil, v1_api.items_path('q' => 'title', 'page_size' => '2', 'page' => '2') %></td>
+    <td>Pagination: page size &amp; page offset</td> 
+  </tr>
+  <tr>
+    <td>#2789</td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'id') %></td>
+    <td>Sort: by 'id' field </td>
+  </tr>
+  <tr>
+    <td>#2789</td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'id', 'sort_order' => 'desc') %></td>
+    <td>Sort: by 'id' field descending</td>
+  </tr>
+  <tr>
+    <td>#2789</td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'sourceResource.date.begin', 'page_size' => 99) %></td>
+    <td>Sort: by 'date.begin' date field (w/large page size, for effect)</td>
+  </tr>
+  <tr>
+    <td>#3382</td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'sourceResource.title') %></td>
+    <td>Sort: by (analyzed) 'title' field using _script sort under the hood </td>
+  </tr>
+  <tr>
+    <td>#3382</td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'sourceResource.subject.name') %></td>
+    <td>Sort: by (multi-valued) 'sourceResource.subject.name' field using _script sort under the hood </td>
+  </tr>
+  <tr>
+    <td>#2789</td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'sourceResource.description') %></td>
+    <td>Sort: by 'sourceResource.description' field, (HTTP 400 error: non-sortable field) </td>
+  </tr>
+  <tr>
+    <td>#2789</td>
+    <td><%= link_to nil, v1_api.items_path('sort_by' => 'sourceResource.spatial.coordinates', 'sort_by_pin' => '41.3,-71') %></td>
+    <td>Geo-Sort: Sort by distance from a "sort_by_pin" of 41.3,-71 (Harvard, New Hampshire, Maine) </td>
+  </tr>
+  <tr>
+    <td>#2890</td>
+    <td><%= link_to nil, v1_api.items_path() %></td>
+    <td>Successful empty search </td> 
+  </tr>
+  <tr>
+    <td>#2890</td>
+    <td><%= link_to nil, v1_api.items_path('some_invalid_field' => 'banana') %></td>
+    <td>Invalid field in query, (HTTP 400 error: invalid field) </td></td> 
+  </tr>
+  <tr>
+    <td>#2890</td>
+    <td><%= link_to nil, v1_api.items_path('some_invalid_field' => 'banana', 'callback' => 'jsPhunktion') %></td>
+    <td>Invalid field in query, error in JSONP </td> 
+  </tr>
+  <tr>
+    <td>#2790</td>
+    <td><%= link_to nil, v1_api.items_path('fields' => 'sourceResource.title,sourceResource.description') %></td>
+    <td>Specify fields in results</td>
+  </tr>
+  <tr>
+    <td>UC008</td>
+    <td><%= link_to nil, v1_api.items_path + '/aaa' %></td>
+    <td>Fetch id: A</td>
+  </tr>
+  <tr>
+    <td>UC008</td>
+    <td><%= link_to nil, v1_api.items_path + '/aaa,bbb' %></td>
+    <td>Fetch ids: A, B</td>
+  </tr>
+  <tr>
+    <td>UC008</td>
+    <td><%= link_to nil, v1_api.items_path + '/aaa,bbb,ccc' %></td>
+    <td>Fetch ids: A, B, C (404 for 'C')</td>
+  </tr>
+  <tr>
+    <td>UC008</td>
+    <td><%= link_to nil, v1_api.items_path + '/one.two.three' %></td>
+    <td>Fetch id with dotted ID: one.two.three</td>
+  </tr>
+  <tr>
+    <td>UC010</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'sourceResource.date.begin', 'page_size' => 0) %></td>
+    <td>page_size = 0 to request only facets</td>
+  </tr>
+  <tr>
+    <td>#2973</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'sourceResource.date.begin') %></td>
+    <td>Date facet on sourceResource.date.begin</td>
+  </tr>
+  <tr>
+    <td>#2973</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'sourceResource.date.begin.year') %></td>
+    <td>Date facet on sourceResource.date.begin.year (interval)</td>
+  </tr>
+  <tr>
+    <td>#2973</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'sourceResource.date.begin.decade') %></td>
+    <td>Date facet on sourceResource.date.begin.decade (interval)</td>
+  </tr>
+  <tr>
+    <td>#2973</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'sourceResource.date.begin.century') %></td>
+    <td>Date facet on sourceResource.date.begin.century (interval)</td>
+  </tr>
+  <tr>
+    <td>#2973</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'sourceResource.temporal.begin') %></td>
+    <td>Date facet on sourceResource.temporal.begin</td>
+  </tr>
+  <tr>
+    <td>#2973</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'sourceResource.temporal.begin.year') %></td>
+    <td>Date facet on sourceResource.temporal.begin.year (interval)</td>
+  </tr>
+  <tr>
+    <td>#2974</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'sourceResource.spatial.coordinates:42.3:-71') %></td>
+    <td>Geo-distance facet with default range size</td>
+  </tr>
+  <tr>
+    <td>#2974</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'sourceResource.spatial.coordinates:42.3:-71:12km') %></td>
+    <td>Geo-distance facet with specific range value and range units</td>
+  </tr>
+  <tr>
+    <td>#2975</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'provider') %></td>
+    <td>Facet on provider (auto-expanded)</td>
+  </tr>
+  <tr>
+    <td>#2975</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'provider,isPartOf') %></td>
+    <td>Facet on provider, isPartOf (multiple auto-expanded)</td>
+  </tr>
+  <tr>
+    <td>#2977</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'sourceResource.subject.name', 'facet_size' => '2') %></td>
+    <td>Limit number of facets returned to 2</td>
+  </tr>
+  <tr>
+    <td>#2977</td>
+    <td><%= link_to nil, v1_api.items_path('facets' => 'sourceResource.subject.name', 'facet_size' => 'max') %></td>
+    <td>Limit number of facets returned to max system setting</td>
+  </tr>
+</table>
+
+<br />
+<br />

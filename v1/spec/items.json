@@ -1,0 +1,680 @@
+[
+    {
+        "_id": "1",
+        "id": "1",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "banana one",
+            "description": "description one",
+            "creator": "",
+            "publisher": "",
+            "date": {
+                "begin": "1977-01-01",
+                "end": "1977-01-01"
+            },
+            "spatial": {
+                "city": "Boston"
+            }
+        }
+    },
+    {
+        "_id": "2",
+        "id": "2",
+        "ingestType": "item",
+        "sourceResource": {
+            "id": "partnerhubid1",
+            "title": "title two",
+            "description": "perplexed two",
+            "creator": "foo-bar-baz",
+            "publisher": "",
+            "date": {
+                "begin": "1978-01-01",
+                "end": "1979-01-01"
+            }
+        }
+    },
+    {
+        "_id": "3",
+        "id": "3",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "title three",
+            "description": "perplexed three",
+            "creator": "gold bar",
+            "publisher": "",
+            "date": {
+                "begin": "2000-06-01",
+                "end": "2001-01-01"
+            },
+            "subject": {
+                "name": "perplexed subject3 doodle"
+            },
+            "format": "text/xml"
+        }
+    },
+    {
+        "_id": "P",
+        "id": "P",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": ["title phunk1", "title phunk2"],
+            "description": "facettest, coll-P, contrib 42",
+            "creator": "",
+            "format": ["image/jpeg", "Manuscripts"],
+            "language": {
+                "name": "English",
+                "iso639": "eng"
+            },
+            "subject": {
+                "@id": "http://lccn.loc.gov/sh85140205",
+                "@type": "LCSH"
+            },
+            "collection": {
+                "@id": "http://dp.la/api/collections/coll-P",
+                "name": "Civil War-Era Letters of the Neves Family of Greenville County" 
+            }
+        },
+        "provider": {
+            "@id": "http://dp.la/api/contributor/42",
+            "name": "South Carolina Digital Library"
+        }
+    },
+    {
+        "_id": "P2",
+        "id": "P2",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "P2 title",
+            "description": "facettest, coll-P, contrib 42",
+            "subject": {
+            },
+            "collection": {
+                "@id": "http://dp.la/api/collections/coll-P",
+                "name": "Civil War-Era Letters of the Neves Family of Greenville County" 
+            }
+        },
+        "provider": {
+            "@id": "http://dp.la/api/contributor/42",
+            "name": "South Carolina Digital Library"
+        }
+    },
+    {
+        "_id": "P3",
+        "id": "P3",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "P3 title",
+            "description": "facettest, coll-P, contrib 13",
+            "subject": {
+            },
+            "collection": {
+                "@id": "http://dp.la/api/collections/coll-P",
+                "name": "Civil War-Era Letters of the Neves Family of Greenville County" 
+            }
+        },
+        "provider": {
+            "@id": "http://dp.la/api/contributor/13",
+            "name": "South Carolina Digital Library"
+        }
+    },
+    {
+        "_id": "P2-A",
+        "id": "P2-A",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "title P2-A",
+            "description": "mouse",
+            "spatial": [
+                {
+                    "city": "SLC",
+                    "state": "UT"
+                },
+                {
+                    "city": "Some City",
+                    "state": "WY"
+                }
+            ]
+        }
+    },
+    {
+        "_id": "P2-B",
+        "id":"P2-B",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "title P2-B",
+            "description": "",
+            "spatial": [
+                {
+                    "state": "UT"
+                },
+                {
+                    "city": "Salt Lake City"
+                }
+            ]
+        }
+    },
+    {
+        "_id": "P3-temporal-1",
+        "id": "P3-temporal-1",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "P3-temporal-1",
+            "description": "bookend temporal ranges",
+            "spatial": {
+                "city": "Salt Lake City"
+            }
+        }
+    },
+    {
+        "_id": "A",
+        "id": "aaa",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "title A",
+            "description": "",
+            "creator": "",
+            "publisher": "",
+            "format": "",
+            "rights": "",
+            "temporal": {
+                "begin": "1950-06-01",
+                "end": "1950-06-01"
+            },
+            "relation": "",
+            "source": "",
+            "contributor": ""
+        }
+    },
+    {
+        "_id": "B",
+        "id": "bbb",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "title B",
+            "description": "",
+            "creator": "",
+            "publisher": "",
+            "format": "",
+            "rights": "",
+            "temporal": {
+                "begin": "1955-07-01",
+                "end": "1955-07-30"
+            },
+            "relation": "",
+            "source": "",
+            "contributor": ""
+        }
+    },
+    {
+        "_id": "C",
+        "id": "C",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "title C",
+            "description": "",
+            "creator": "",
+            "publisher": "",
+            "format": "",
+            "rights": "",
+            "temporal": {
+                "begin": "1970",
+                "end": "1979"
+            },
+            "relation": "",
+            "source": "",
+            "contributor": ""
+        }
+    },
+    {
+        "_id": "D",
+        "id": "D",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "title D",
+            "description": "",
+            "creator": "",
+            "publisher": "",
+            "format": "",
+            "rights": "",
+            "temporal": [
+                {
+                    "begin": "1200",
+                    "end": "1250"
+                },
+                {
+                    "begin": "1270",
+                    "end": "1300"
+                }
+            ],
+            "relation": "",
+            "source": "",
+            "contributor": ""
+        }
+    },
+    {
+        "_id": "F",
+        "id": "F",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "title F",
+            "description": "",
+            "creator": "",
+            "publisher": "",
+            "date": {
+                "begin": "1973-04-19",
+                "end": "1973-04-19"
+            },
+            "format": "",
+            "rights": "",
+            "spatial": null,
+            "temporal": {
+                "begin": "1988-03-01",
+                "end": "1988-05-01"
+            },
+            "relation": "",
+            "source": "",
+            "contributor": ""
+        }
+    },
+    {
+        "_id": "M",
+        "id": "M",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "title M",
+            "description": "",
+            "creator": "",
+            "publisher": "",
+            "format": "",
+            "rights": "",
+            "spatial": [
+                {
+                    "name": "Harvard Town",
+                    "coordinates": "42.373611,-71.110556",
+                    "state": "MA",
+                    "city": "Cambridge",
+                    "iso3166-2" : "US-SC"                                          
+                },
+                {
+                    "state": "Massachusetts"
+                }
+            ],
+            "relation": "",
+            "source": "",
+            "contributor": ""
+        }
+    },
+    {
+        "_id": "L",
+        "id": "L",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "NYC bounding box test",
+            "spatial": {
+                "name": "End Point Office",
+                "coordinates": "40.73,-73.98", 
+                "state": "New York",
+                "city": "New York City"
+            }
+        }
+    },
+    {
+        "_id": "Doppel1",
+        "id": "Doppel1",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "doppelganger title1",
+            "description": "description ganger",
+            "temporal": {
+                "begin": "1988-03-01",
+                "end": "1988-03-01"
+            }
+        },
+        "provider": {
+            "@id": "http://dp.la/api/contributor/101",
+            "name": "ContribName OneOhOne"
+        }
+    },
+    {
+        "_id": "Doppel2",
+        "id": "Doppel2",
+        "ingestType": "item",
+        "title": "doppelganger title2",
+        "sourceResource": {
+            "description": "description ganger",
+            "temporal": {
+                "begin": "1988-03-01",
+                "end": "1988-03-01"
+            }
+        },
+        "provider": {
+            "@id": "http://dp.la/api/contributor/102",
+            "name": "ContribName OneOhTwo"
+        }
+    },
+    {
+        "_id": "GeoDistance1",
+        "id": "GeoDistance1",
+        "ingestType": "item",
+        "sourceResource": {
+            "spatial": {
+                "name": "geo_distance1",
+                "coordinates": "43,-71",
+                "state": "NH",
+                "city": "Exeter"
+            }
+        }
+    },
+    {
+        "_id": "GeoDistance2",
+        "id": "GeoDistance2",
+        "ingestType": "item",
+        "sourceResource": {
+            "spatial": {
+                "name": "geo_distance2",
+                "coordinates": "45,-71",
+                "state": "ME",
+                "city": "Errol"
+            }
+        }
+    },
+    {
+        "_id": "one.two.three",
+        "id": "one.two.three",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "dotted id test"
+        },
+        "object": "http://www.google.com/images/srpr/logo4w.png"
+    },
+    {
+        "_id": "S1",
+        "id": "S1",
+        "ingestType": "item",
+        "sourceResource": {
+            "subject": {
+                "name": "Tone"
+            },
+            "type": "Tone",
+            "date": {
+                "begin": "1981-01-01",
+                "end": "1981-01-01"
+            }
+        }
+    },
+    {
+        "_id": "S2",
+        "id": "S2",
+        "ingestType": "item",
+        "sourceResource": {
+            "subject": {
+                "name": "Ttwo"
+            },
+            "type": "Ttwo",
+            "date": {
+                "begin": "1982-01-01",
+                "end": "1982-01-01"
+            }
+        }
+    },
+    {
+        "_id": "S3",
+        "id": "S3",
+        "ingestType": "item",
+        "sourceResource": {
+            "subject": {
+                "name": "Ttwo"
+            },
+            "type": "Ttwo",
+            "date": {
+                "begin": "1982-01-01",
+                "end": "1982-01-01"
+            }
+        }
+    },
+    {
+        "_id": "S4",
+        "id": "S4",
+        "ingestType": "item",
+        "sourceResource": {
+            "subject": {
+                "name": "Tthree"
+            },
+            "type": "Tthree",
+            "date": {
+                "begin": "1982-01-01",
+                "end": "1982-01-01"
+            }
+        }
+    },
+    {
+        "_id": "S5",
+        "id": "S5",
+        "ingestType": "item",
+        "sourceResource": {
+            "subject": {
+                "name": "Tthree"
+            },
+            "type": "Tthree",
+            "date": {
+                "begin": "1982-01-01",
+                "end": "1982-01-01"
+            }
+        }
+    },
+    {
+        "_id": "S6",
+        "id": "S6",
+        "ingestType": "item",
+        "sourceResource": {
+            "subject": {
+                "name": "Tthree"
+            },
+            "type": "Tthree",
+            "date": {
+                "begin": "1982",
+                "end": "1982"
+            }
+        }
+    },
+    {
+        "_id": "R8",
+        "id": "R8",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "peanut",
+            "description": "Testing script sort on not_analyzed fields with array values",
+            "subject": [
+                {
+                    "name": "subname1"
+                },
+                {
+                    "name": "subname2"
+                },
+                {
+                    "name": "subname3"
+                }
+            ]
+        }
+    },
+    {
+        "_id": "FF1",
+        "id": "ff1",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "filter facet test",
+            "subject": [
+                { "name": "Mountain West" },
+                { "name": "cookie" }
+            ]
+        }
+    },
+    {
+        "_id": "FF2",
+        "id": "ff2",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "filter facet test",
+            "subject": [
+                { "name": "Mountain West" }
+            ]
+        }
+    },
+    {
+        "_id": "FF3",
+        "id": "ff3",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "filter facet test",
+            "subject": [
+                { "name": "Splash Mountain" }
+            ]
+        }
+    },
+    {
+        "_id": "FF4",
+        "id": "ff4",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "filter facet test",
+            "subject": [
+                { "name": "Old Man Winter" },
+                { "name": "blueberry" }
+            ]
+        }
+    },
+    {
+        "_id": "FF5",
+        "id": "ff5",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "filter facet test",
+            "subject": [
+                { "name": "Old Man Winter" },
+                { "name": "cranberry" }
+            ]
+        }
+    },
+    {
+        "_id": "MC1",
+        "id": "mc1",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "metachar test (lol)"
+        }
+    },
+    {
+        "_id": "DATERANGE1",
+        "id": "daterange1",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "date range test",
+            "date": {
+                "end": "1973-04-04"
+            }
+        }
+    },
+    {
+        "_id": "DATERANGE2",
+        "id": "daterange2",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "date range test",
+            "date": {
+                "end": "1973-10-10"
+            }
+        }
+    },
+    {
+        "_id": "DATERANGE3",
+        "id": "daterange3",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "date range test",
+            "date": {
+                "end": "1973-12-12"
+            }
+        }
+    },
+    {
+        "_id": "DATERANJ4",
+        "id": "dateranj4",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "date ranj test",
+            "date": {
+                "end": "1973"
+            }
+        }
+    },
+    {
+        "_id": "b1",
+        "id": "b1",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "title",
+            "description": "reddit",
+            "extent": "ferrari",
+            "creator": "audi"
+        }
+    },
+    {
+        "_id": "b2",
+        "id": "b2",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "reddit",
+            "description": "desc",
+            "date": {"displayDate": "ferrari"},
+            "publisher": "pomegranate seeds",
+            "spatial": { "region": "isengard" }
+        },
+        "isShownAt": "audi"
+    },
+    {
+        "_id": "b3",
+        "id": "b3",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "pomegranate seeds",
+            "description": "audi",
+            "subject": { "name": "reddit" },
+            "spatial": { "name": "isengard" }
+        }
+    },
+    {
+        "_id": "m1",
+        "id": "m1",
+        "ingestType": "item",
+        "sourceResource": {
+            "collection": {"@id": "nalgene versus nalgene", "id": "spoon", "description": "test data desc"}
+        }
+    },
+    {
+        "_id": "item-ts1",
+        "id": "item-ts1",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "titlesort",
+            "title": "title DDDfield AAAardvark"
+        }
+    },
+    {
+        "_id": "item-ts2",
+        "id": "item-ts2",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "titlesort",
+            "title": "title CCCfield"
+        }
+    },
+    {
+        "_id": "item-ts3",
+        "id": "item-ts3",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "titlesort",
+            "title": "title AAAfield"
+        }
+    }
+]
