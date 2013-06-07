@@ -19,6 +19,12 @@ When(/^I visit the QA app homepage$/) do
   #visit '/qa/compare'
 end
 
+When(/^I request a new api key for "(.*?)" but use HTTP GET$/) do |email|
+  visit "/v2/api_key/#{email}"
+end
 
-
+Then(/^I should get a JSON message containing "(.*?)"$/) do |message|
+  json = JSON.parse(page.source)
+  expect(json['message']).to match(/#{message}/)
+end
 

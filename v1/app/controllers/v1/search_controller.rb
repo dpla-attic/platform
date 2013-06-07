@@ -95,10 +95,12 @@ module V1
 
     def render_as_json(results, params)
       # Handles optional JSONP callback param
+      conversion = results.is_a?(Hash) ? :to_json : :to_s
+
       if params['callback'].present?
-        params['callback'] + '(' + results.to_json + ')'
+        params['callback'] + '(' + results.send(conversion) + ')'
       else
-        results
+        results.send(conversion)
       end
     end
 

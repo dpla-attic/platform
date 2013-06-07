@@ -22,8 +22,14 @@ V1::Engine.routes.draw do
   post "/api_key(.:format)/*owner" => "api_key#create", :defaults => { :format => 'json' }
 
   # not fully implemented yet
-  #get  "/api_key(.:format)/*owner" => "api_key#show", :defaults => { :format => 'json' }
+  #get "/api_key(.:format)/*owner" => "api_key#show", :defaults => { :format => 'json' }
 
+  # place-holder
+  get "/api_key(.:format)/*owner" => "api_key#show_placeholder", :defaults => { :format => 'json' }
+
+  # friendly error message
+  get "/api_key" =>  "api_key#index"
+  
   # General Utils
   get "/repo/status" => "search#repo_status"
 

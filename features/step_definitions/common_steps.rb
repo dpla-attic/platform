@@ -48,11 +48,12 @@ When(/^order the sort by "(.*?)"$/) do |arg1|
 end
 
 Then /^I should get http status code "(.*?)"$/ do |arg1|
-  #TODO: simplify this to only check status
-  raise "wtf: #{@params}" unless @resource
-
-  resource_query(@resource, @params, false)
-
+  #Hackish test to see if we've already run a request as part of this test
+  status_code = page.status_code rescue $!
+  if status_code.is_a? Rack::Test::Error
+    resource_query(@resource, @params, false)
+  end
+  
   if page.status_code.to_s != arg1
     puts "Server Response: #{ JSON.parse(page.source)['message'] || page.source }"
   end
@@ -68,7 +69,3 @@ Then /^I should get http status code "(.*?)" from the QA app$/ do |arg1|
   expect(page.status_code.to_s).to eq(arg1)
 end
 
-Then(/^I should get a valid JSON response$/) do
-  response = resource_query(@resource, @params, false)
-  puts response
-end
