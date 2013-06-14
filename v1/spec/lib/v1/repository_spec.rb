@@ -40,12 +40,12 @@ module V1
         end
         
         it "has all the right moves by default" do
-          StandardDataset.should_not_receive(:recreate_river!)
+          SearchEngine.should_not_receive(:recreate_river)
           subject.recreate_env
         end
 
         it "has all the right moves and creates the river if requested" do
-          StandardDataset.should_receive(:recreate_river!)
+          SearchEngine.should_receive(:recreate_river)
           subject.recreate_env(true)
         end
       end
@@ -155,7 +155,7 @@ module V1
       it "calls import_docs with correct params" do
         data_file = stub
         processed_input_file = stub
-        StandardDataset.should_receive(:process_input_file).with(data_file, false) { processed_input_file }
+        SearchEngine.should_receive(:process_input_file).with(data_file, false) { processed_input_file }
         subject.should_receive(:import_docs).with(processed_input_file)
         subject.import_data_file(data_file)
       end
@@ -163,8 +163,8 @@ module V1
 
     describe "#import_test_dataset" do
       it "imports test data for all resources" do
-        subject.should_receive(:import_data_file).with(StandardDataset::ITEMS_JSON_FILE)
-        subject.should_receive(:import_data_file).with(StandardDataset::COLLECTIONS_JSON_FILE)
+        subject.should_receive(:import_data_file).with(SearchEngine::ITEMS_JSON_FILE)
+        subject.should_receive(:import_data_file).with(SearchEngine::COLLECTIONS_JSON_FILE)
         subject.import_test_dataset
       end
     end

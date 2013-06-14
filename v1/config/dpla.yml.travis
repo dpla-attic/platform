@@ -14,7 +14,8 @@ repository:
 
 search:
   endpoint: 127.0.0.1:9200
-  index_name: dpla
+  index_name: dpla_alias
+  river_name: dpla_river
 
 caching:
   cache_results: false

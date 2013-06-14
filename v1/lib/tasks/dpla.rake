@@ -1,54 +1,88 @@
-require 'v1/standard_dataset'
+require 'v1/search_engine'
 require 'v1/repository'
 
 namespace :v1 do
 
-  # NOTE: Any task that makes calls to Tire, must pass the :environment symbol in the task()
-  # call so the Tire initializer gets called.
+  # NOTE: Any task that calls a method that internally makes calls to Tire, must pass
+  # the :environment symbol in the task() call so the Tire initializer gets called.
 
   desc "Tests river by posting test doc to CouchDB and verifying it in ElasticSearch"
   task :test_river => :environment do
-    V1::StandardDataset.test_river
+    V1::SearchEngine::River.test_river
   end
 
   desc "Updates existing ElasticSearch schema *without* deleting the current index"
   task :update_search_schema => :environment do
-    V1::StandardDataset.update_schema
+    V1::SearchEngine.update_schema
   end
 
-  desc "Re-creates ElasticSearch index, schema, river"
+  desc "Deploys search index by updating dpla_alias and its river"
+  task :deploy_search_index, [:index] => :environment do |t, args|
+    raise "Missing required index argument to rake task" unless args.index
+    V1::SearchEngine::River.deploy_index(args.index)
+  end
+
+  desc "Creates new ElasticSearch index, schema"
+  task :create_search_index => :environment do
+    V1::SearchEngine.create_index
+  end
+
+  desc "Lists existing ElasticSearch indices"
+  task :search_indices => :environment do
+    V1::SearchEngine.display_indices
+  end
+
+  desc "NOT IMPLEMENTED: Deletes the named ElasticSearch index. Requires 'really' as second param."
+  task :delete_search_index, [:index,:really] => :environment do |t, args|
+    #TODO: V1::SearchEngine.delete_index(args.index)
+  end
+
+  desc "Creates new ElasticSearch index, schema and river"
+  task :create_search_index_with_river => :environment do
+    index = V1::SearchEngine.create_index
+    # default to using index name for river name too
+    V1::SearchEngine::River.create_river('index' => index, 'river' => index)
+  end
+
+  desc "Re-creates ElasticSearch index, schema"
   task :recreate_search_index => :environment do
-    V1::StandardDataset.recreate_index!
+    V1::SearchEngine.recreate_index!
   end
 
   desc "Re-creates ElasticSearch index, schema, river and re-populates index with test dataset"
   task :recreate_search_env => :environment do
-    V1::StandardDataset.recreate_env!
+    V1::SearchEngine.recreate_env!
   end
 
-  desc "Creates new ElasticSearch river"
+  desc "Re-creates ElasticSearch river for the currently deployed index"
   task :recreate_river do
-    V1::StandardDataset.recreate_river!
+    V1::SearchEngine::River.recreate_river
   end
 
-  desc "Deletes ElasticSearch river"
+  #TODO: This is confusing to use.
+  desc "Creates new ElasticSearch river, pointed at $index (defaults to currently deployed index)"
+  task :create_river, [:index,:river] => :environment do |t, args|
+    V1::SearchEngine::River.create_river('index' => args.index, 'river' => args.river)
+  end
+
+  desc "Deletes ElasticSearch river named '#{V1::Config.river_name}'"
   task :delete_river do
-    V1::StandardDataset.delete_river
+    V1::SearchEngine::River.delete_river
   end
 
   desc "Gets ElasticSearch river status"
   task :river_status do
-    puts V1::StandardDataset.river_status
+    puts V1::SearchEngine::River.service_status
   end
 
   desc "Gets ElasticSearch search cluster status"
   task :search_status do
-    puts V1::StandardDataset.service_status
+    puts V1::SearchEngine.service_status
   end
 
   desc "Gets number of docs in search index"
   task :search_doc_count do
-    puts V1::StandardDataset.doc_count
+    puts V1::SearchEngine.doc_count
   end
 
   desc "Displays the ElasticSearch search_endpoint the API is configured to use"
@@ -58,7 +92,7 @@ namespace :v1 do
 
   desc "Displays the schema that ElasticSearch is currently using, according to ElasticSearch."
   task :search_schema => :environment do
-    puts V1::StandardDataset.search_schema
+    puts V1::SearchEngine.search_schema
   end
 
   desc "Show API 'is_valid?' auth for a key"
@@ -110,9 +144,8 @@ namespace :v1 do
 
   desc "Gets number of docs in search index and repository"
   task :doc_counts do
-    puts "Search docs    : #{ V1::StandardDataset.doc_count }"
+    puts "Search docs    : #{ V1::SearchEngine.doc_count }"
     puts "Repo docs/views: #{ V1::Repository.doc_count }" 
   end
-
 
 end

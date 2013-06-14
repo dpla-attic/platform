@@ -206,18 +206,22 @@ module V1
       }  #/item
     }.freeze
 
+    def self.full_mapping
+      ELASTICSEARCH_MAPPING
+    end
+
     def self.field(resource, name, modifier=nil)
       # A "resource" is a top-level DPLA resource: 'item', 'collection', 'creator'
       # TODO: memoize a hash value for every $name and return it if it exists. The modifier
       # is a concern, though.
-      raise "Invalid resource: #{resource}" unless ELASTICSEARCH_MAPPING[resource]
+      raise "Invalid resource: #{resource}" unless full_mapping[resource]
 
       field_names = name.split('.')
       first_name = field_names.shift
 
       #TODO: skip shift and just start current_mapping at ...[resource].
       #init starting point for the mapping traversal.
-      current_mapping = ELASTICSEARCH_MAPPING[resource]['properties'][first_name]
+      current_mapping = full_mapping[resource]['properties'][first_name]
 
       field_names.each do |word|
         # the rescue nil handles invalid field names at any level
@@ -232,7 +236,7 @@ module V1
       # every node in the mapping, meaning node "levelA" will be included even if
       # it has subfields.
       names = {}
-      top_level_names = ELASTICSEARCH_MAPPING[resource]['properties'].keys
+      top_level_names = full_mapping[resource]['properties'].keys
       
       top_level_names.map do |name|
         field = Schema.field(resource, name)

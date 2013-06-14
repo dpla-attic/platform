@@ -1,5 +1,5 @@
 Given /^the dataset exists$/ do
-  V1::StandardDataset::dataset_files.each do |file|
+  V1::SearchEngine::dataset_files.each do |file|
     expect(File.exist?(file)).to be_true
   end
 end

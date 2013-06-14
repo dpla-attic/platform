@@ -5,12 +5,20 @@ module V1
   describe Config do
 
     describe "Constants" do
-      it "has the correct SEARCH_INDEX value" do
-        expect(V1::Config::SEARCH_INDEX).to eq 'dpla'
-      end
-
       it "has the correct REPOSITORY_DATABASE value" do
         expect(V1::Config::REPOSITORY_DATABASE).to eq 'dpla'
+      end
+    end
+
+    describe "#search_index" do
+      it "returns the search_index defined in the config file" do
+        subject.stub(:dpla) { {'search' => {'index_name' => "foo"}} }
+        expect(subject.search_index).to eq 'foo'        
+      end
+      
+      it "supplies the correct default value" do
+        subject.stub(:dpla) { {'search' => {}} }
+        expect(subject.search_index).to eq 'dpla'
       end
     end
 
@@ -37,7 +45,7 @@ module V1
 
     describe "#search_endpoint" do
       it "returns the search endpoint with leading 'http://' if an endpoint is defined" do
-    subject.stub(:dpla) { {'search' => {'endpoint' => "testhost:9999"}} }
+        subject.stub(:dpla) { {'search' => {'endpoint' => "testhost:9999"}} }
         expect(Config.search_endpoint).to eq "http://testhost:9999"
       end
 

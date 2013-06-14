@@ -7,7 +7,7 @@ Given /^the default page size is (\d+)$/ do |arg1|
 end
 
 Given /^the default test dataset is loaded$/ do
-  expect(Tire.index(V1::Config::SEARCH_INDEX).exists?).to be_true
+  expect(Tire.index(V1::Config.search_index).exists?).to be_true
 end
 
 Given(/^the default test field boosts are defined$/) do

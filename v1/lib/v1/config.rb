@@ -4,9 +4,7 @@ module V1
 
   module Config
 
-    #TODO: move these two to their respective modules
-    SEARCH_INDEX = 'dpla'
-    REPOSITORY_DATABASE = SEARCH_INDEX
+    REPOSITORY_DATABASE = 'dpla'
 
     def self.search_endpoint
       endpoint = dpla['search']['endpoint'] rescue 'http://127.0.0.1:9200'
@@ -38,22 +36,31 @@ module V1
       Tire::Configuration.wrapper(Hash)
     end
 
+    #TODO: Create helper method to handle default values and multi-level hash NilError cases
     def self.configure_search_logging(env)
       logfile = File.expand_path("../../../../var/log/elasticsearch-#{env}.log", __FILE__)
-      level = (dpla['search']['log_level'] || 'info') rescue 'info'
+      level = (dpla['search']['log_level'] rescue nil) || 'info'
       Tire::Configuration.logger(logfile, :level => level)
+    end
+
+    def self.search_index
+      (dpla['search']['index_name'] rescue nil) || 'dpla'
     end
     
     def self.memcache_servers
-      dpla['caching']['memcache_servers'] rescue []
+      (dpla['caching']['memcache_servers'] rescue nil) || []
     end
 
     def self.email_from_address
-      dpla['api']['email_from_address'] rescue 'dpla_default_sender@example.com'
+      (dpla['api']['email_from_address'] rescue nil) || 'dpla_default_sender@example.com'
     end
 
+    def self.river_name
+      (dpla['search']['river_name'] rescue nil) || 'dpla_river'
+    end
+    
     def self.cache_results
-      dpla['caching']['cache_results'] rescue false
+      (dpla['caching']['cache_results'] rescue nil) || false
     end
 
     def self.cache_store

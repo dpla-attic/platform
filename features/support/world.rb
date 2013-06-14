@@ -92,8 +92,8 @@ module CukeApiHelper
 
   def load_dataset
     json = []
-    V1::StandardDataset.dataset_files.each do |json_file|
-      json.concat V1::StandardDataset.process_input_file(json_file, false)
+    V1::SearchEngine.dataset_files.each do |json_file|
+      json.concat V1::SearchEngine.process_input_file(json_file, false)
     end
     json
   end
