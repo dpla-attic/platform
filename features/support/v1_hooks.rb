@@ -29,15 +29,17 @@ else
   # and tags would be used to create the correct datasets. That would also eliminate the
   # possibility of pagination causing false negatives between test runs on different systems.
 
-  V1::StandardDataset.recreate_index!
   V1::Repository.recreate_env(true)
+  index = V1::SearchEngine.create_index
+  V1::SearchEngine::River.create_river('index' => index, 'river' => index)
+  V1::SearchEngine::River.deploy_index(index)
 
   # Sleep a bit to let CouchDB finish doing its thing internally, as well as letting 
   # the river catch up on indexing the docs added to CouchDB.
   # Note: A HTTP 419 error from CouchDB means you need to increase that sleep value
   # a second or two.
   sleep 5
-  puts "Search docs       : #{V1::StandardDataset.doc_count}"
+  puts "Search docs       : #{V1::SearchEngine.doc_count}"
 end
 
 

@@ -457,7 +457,7 @@ module V1
 
       it "restricts all searches to a resource" do
         params = {'q' => 'banana'}
-        Tire.should_receive(:search).with(Config::SEARCH_INDEX + '/' + resource)
+        Tire.should_receive(:search).with(Config.search_index + '/' + resource)
         subject.search(params)
       end
 

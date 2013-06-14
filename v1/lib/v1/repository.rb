@@ -1,5 +1,5 @@
 require_relative '../../app/models/v1/api_key'
-require 'v1/standard_dataset'
+require_relative 'search_engine'
 require 'json'
 require 'couchrest'
 require 'httparty'
@@ -48,7 +48,7 @@ module V1
     def self.recreate_env(include_river=false)
       recreate_doc_database
       recreate_api_keys_database
-      StandardDataset.recreate_river! if include_river
+      SearchEngine.recreate_river if include_river
       recreate_users
       import_test_api_keys
       import_test_dataset
@@ -62,11 +62,11 @@ module V1
     end
 
     def self.import_test_dataset
-      StandardDataset::dataset_files.each {|file| import_data_file file}
+      SearchEngine::dataset_files.each {|file| import_data_file file}
     end
 
     def self.import_data_file(file)
-      import_docs(StandardDataset.process_input_file(file, false))
+      import_docs(SearchEngine.process_input_file(file, false))
     end
 
     def self.import_docs(docs)

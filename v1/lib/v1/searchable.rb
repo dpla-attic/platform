@@ -44,7 +44,7 @@ module V1
       validate_query_params(params)
       validate_field_params(params)
 
-      search = Tire.search(Config::SEARCH_INDEX + '/' + resource) do |search|
+      search = Tire.search(Config.search_index + '/' + resource) do |search|
         global_facets = nil
 
         search.query do |query|

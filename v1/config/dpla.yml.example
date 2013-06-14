@@ -35,6 +35,13 @@ repository:
 search:
   # ElasticSearch host and port
   endpoint: 127.0.0.1:9200
+
+  # Name of the alias pointing to your deployed ElasticSearch index
+  index_name: dpla_alias
+
+  # Name of your live river that points to your $index_name
+  river_name: dpla_river
+  
   # Log level for search queries logged by Tire gem
   log_level: debug
   
