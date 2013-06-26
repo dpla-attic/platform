@@ -19,7 +19,7 @@ namespace :v1 do
   desc "Deploys search index by updating dpla_alias and its river"
   task :deploy_search_index, [:index] => :environment do |t, args|
     raise "Missing required index argument to rake task" unless args.index
-    V1::SearchEngine::River.deploy_index(args.index)
+    V1::SearchEngine.deploy_index(args.index)
   end
 
   desc "Creates new ElasticSearch index, schema"
@@ -39,9 +39,7 @@ namespace :v1 do
 
   desc "Creates new ElasticSearch index, schema and river"
   task :create_search_index_with_river => :environment do
-    index = V1::SearchEngine.create_index
-    # default to using index name for river name too
-    V1::SearchEngine::River.create_river('index' => index, 'river' => index)
+    V1::SearchEngine.create_index_with_river
   end
 
   desc "Re-creates ElasticSearch index, schema"
@@ -67,7 +65,7 @@ namespace :v1 do
 
   desc "Deletes ElasticSearch river named '#{V1::Config.river_name}'"
   task :delete_river do
-    V1::SearchEngine::River.delete_river
+    V1::SearchEngine::River.delete_river or puts "River does not exist, so nothing to delete"
   end
 
   desc "Gets ElasticSearch river status"
@@ -97,7 +95,7 @@ namespace :v1 do
 
   desc "Show API 'is_valid?' auth for a key"
   task :show_api_auth, [:key] do |t, args|
-    puts "Authenticated?: #{  V1::Repository.authenticate_api_key args.key }"
+    puts "Authenticated?: #{ V1::Repository.authenticate_api_key(args.key) }"
   end
   
   desc "Displays the CouchDB repository_endpoint the API is configured to use"

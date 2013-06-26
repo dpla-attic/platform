@@ -21,7 +21,7 @@ end
 
 if ENV['CUKE_SETUP'] == 'skip'
   puts "~~~~~~~~~~~~~~~~\n~~~~~~~~~~~~ SKIPPING Setup Yo. ~~~~~~~~~~~~"
-  puts                   "~~~~~~~ (ENV['CUKE_SETUP'] == 'skip' ~~~~~~~"
+  puts "~~~~~~~ (ENV['CUKE_SETUP'] == 'skip' ~~~~~~~"
   puts "~~~~~~~~~~~~~~~~"
 else
   # Load the standard dataset into CouchDB and let the river get that data into ElasticSearch
@@ -29,10 +29,11 @@ else
   # and tags would be used to create the correct datasets. That would also eliminate the
   # possibility of pagination causing false negatives between test runs on different systems.
 
-  V1::Repository.recreate_env(true)
+  puts "Initializing test environment for the repository and search index..."
+  V1::Repository.recreate_env
+  
   index = V1::SearchEngine.create_index
-  V1::SearchEngine::River.create_river('index' => index, 'river' => index)
-  V1::SearchEngine::River.deploy_index(index)
+  V1::SearchEngine.deploy_index(index)
 
   # Sleep a bit to let CouchDB finish doing its thing internally, as well as letting 
   # the river catch up on indexing the docs added to CouchDB.

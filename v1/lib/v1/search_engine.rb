@@ -113,7 +113,16 @@ module V1
       endpoint_config_check
       Tire.index(name).delete
     end
+    
 
+    def self.create_index_with_river
+      endpoint_config_check
+
+      name = create_index
+      River.create_river('index' => name, 'river' => name)
+      name
+    end
+    
     def self.create_index(name=generate_index_name)
       endpoint_config_check
 
@@ -167,14 +176,59 @@ module V1
     end
 
     def self.search_schema
-      endpoint_config_check
-      uri = Config.search_endpoint + '/' + Config.search_index + '/_mapping?pretty'
+      uri = Config.search_endpoint + '/' + alias_to_index(Config.search_index) + '/_mapping?pretty'
       begin
-        # Tire.index(Config.search_index).mapping
         HTTParty.get(uri).body
       rescue Exception => e
         "Error: #{e}"
       end
+    end
+
+    def self.deploy_index(index)
+      raise "Cannot deploy index '#{index}' that doesn't exist, silly." unless Tire.index(index).exists?
+
+      puts "Deploying index '#{index}'"
+
+      # delete named river for this index and default river that's pointing to the currently deployed index
+      delete_river(index)
+      delete_river
+      previous_index = move_alias_to(index)
+      create_river
+      puts "Index '#{index}' deployed OK."
+
+      if previous_index && previous_index != index
+        puts "FYI: Previous index is no longer in use: #{previous_index}"
+      end
+    end
+
+    def self.move_alias_to(index)
+      alias_name = Config.search_index
+      current_alias = Tire::Alias.find(alias_name)
+
+      if current_alias.nil?
+        puts "Expected alias '#{alias_name}' not found. Creating..."
+        result = create_alias(:index => index, :name => alias_name)
+        puts "Alias Error: #{result.body}" if result.failure?
+        return
+      end
+
+      indices = current_alias.indices
+      if indices.size > 1
+        raise "Surprise! Alias pointing to multiple indices: #{indices.join(', ')}"
+      end
+      
+      previous_index = indices.first
+      indices.clear
+      indices.add(index)
+
+      current_alias.save
+      puts "Updated alias '#{alias_name}' pointing to index '#{index}'"
+
+      previous_index
+    end
+
+    def self.create_alias(options)
+      Tire::Alias.new(options).save
     end
 
     def self.recreate_river
@@ -186,8 +240,8 @@ module V1
       River.create_river
     end
 
-    def self.delete_river
-      River.delete_river
+    def self.delete_river(*args)
+      River.delete_river(*args)
     end
 
   end
