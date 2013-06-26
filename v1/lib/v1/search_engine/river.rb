@@ -76,17 +76,17 @@ module V1
           # Give a successful river delete a chance to finish on the search server
           sleep 3
         elsif result.code == 404
-          #so harmless, it's probably not worth the stdout noise...
           #puts "INFO: Could not delete river '#{name}' because it doesn't exist. (Which is probably harmless.)"
         else
           puts "INFO: Could not delete river '#{name}' because: #{result}"
-        end          
+        end
+
+        result
       end
 
       def self.create_river(options={})
         # defaults are the active index and river
-        #TODO/BUG: This "or" logic doesn't work for rake v1:recreate_river b/c options['index'] will be ''
-        index = options['index'] || Config.search_index
+        index = options['index'] || SearchEngine.alias_to_index(Config.search_index)
         river = options['river'] || Config.river_name
 
         result = Tire::Configuration.client.put(
@@ -103,10 +103,7 @@ module V1
       
       def self.river_creation_doc(index_name)
         repo_uri = URI.parse('http://' + Repository.reader_cluster_database)
-        #TODO: smart settings for these
-        # "bulk_size" : "100",
-        # "bulk_timeout" : "10ms"
-
+        # bulk_size and bulk_timeout are safe guesses at good values for production
         {
           'type' => 'couchdb',
           'couchdb' => {
@@ -115,6 +112,8 @@ module V1
             'db' => repo_uri.path.sub('/', ''),
             'user' => repo_uri.user,
             'password' => repo_uri.password,
+            'bulk_size' => '20',
+            'bulk_timeout' => '2s',
             'script' => "ctx._type = ctx.doc.ingestType || 'unknown'"
           },
           'index' => {

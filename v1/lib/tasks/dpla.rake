@@ -55,7 +55,7 @@ namespace :v1 do
   end
 
   desc "Re-creates ElasticSearch river for the currently deployed index"
-  task :recreate_river do
+  task :recreate_river => :environment do
     V1::SearchEngine::River.recreate_river
   end
 
