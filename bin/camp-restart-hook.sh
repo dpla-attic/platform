@@ -9,14 +9,22 @@ camp_dir=$( cd "$( dirname "$0" )/.." && pwd )
 # ElasticSearch
 es_pidfile="${camp_dir}/var/elasticsearch.pid"
 es_cmd="/usr/share/elasticsearch/bin/elasticsearch"
+es_options="-XX:-HeapDumpOnOutOfMemoryError -Des.config=$camp_dir/v1/config/elasticsearch/elasticsearch.yml -p $es_pidfile"
+es_options_file="${camp_dir}/tmp/.elasticsearch_options"
 
 # CouchDB
 couch_pidfile="${camp_dir}/var/run/couchdb/couchdb.pid"
 couch_cmd="/usr/local/bin/couchdb -a ${camp_dir}/v1/config/couchdb.ini -p $couch_pidfile"
 
 function start {
+    if [ -a $es_options_file ] ; then
+        # Use this file to set camp-specific ElasticSearch options such as ES_HEAP_SIZE
+	echo "Appending options from $es_options_file"
+	. $es_options_file
+    fi
+    
     $couch_cmd -b -o /dev/null -e /dev/null
-    $es_cmd -Des.config=${camp_dir}/v1/config/elasticsearch/elasticsearch.yml -p $es_pidfile
+    $es_cmd $es_options
 }
 
 function stop {
@@ -30,7 +38,7 @@ function stop {
 
 function restart {
     stop
-    sleep 2
+    sleep 3
     start
 }
 
