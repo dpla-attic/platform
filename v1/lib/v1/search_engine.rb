@@ -105,13 +105,13 @@ module V1
       
       index_name = Config.search_index
       delete_index(index_name)
-      sleep 0.5
+      sleep 1
       create_index(index_name)
     end
 
     def self.delete_index(name)
-      endpoint_config_check
       Tire.index(name).delete
+      puts "Deleted index '#{name}'"
     end
     
 
@@ -184,8 +184,26 @@ module V1
       end
     end
 
+    def self.safe_delete_index(index)
+      endpoint_config_check
+
+      raise "Cannot delete index '#{index}' that doesn't exist." unless index_exists?(index)
+      raise "Refusing to delete currently deployed index" if index == alias_to_index(Config.search_index)
+      
+      delete_index(index)
+    end
+
+    def self.index_exists?(index)
+      Tire.index(index).exists?
+    end
+
+    def self.create_and_deploy_index
+      previous_index = deploy_index(create_index)
+      safe_delete_index(previous_index)
+    end
+
     def self.deploy_index(index)
-      raise "Cannot deploy index '#{index}' that doesn't exist, silly." unless Tire.index(index).exists?
+      raise "Cannot deploy index '#{index}' that doesn't exist, silly." unless index_exists?(index)
 
       puts "Deploying index '#{index}'"
 
@@ -199,6 +217,8 @@ module V1
       if previous_index && previous_index != index
         puts "FYI: Previous index is no longer in use: #{previous_index}"
       end
+
+      previous_index
     end
 
     def self.move_alias_to(index)

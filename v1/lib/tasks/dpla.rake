@@ -32,9 +32,12 @@ namespace :v1 do
     V1::SearchEngine.display_indices
   end
 
-  desc "NOT IMPLEMENTED: Deletes the named ElasticSearch index. Requires 'really' as second param."
+  desc "Deletes the named ElasticSearch index. Requires 'really' as second param to confirm delete."
   task :delete_search_index, [:index,:really] => :environment do |t, args|
-    #TODO: V1::SearchEngine.delete_index(args.index)
+    if args.really != 'really'
+      raise "Missing/incorrect 'really' parameter. Hint: It must be the string: really"
+    end
+    V1::SearchEngine.safe_delete_index(args.index)
   end
 
   desc "Creates new ElasticSearch index, schema and river"

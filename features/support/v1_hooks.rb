@@ -31,15 +31,13 @@ else
 
   puts "Initializing test environment for the repository and search index..."
   V1::Repository.recreate_env
+  V1::SearchEngine.create_and_deploy_index
   
-  index = V1::SearchEngine.create_index
-  V1::SearchEngine.deploy_index(index)
-
   # Sleep a bit to let CouchDB finish doing its thing internally, as well as letting 
   # the river catch up on indexing the docs added to CouchDB.
   # Note: A HTTP 419 error from CouchDB means you need to increase that sleep value
   # a second or two.
-  sleep 5
+  sleep 4
   puts "Search docs       : #{V1::SearchEngine.doc_count}"
 end
 
