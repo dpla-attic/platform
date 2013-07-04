@@ -198,8 +198,13 @@ module V1
     end
 
     def self.create_and_deploy_index
-      previous_index = deploy_index(create_index)
-      safe_delete_index(previous_index)
+      index = create_index
+      sleep 4
+      previous_index = deploy_index(index)
+      if previous_index
+        sleep 2
+        safe_delete_index(previous_index)
+      end
     end
 
     def self.deploy_index(index)

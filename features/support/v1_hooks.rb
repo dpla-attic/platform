@@ -31,6 +31,7 @@ else
 
   puts "Initializing test environment for the repository and search index..."
   V1::Repository.recreate_env
+  sleep 1
   V1::SearchEngine.create_and_deploy_index
   
   # Sleep a bit to let CouchDB finish doing its thing internally, as well as letting 
