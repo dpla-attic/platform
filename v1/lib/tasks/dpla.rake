@@ -101,9 +101,15 @@ namespace :v1 do
     puts "Authenticated?: #{ V1::Repository.authenticate_api_key(args.key) }"
   end
   
+  desc "Deletes cached API auth for a single api_key"
+  task :clear_cached_api_auth, [:key] => :environment do |t, args|
+    previous = V1::ApiKey.clear_cached_auth(args.key)
+    puts "Done. (was '#{previous}')"
+  end
+  
   desc "Displays the CouchDB repository_endpoint the API is configured to use"
   task :repo_endpoint do
-    puts 'http://' + V1::Repository.reader_cluster_database
+    puts V1::Repository.reader_cluster_database.to_s
   end
 
   desc "Gets CouchDB repository status"
@@ -139,7 +145,7 @@ namespace :v1 do
   end
 
   desc "Re-creates CouchDB database, users, river and re-populates Couch with test dataset"
-  task :recreate_repo_env do
+  task :recreate_repo_env => :environment do
     V1::Repository.recreate_env(true)
   end
 

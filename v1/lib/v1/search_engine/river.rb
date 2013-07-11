@@ -50,7 +50,7 @@ module V1
       end
       
       def self.river_creation_doc(index_name)
-        repo_uri = URI.parse('http://' + Repository.reader_cluster_database)
+        repo_uri = URI.parse(Repository.reader_cluster_database.to_s)
         # bulk_size and bulk_timeout are just safe guesses at good values for production
         {
           'type' => 'couchdb',

@@ -71,6 +71,12 @@ module V1
       SecureRandom.hex(16)
     end
 
+    def self.clear_cached_auth(key_id)
+      previous = Rails.cache.read(key_id)
+      Rails.cache.delete(key_id)
+      previous
+    end
+
     def self.sanitize_email(email)
       raise ArgumentError, "Missing 'owner' param" if email.to_s == ''
       
