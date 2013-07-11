@@ -35,13 +35,3 @@ Feature: API Http Status Code Raise Feature
   Scenario: Service Unavailable
     When I item-search with a raise parameter of "503"
     Then I should get http status code "503"
-
-  Scenario: API is in maintenance mode
-    When I take the API service down for maintenance
-    And I make an empty item-search
-    Then I should get http status code "503"
-
-  Scenario: API is not in maintenance mode
-    When I bring system back from maintenance
-    And I make an empty item-search
-    Then I should get http status code "200"

@@ -1,13 +1,12 @@
 source 'https://rubygems.org'
 
-gem 'rails', '3.2.12'
+gem 'rails', '3.2.13'
 gem 'unicorn'
 gem 'rubygems-bundler'
 gem 'pg', :require => 'pg'
 gem 'sqlite3'  
 gem 'devise', '2.1.2'
 gem 'jquery-rails'
-gem 'turnout'
 gem 'dpla_search_api_v1', :path => 'v1'
 gem 'dpla_contentqa', :path => 'contentqa'
 
