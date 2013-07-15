@@ -98,18 +98,6 @@ module CukeApiHelper
     json
   end
 
-  def get_maintenance_file
-    File.dirname(__FILE__) + "/../../tmp/maintenance.yml"
-  end
-
-  def create_maintenance_file
-    system("touch #{get_maintenance_file}")
-  end
-
-  def remove_maintenance_file
-    system("rm #{get_maintenance_file}")
-  end
-
 end
 
 World(CukeApiHelper)

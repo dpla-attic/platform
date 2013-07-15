@@ -14,99 +14,57 @@ module V1
         create_river
       end
 
-      def self.show_indices
-        #TODO: list indices and aliases and rivers. then hook up to a rake task as the
-        # primary re-entry point to deploying an index.
-      end
-
-      def self.deploy_index(index)
-        #TODO: move to SearchEngine module
-        #TODO: consider checking that this index is already deployed and warning
-        puts "Deploying index '#{index}'"
-        raise "Cannot deploy an index (#{index}) that doesn't exist, silly." unless Tire.index(index).exists?
-
-        delete_river(index)
-        previous_index = move_alias_to(index)
-
-        create_river
-        puts "Index '#{index}' deployed OK."
-        if previous_index && previous_index != index
-          puts "FYI: Previous index is no longer in use: #{previous_index}"
-        end
-      end
-
-      def self.move_alias_to(index)
-        alias_name = Config.search_index
-        current_alias = Tire::Alias.find(alias_name)
-
-        if current_alias.nil?
-          puts "Expected alias '#{alias_name}' not found. Creating..."
-          result = create_alias(:index => index, :name => alias_name)
-          puts "Alias Error: #{result.body}" if result.failure?
-          return
-        end
-
-        indices = current_alias.indices
-        if indices.size > 1
-          raise "Surprise! Alias pointing to multiple indices: #{indices.join(', ')}"
-        end
-        
-        previous_index = indices.first
-        indices.clear
-        indices.add(index)
-
-        current_alias.save
-        puts "Updated alias '#{alias_name}' pointing to index '#{index}'"
-
-        previous_index
-      end
-
-      def self.create_alias(options)
-        Tire::Alias.new(options).save
-      end
-
       def self.delete_river(name=river_name)
-        #TODO: use new method to test if river deletes and return if not
-        #         puts "existing: #{river_endpoint(name)}"
-        # exists = Tire::Configuration.client.get(river_endpoint(name) + '/_meta')
+        return if HTTParty.head(endpoint(name) + '/_status').code == 404
+
         puts "Deleting river '#{name}'"
-        result = Tire::Configuration.client.delete(river_endpoint(name))
+        result = HTTParty.delete(endpoint(name))
 
         if result.success?
           # Give a successful river delete a chance to finish on the search server
           sleep 3
         elsif result.code == 404
-          #so harmless, it's probably not worth the stdout noise...
           #puts "INFO: Could not delete river '#{name}' because it doesn't exist. (Which is probably harmless.)"
         else
           puts "INFO: Could not delete river '#{name}' because: #{result}"
-        end          
+        end
+
+        result
       end
 
       def self.create_river(options={})
         # defaults are the active index and river
-        #TODO/BUG: This "or" logic doesn't work for rake v1:recreate_river b/c options['index'] will be ''
-        index = options['index'] || Config.search_index
+        index = options['index'] || SearchEngine.alias_to_index(Config.search_index)
         river = options['river'] || Config.river_name
 
-        result = Tire::Configuration.client.put(
-                                                "#{river_endpoint(river)}/_meta",
-                                                river_creation_doc(index).to_json
-                                                )
+        if index.nil?
+          if SearchEngine.index_exists?(Config.search_index)
+            message = "is actually an index. That won't do."
+          else
+            message = "doesn't point to any index. Perhaps you forgot to deploy an index first."
+          end
+          raise "Error: Expected alias '#{Config.search_index}' #{message}"
+        end
+        
+        repository = Repository.reader_cluster_database.to_s
+        river_payload = river_creation_doc(index, repository).to_json
 
-        raise "Problem creating river: #{JSON.parse(result.body)}" if result.failure?
+        #TODO rename endpoint and create _meta method and update dpla.rake
+        result = HTTParty.put(
+                              "#{endpoint(river)}/_meta",
+                              :body => river_payload
+                              )
+
+        raise "Problem creating river: #{JSON.parse(result.body)}" unless result.success?
         
         # Sleep a bit to let creation process finish on elasticsearch server
         sleep 1
-        puts "Created river '#{river}' pointed at index/alias '#{index}'" if verify_river_exists(river)
+        puts "Created river '#{river}' pointed at index '#{index}'" if verify_river_exists(river)
       end
       
-      def self.river_creation_doc(index_name)
-        repo_uri = URI.parse('http://' + Repository.reader_cluster_database)
-        #TODO: smart settings for these
-        # "bulk_size" : "100",
-        # "bulk_timeout" : "10ms"
-
+      def self.river_creation_doc(index, database_uri)
+        # bulk_size and bulk_timeout are just safe guesses at good values for production
+        repo_uri = URI.parse(database_uri)
         {
           'type' => 'couchdb',
           'couchdb' => {
@@ -115,17 +73,35 @@ module V1
             'db' => repo_uri.path.sub('/', ''),
             'user' => repo_uri.user,
             'password' => repo_uri.password,
-            'script' => "ctx._type = ctx.doc.ingestType || 'unknown'"
+            'bulk_size' => '100',
+            'bulk_timeout' => '2s',
+            'script' => river_creation_script
           },
           'index' => {
-            'index' => index_name
+            'index' => index
           }
         }
       end
 
+      def self.river_creation_script
+        # // title.join(' ') would use all titles in the array
+        #TODO: Create this for every field in the schema where sort == 'shadow'
+        field = %q(['sourceResource']['title'])
+        "
+        ctx._type = ctx['doc']['ingestType'] || 'unknown';
+        if (ctx._type == 'item') {
+          ctx['doc']['admin'] = ctx['doc']['admin'] || {};
+          ctx['doc']['admin']['sourceResource'] = ctx['doc']['admin']['sourceResource'] || {};
+          if (ctx['doc']#{field}) {
+            ctx['doc']['admin']#{field} = ctx['doc']#{field}[0].length > 1 ? ctx['doc']#{field}[0] : ctx['doc']#{field};
+          }
+        }
+        "
+      end
+
       def self.service_status(river=river_name)
         begin
-          HTTParty.get("#{river_endpoint(river)}/_meta").body
+          HTTParty.get("#{endpoint(river)}/_meta?pretty").body
         rescue Exception => e
           "Error: #{e}"
         end
@@ -135,7 +111,7 @@ module V1
         V1::Config.river_name
       end
       
-      def self.river_endpoint(name=river_name)
+      def self.endpoint(name=river_name)
         Config.search_endpoint + '/_river/' + name
       end
 

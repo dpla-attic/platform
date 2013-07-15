@@ -19,7 +19,7 @@ namespace :v1 do
   desc "Deploys search index by updating dpla_alias and its river"
   task :deploy_search_index, [:index] => :environment do |t, args|
     raise "Missing required index argument to rake task" unless args.index
-    V1::SearchEngine::River.deploy_index(args.index)
+    V1::SearchEngine.deploy_index(args.index)
   end
 
   desc "Creates new ElasticSearch index, schema"
@@ -32,16 +32,17 @@ namespace :v1 do
     V1::SearchEngine.display_indices
   end
 
-  desc "NOT IMPLEMENTED: Deletes the named ElasticSearch index. Requires 'really' as second param."
+  desc "Deletes the named ElasticSearch index. Requires 'really' as second param to confirm delete."
   task :delete_search_index, [:index,:really] => :environment do |t, args|
-    #TODO: V1::SearchEngine.delete_index(args.index)
+    if args.really != 'really'
+      raise "Missing/incorrect 'really' parameter. Hint: It must be the string: really"
+    end
+    V1::SearchEngine.safe_delete_index(args.index)
   end
 
   desc "Creates new ElasticSearch index, schema and river"
   task :create_search_index_with_river => :environment do
-    index = V1::SearchEngine.create_index
-    # default to using index name for river name too
-    V1::SearchEngine::River.create_river('index' => index, 'river' => index)
+    V1::SearchEngine.create_index_with_river
   end
 
   desc "Re-creates ElasticSearch index, schema"
@@ -55,7 +56,7 @@ namespace :v1 do
   end
 
   desc "Re-creates ElasticSearch river for the currently deployed index"
-  task :recreate_river do
+  task :recreate_river => :environment do
     V1::SearchEngine::River.recreate_river
   end
 
@@ -67,7 +68,7 @@ namespace :v1 do
 
   desc "Deletes ElasticSearch river named '#{V1::Config.river_name}'"
   task :delete_river do
-    V1::SearchEngine::River.delete_river
+    V1::SearchEngine::River.delete_river or puts "River does not exist, so nothing to delete"
   end
 
   desc "Gets ElasticSearch river status"
@@ -97,12 +98,18 @@ namespace :v1 do
 
   desc "Show API 'is_valid?' auth for a key"
   task :show_api_auth, [:key] do |t, args|
-    puts "Authenticated?: #{  V1::Repository.authenticate_api_key args.key }"
+    puts "Authenticated?: #{ V1::Repository.authenticate_api_key(args.key) }"
+  end
+  
+  desc "Deletes cached API auth for a single api_key"
+  task :clear_cached_api_auth, [:key] => :environment do |t, args|
+    previous = V1::ApiKey.clear_cached_auth(args.key)
+    puts "Done. (was '#{previous}')"
   end
   
   desc "Displays the CouchDB repository_endpoint the API is configured to use"
   task :repo_endpoint do
-    puts 'http://' + V1::Repository.reader_cluster_database
+    puts V1::Repository.reader_cluster_database.to_s
   end
 
   desc "Gets CouchDB repository status"
@@ -138,7 +145,7 @@ namespace :v1 do
   end
 
   desc "Re-creates CouchDB database, users, river and re-populates Couch with test dataset"
-  task :recreate_repo_env do
+  task :recreate_repo_env => :environment do
     V1::Repository.recreate_env(true)
   end
 

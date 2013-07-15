@@ -1,4 +1,5 @@
 module V1
+
   class ApplicationController < ActionController::Base
     before_filter :check_for_raised_errors
 
@@ -12,5 +13,42 @@ module V1
       render :text => "Raised Mock Error", :status => status 
       return false
     end
+    
+    #TODO: refactor authentication into ApiAuth module
+    def authenticate
+      api_key = params['api_key']
+      if !authenticate_api_key(api_key)
+        logger.info "UnauthorizedSearchError for api_key: #{ api_key || '(none)' }"
+        render_error(UnauthorizedSearchError.new, params)
+      end
+      # Delete this key now that we're done with it
+      params.delete 'api_key'
+    end
+
+    def authenticate_api_key(key_id)
+      logger.debug "API_AUTH: authenticate_key firing for key: '#{key_id}'"
+      
+      if Config.skip_key_auth_completely?
+        logger.warn "API_AUTH: skip_key_auth_completely? is true"
+        return true
+      end
+
+      if Config.accept_any_api_key? && key_id.to_s != ''
+        logger.warn "API_AUTH: accept_any_api_key? is true and an API key is present"
+        return true
+      end
+
+      begin
+        return Rails.cache.fetch(key_id, :raw => true) do
+          Repository.authenticate_api_key(key_id)
+        end
+      rescue Errno::ECONNREFUSED
+        # Avoid refusing api auth if we could not connect to the api auth server
+        logger.warn "API_AUTH: Connection Refused trying to auth api key '#{key_id}'"
+        return true
+      end
+    end    
+
   end
+
 end

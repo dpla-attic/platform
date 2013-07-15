@@ -32,5 +32,7 @@ V1::Engine.routes.draw do
   
   # General Utils
   get "/repo/status" => "search#repo_status"
+  # get "/repository/status" => "repository#status", :defaults => { :format => 'json' }
+  # get "/search/status" => "search#status", :defaults => { :format => 'json' }
 
 end

@@ -17,7 +17,7 @@ module V1
     end
 
     def self.raw_fetch(ids)
-      CouchRest.database(reader_cluster_database).get_bulk(ids)["rows"]
+      reader_cluster_database.get_bulk(ids)["rows"]
     end
 
     def self.wrap_results(results)
@@ -58,7 +58,7 @@ module V1
 
     def self.doc_count
       # Intended for rake tasks
-      CouchRest.database(admin_cluster_database).info['doc_count'] rescue 'Error'
+      admin_cluster_database.info['doc_count'] rescue 'Error'
     end
 
     def self.import_test_dataset
@@ -70,7 +70,7 @@ module V1
     end
 
     def self.import_docs(docs)
-      db = CouchRest.database(admin_cluster_database)
+      db = admin_cluster_database
       begin
         db.bulk_save docs
       rescue RestClient::BadRequest => e
@@ -80,7 +80,7 @@ module V1
     end
 
     def self.delete_docs(docs)
-      db = CouchRest.database(admin_cluster_database)
+      db = admin_cluster_database
       begin
         docs.each {|doc| db.delete_doc doc }
       rescue RestClient::BadRequest => e
@@ -99,7 +99,7 @@ module V1
     def self.create_api_auth_views
       # TODO: move to a JSON file and import from there. Ditto for dpla DB utils
       # example: curl 'http://hz4:5950/dpla_api_auth/_design/api_auth_utils/_view/find_by_owner?key="aa44@dp.la"'
-      db = CouchRest.database(admin_cluster_auth_database)
+      db = admin_cluster_auth_database
       views_doc = {
         '_id' => "_design/api_auth_utils",
         :views => {
@@ -114,9 +114,8 @@ module V1
 
     #TODO: Move api management methods into a ApiAuth module
     def self.create_api_key(owner)
-      #TODO: tests
       key = ApiKey.new(
-                       'db' => CouchRest.database(admin_cluster_auth_database),
+                       'db' => admin_cluster_auth_database,
                        'owner' => owner
                        )
       key.save
@@ -124,17 +123,17 @@ module V1
     end
 
     def self.find_api_key_by_owner(owner)
-      key = ApiKey.find_by_owner(CouchRest.database(admin_cluster_auth_database), owner)
+      key = ApiKey.find_by_owner(admin_cluster_auth_database, owner)
       key ? key['_id'] : nil
     end
     
     def self.authenticate_api_key(key_id)
-      ApiKey.authenticate(CouchRest.database(admin_cluster_auth_database), key_id)
+      ApiKey.authenticate(admin_cluster_auth_database, key_id)
     end
 
     def self.import_test_api_keys(owner=nil)
       # rake task entry point
-      db = CouchRest.database(admin_cluster_auth_database)
+      db = admin_cluster_auth_database
       keys = YAML.load_file(File.expand_path("../../../config/test_api_keys.yml", __FILE__))
 
       print "Test API keys: "
@@ -159,19 +158,18 @@ module V1
       #TODO: Needs _auth/design created
     end
     
-    def self.recreate_database(database_uri)
+    def self.recreate_database(db)
       # Delete and create a database
       #TODO: add production env check
       begin
-        CouchRest.database(database_uri).delete!
+        db.delete!
       rescue RestClient::ResourceNotFound
       rescue => e
         raise "DB Delete Error: #{e}"
       end
 
-      # create new db
       begin
-        CouchRest.database!(database_uri)
+        db.create!
       rescue StandardError => e
         raise "DB Create Error: #{e}"
       end
@@ -179,7 +177,7 @@ module V1
 
     def self.recreate_users
       recreate_user
-      db = CouchRest.database(admin_cluster_database)
+      db = admin_cluster_database
       #      assign_roles(db, true)  # these aren't used yet
       recreate_auth(db, force_recreate=false)
     end
@@ -192,7 +190,7 @@ module V1
       raise "repository.reader.user attribute undefined" if username.nil?
       couch_username = "org.couchdb.user:#{username}"
 
-      db = CouchRest.database( node_endpoint('admin', '/_users') )
+      db = admin_node_users_database
       
       begin
         delete_results = db.delete_doc( db.get(couch_username) )
@@ -265,9 +263,9 @@ module V1
     end
     
     def self.service_status(raise_exceptions=false)
-      uri = URI.parse('http://' + reader_cluster_database)
-
+      uri = URI.parse(reader_cluster_database.to_s)
       auth = {}
+
       if uri.user
         auth = {:basic_auth => {:username => uri.user, :password => uri.password}}
       end        
@@ -303,16 +301,24 @@ module V1
       build_endpoint(node_host, role, suffix)
     end
 
+    def self.admin_node_users_database
+      database(node_endpoint('admin', '/_users'))
+    end
+
     def self.admin_cluster_auth_database
-      cluster_endpoint('admin', API_KEY_DATABASE)
+      database(cluster_endpoint('admin', API_KEY_DATABASE))
     end
 
     def self.admin_cluster_database
-      cluster_endpoint('admin', repo_name)
+      database(cluster_endpoint('admin', repo_name))
     end
 
     def self.reader_cluster_database
-      cluster_endpoint('reader', repo_name)
+      database(cluster_endpoint('reader', repo_name))
+    end
+
+    def self.database(url)
+      CouchRest.database(url)
     end
 
     def self.build_endpoint(host, role=nil, suffix=nil)

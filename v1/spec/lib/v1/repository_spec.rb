@@ -16,13 +16,11 @@ module V1
 
       describe "#recreate_database" do
         it "deletes and creates a database correctly" do
-          db_uri = 'dbname'
           couchdb = mock
           couchdb.should_receive(:delete!)
-          CouchRest.should_receive(:database).with(db_uri) { couchdb }
-          CouchRest.should_receive(:database!).with(db_uri)
+          couchdb.should_receive(:create!)
 
-          subject.recreate_database(db_uri)
+          subject.recreate_database(couchdb)
         end
       end
 
@@ -115,38 +113,12 @@ module V1
     end
 
     describe "#fetch" do
-      let(:db_mock) { mock 'db' }
-      let(:couch_doc) { stub 'couch_doc' }
-      let(:couch_doc_z) { stub 'couch_doc_z' }
-      let(:endpoint_stub) { stub 'endpoint' }
-      
-      before(:each) do
-        subject.stub(:reader_cluster_database) { endpoint_stub }
-        CouchRest.stub(:database).with(endpoint_stub) { db_mock }
-      end
 
-      it "invokes CouchRest database on valid endpoint" do
+      it "hits the reader endpoint" do
         subject.stub(:wrap_results)
-        db_mock.stub(:get_bulk) { { "rows" => [stub] } }
-        CouchRest.should_receive(:database).with(endpoint_stub) { db_mock }
+        db_mock = stub(:get_bulk => { "rows" => [stub] } )
+        subject.should_receive(:reader_cluster_database) { db_mock }
         subject.fetch("1")
-      end
-
-      it "delegates to CouchRest get_bulk() on comma separated string parameters" do
-        couch_docs = [couch_doc, couch_doc_z]
-        subject.stub(:wrap_results) { couch_docs }
-        db_mock.should_receive(:get_bulk).with(["2", "Z"]) { { "rows" => couch_docs } }
-        expect(subject.fetch("2,Z")).to match_array couch_docs
-      end
-
-      it "delegates to CouchRest get_bulk() on single string parameter" do
-        db_mock.should_receive(:get_bulk).with(["2"]) { { "rows" => [] } }
-        subject.fetch("2")
-      end
-
-      it "delegates to CouchRest get_bulk() method on array of strings parameter" do
-        db_mock.should_receive(:get_bulk).with(["2", "a"]) { { "rows" => [] } }
-        subject.fetch(["2", "a"])
       end
 
     end
@@ -171,10 +143,9 @@ module V1
 
     describe "#import_docs" do
       it "imports the correct resource type via the admin endpoint" do
-        subject.stub(:admin_cluster_database) { 'admin_endpoint/dbname' }
         couchdb = mock
+        subject.stub(:admin_cluster_database) { couchdb }
 
-        CouchRest.should_receive(:database).with("admin_endpoint/dbname") { couchdb }
         docs = [stub]
         couchdb.should_receive(:bulk_save).with(docs)
 
@@ -182,11 +153,10 @@ module V1
       end
 
       it "raises an Exception if the bulk_save raises a BadRequest exception" do
-        subject.stub(:admin_cluster_database) { 'admin_endpoint/dbname' }
         couchdb = mock
+        subject.stub(:admin_cluster_database) { couchdb }
         couchdb.stub(:bulk_save).and_raise RestClient::BadRequest
 
-        CouchRest.stub(:database).with("admin_endpoint/dbname") { couchdb }
         expect {
           subject.import_docs([stub])
         }.to raise_error Exception, /^Error/
@@ -195,10 +165,9 @@ module V1
 
     describe "#delete_docs" do
       it "delegates to CouchRest with correct params" do
-        subject.stub(:admin_cluster_database) { 'admin_endpoint/dbname' }
         couchdb = mock
+        subject.stub(:admin_cluster_database) { couchdb }
 
-        CouchRest.should_receive(:database).with("admin_endpoint/dbname") { couchdb }
         docs = [stub, stub]
         # lazy way to test that it calls delete on all elements of docs array param
         couchdb.should_receive(:delete_doc).with(docs.first)
@@ -221,7 +190,7 @@ module V1
             }
           }}
         subject.stub(:node_endpoint).with('admin', '/_users') { 'node_endpoint/_users' }
-        CouchRest.stub(:database).with('node_endpoint/_users') { user_db }
+        subject.stub(:database).with('node_endpoint/_users') { user_db }
       end
 
       let(:user_db) { mock('db') }
@@ -371,7 +340,7 @@ module V1
           subject.stub(:cluster_host) { cluster_stub }
           endpoint = stub 
           subject.should_receive(:build_endpoint).with(cluster_stub, anything, anything) { endpoint }
-          
+          subject.stub(:database).with(endpoint) { endpoint }
           expect(subject.cluster_endpoint()).to eq endpoint
         end
       end
@@ -379,6 +348,7 @@ module V1
       describe "#admin_cluster_database" do
         it "delegates correctly" do
           subject.should_receive(:cluster_endpoint).with('reader', subject.repo_name)
+          subject.stub(:database)
           subject.reader_cluster_database
         end
       end
@@ -410,19 +380,19 @@ module V1
           expect(subject.authenticate_api_key('`cat /etc/passwd`')).to be_false
         end
         it "returns false for a key that does not exists" do
-          CouchRest.stub_chain(:database, :get) { raise RestClient::ResourceNotFound }
+          subject.stub_chain(:database, :get) { raise RestClient::ResourceNotFound }
           expect(subject.authenticate_api_key(key_id)).to be_false
         end
         it "returns false for a key that exists but is disabled" do
-          CouchRest.stub_chain(:database, :get) { disabled_key }
+          subject.stub_chain(:database, :get) { disabled_key }
           expect(subject.authenticate_api_key(key_id)).to be_false
         end
         it "returns true for an existing key that is not disabled" do
-          CouchRest.stub_chain(:database, :get) { active_key }
+          subject.stub_chain(:database, :get) { active_key }
           expect(subject.authenticate_api_key(key_id)).to be_true
         end
         it "allows a connection refused exception to bubble up if one is raised" do
-          CouchRest.stub_chain(:database, :get) { raise Errno::ECONNREFUSED }
+          subject.stub_chain(:database, :get) { raise Errno::ECONNREFUSED }
           
           expect {
             subject.authenticate_api_key(key_id)
@@ -435,13 +405,10 @@ module V1
         it "calls key.new with the correct params" do
           db = stub
           owner = stub
-          CouchRest.stub(:database).with(subject.admin_cluster_auth_database) { db }
+          subject.stub(:admin_cluster_auth_database) { db }
           key_stub = stub(:save => nil)
-          ApiKey.should_receive(:new)
-            .with({
-                    'db' => db,
-                    'owner' => owner
-                  }) { key_stub }
+          
+          ApiKey.should_receive(:new).with( {'db' => db,'owner' => owner} ) { key_stub }
           expect(subject.create_api_key(owner)).to eq key_stub
         end
         

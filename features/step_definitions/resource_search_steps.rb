@@ -8,7 +8,7 @@ Then(/^the API should return results sorted by relevancy$/) do
 end
 
 Then /^the API should return sorted records (.*?)$/ do |id_list|
-  json = resource_query_to_json(@resource, @params)
+  json = resource_query_to_json(@resource, @params, true)
 
   expect(
     json.map {|doc| doc['_id'] }

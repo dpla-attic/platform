@@ -5,9 +5,8 @@ module V1
   module Searchable
 
     describe Sort do      
-#      let(:resource) { 'test_resource' }
       let(:search) { stub.as_null_object }
-        let(:resource) { 'testitem' }
+      let(:resource) { 'testitem' }
 
       context "Constants" do
 
@@ -97,7 +96,7 @@ module V1
           params = {}
           expect(
                  subject.build_sort_attributes(resource, params)
-                 ).to eq [ { '_score' => 'desc' } ]
+                 ).to eq({ '_score' => 'desc' })
         end
 
         it "uses default sort_order if no sort_order param present" do
@@ -107,7 +106,7 @@ module V1
           params = {'sort_by' => name}
           expect(
                  subject.build_sort_attributes(resource, params)
-                 ).to eq [ {name => subject::DEFAULT_SORT_ORDER} ]
+                 ).to eq({name => subject::DEFAULT_SORT_ORDER})
         end
 
 
@@ -118,7 +117,7 @@ module V1
           subject.stub(:sort_by).with(resource, name) { field }
           expect(
                  subject.build_sort_attributes(resource, params)
-                 ).to eq [ {'_geo_distance' => { name => '41,-71', 'order' => 'asc' } } ]
+                 ).to eq({'_geo_distance' => { name => '41,-71', 'order' => 'asc' }})
         end
 
         it "returns correct array for script sort" do
@@ -130,13 +129,13 @@ module V1
           expect(
                  subject.build_sort_attributes(resource, params)
                  ).to eq( 
-                         [{
-                            '_script' => {
-                              'script' => "s='';foreach(val : doc['#{name}'].values) {s += val + ' '} s",
-                              'type' => "string",
-                              'order' => 'asc'
-                            }
-                          }]
+                         {
+                           '_script' => {
+                             'script' => "s='';foreach(val : doc['#{name}'].values) {s += val + ' '} s",
+                             'type' => "string",
+                             'order' => 'asc'
+                           }
+                         }
                          )
 
         end

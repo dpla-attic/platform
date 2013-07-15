@@ -27,7 +27,6 @@ module V1
         else
           raise BadRequestSearchError, "Invalid sort_order value: #{raw_order}"
         end
-
       end
 
       def self.sort_by(resource, field_name)
@@ -62,35 +61,35 @@ module V1
           end
           
           # Default sort order
-          return [{ '_score' => 'desc' }]
+          return { '_score' => 'desc' }
         end
 
         sort_field = sort_by(resource, sort_by_name)
         sort_order = sort_order(params)
 
         if sort_field.sort == 'field'
-          [{
-             sort_field.name => sort_order
-           }]
+          {
+            sort_field.name => sort_order
+          }
         elsif sort_field.sort == 'script'
           # script sort to work around ElasticSearch not supporting sort by array value fields
           # Could be a potential performance issue.
           raise "Cannot script-sort on analyzed field" if sort_field.analyzed?
 
-          [{
-             '_script' => {
-               'script' => "s='';foreach(val : doc['#{sort_field.name}'].values) {s += val + ' '} s",
-               'type' => 'string',
-               'order' => sort_order
-             }
-           }]
+          {
+            '_script' => {
+              'script' => "s='';foreach(val : doc['#{sort_field.name}'].values) {s += val + ' '} s",
+              'type' => 'string',
+              'order' => sort_order
+            }
+          }
         elsif sort_field.sort == 'geo_distance'
           if params['sort_by_pin'].to_s == ''
             raise BadRequestSearchError, "Missing required sort_by_pin parameter when sorting on #{sort_field.name}"
           end
-          [{
-             '_geo_distance' => { sort_field.name => params['sort_by_pin'], 'order' => sort_order }
-           }]
+          {
+            '_geo_distance' => { sort_field.name => params['sort_by_pin'], 'order' => sort_order }
+          }
         end
       end
 
