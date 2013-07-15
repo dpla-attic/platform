@@ -15,10 +15,10 @@ module V1
       end
 
       def self.delete_river(name=river_name)
-        return if HTTParty.head(river_endpoint(name) + '/_status').code == 404
+        return if HTTParty.head(endpoint(name) + '/_status').code == 404
 
         puts "Deleting river '#{name}'"
-        result = HTTParty.delete(river_endpoint(name))
+        result = HTTParty.delete(endpoint(name))
 
         if result.success?
           # Give a successful river delete a chance to finish on the search server
@@ -37,9 +37,22 @@ module V1
         index = options['index'] || SearchEngine.alias_to_index(Config.search_index)
         river = options['river'] || Config.river_name
 
+        if index.nil?
+          if SearchEngine.index_exists?(Config.search_index)
+            message = "is actually an index. That won't do."
+          else
+            message = "doesn't point to any index. Perhaps you forgot to deploy an index first."
+          end
+          raise "Error: Expected alias '#{Config.search_index}' #{message}"
+        end
+        
+        repository = Repository.reader_cluster_database.to_s
+        river_payload = river_creation_doc(index, repository).to_json
+
+        #TODO rename endpoint and create _meta method and update dpla.rake
         result = HTTParty.put(
-                              "#{river_endpoint(river)}/_meta",
-                              :body => river_creation_doc(index).to_json
+                              "#{endpoint(river)}/_meta",
+                              :body => river_payload
                               )
 
         raise "Problem creating river: #{JSON.parse(result.body)}" unless result.success?
@@ -49,9 +62,9 @@ module V1
         puts "Created river '#{river}' pointed at index '#{index}'" if verify_river_exists(river)
       end
       
-      def self.river_creation_doc(index_name)
-        repo_uri = URI.parse(Repository.reader_cluster_database.to_s)
+      def self.river_creation_doc(index, database_uri)
         # bulk_size and bulk_timeout are just safe guesses at good values for production
+        repo_uri = URI.parse(database_uri)
         {
           'type' => 'couchdb',
           'couchdb' => {
@@ -62,17 +75,33 @@ module V1
             'password' => repo_uri.password,
             'bulk_size' => '100',
             'bulk_timeout' => '2s',
-            'script' => "ctx._type = ctx.doc.ingestType || 'unknown'"
+            'script' => river_creation_script
           },
           'index' => {
-            'index' => index_name
+            'index' => index
           }
         }
       end
 
+      def self.river_creation_script
+        # // title.join(' ') would use all titles in the array
+        #TODO: Create this for every field in the schema where sort == 'shadow'
+        field = %q(['sourceResource']['title'])
+        "
+        ctx._type = ctx['doc']['ingestType'] || 'unknown';
+        if (ctx._type == 'item') {
+          ctx['doc']['admin'] = ctx['doc']['admin'] || {};
+          ctx['doc']['admin']['sourceResource'] = ctx['doc']['admin']['sourceResource'] || {};
+          if (ctx['doc']#{field}) {
+            ctx['doc']['admin']#{field} = ctx['doc']#{field}[0].length > 1 ? ctx['doc']#{field}[0] : ctx['doc']#{field};
+          }
+        }
+        "
+      end
+
       def self.service_status(river=river_name)
         begin
-          HTTParty.get("#{river_endpoint(river)}/_meta?pretty").body
+          HTTParty.get("#{endpoint(river)}/_meta?pretty").body
         rescue Exception => e
           "Error: #{e}"
         end
@@ -82,7 +111,7 @@ module V1
         V1::Config.river_name
       end
       
-      def self.river_endpoint(name=river_name)
+      def self.endpoint(name=river_name)
         Config.search_endpoint + '/_river/' + name
       end
 
