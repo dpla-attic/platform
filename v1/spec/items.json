@@ -671,10 +671,63 @@
     {
         "_id": "item-ts3",
         "id": "item-ts3",
+         "ingestType": "item",
+         "sourceResource": {
+             "contributor": "titlesort",
+             "title": "title AAAfield"
+         }
+    },
+    {
+        "_id": "item-ss1",
+        "id": "item-ss1",
         "ingestType": "item",
         "sourceResource": {
-            "contributor": "titlesort",
-            "title": "title AAAfield"
+            "contributor": "shadowsort",
+            "title": ["DDD", "AAA"]
+        }
+    },
+    {
+        "_id": "item-ss2",
+        "id": "item-ss2",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "shadowsort",
+            "title": ["CCC", "BBB"]
+        }
+    },
+    {
+        "_id": "item-ss1-array",
+        "id": "item-ss1-array",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "shadowarraysort",
+            "title": ["AAA", "CCC"]
+        }
+    },
+    {
+        "_id": "item-ss2-array",
+        "id": "item-ss2-array",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "shadowarraysort",
+            "title": ["AAA", "BBB"]
+        }
+    },
+    {
+        "_id": "item-ss3-array",
+        "id": "item-ss3-array",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "shadowarraysort",
+            "title": ["AAA", "DDD"]
+        }
+    },
+    {
+        "_id": "item-wood",
+        "id": "item-wood",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "2 x 4 pieces of wood are actually 1 1/2\" by 3 1/2\" after milling"
         }
     }
 ]

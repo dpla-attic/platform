@@ -84,15 +84,14 @@ module V1
       end
 
       def self.river_creation_script
-        # // title.join(' ') would use all titles in the array
         #TODO: Create this for every field in the schema where sort == 'shadow'
         field = %q(['sourceResource']['title'])
         "
         ctx._type = ctx['doc']['ingestType'] || 'unknown';
         if (ctx._type == 'item') {
-          ctx['doc']['admin'] = ctx['doc']['admin'] || {};
-          ctx['doc']['admin']['sourceResource'] = ctx['doc']['admin']['sourceResource'] || {};
           if (ctx['doc']#{field}) {
+            ctx['doc']['admin'] = ctx['doc']['admin'] || {};
+            ctx['doc']['admin']['sourceResource'] = ctx['doc']['admin']['sourceResource'] || {};
             ctx['doc']['admin']#{field} = ctx['doc']#{field}[0].length > 1 ? ctx['doc']#{field}[0] : ctx['doc']#{field};
           }
         }

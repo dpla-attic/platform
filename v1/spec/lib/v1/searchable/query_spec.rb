@@ -52,30 +52,6 @@ module V1
         
       end
 
-      describe "#field_boost_for_all" do
-      end
-
-      # describe "#ids_query" do
-      #   it "returns correct args for a single ID" do
-      #     params = {'ids' => 'aaa'}
-      #     expect(subject.ids_query(resource, params))
-      #       .to match_array([['aaa'], 'test_resource'])
-          
-      #   end
-
-      #   it "returns correct args for multiple IDs" do
-      #     params = {'ids' => 'aaa,bbb'}
-      #     expect(subject.ids_query(resource, params))
-      #       .to match_array([ %w(aaa bbb), 'test_resource'])
-      #   end
-
-      #   it "returns empty array when no ids query param exists" do
-      #     params = {}
-      #     expect(subject.ids_query(resource, params))
-      #       .to match_array([])
-      #   end
-      # end
-
       describe "#default_attributes" do
         it "contains the expects attrs" do
         expect(subject.default_attributes)
@@ -181,9 +157,24 @@ module V1
           expect(subject.protect_metacharacters(string)).to eq 'harvard \\(lol\\)'
         end
         
-        it "does not escape '*' or '\"' meta-characters" do
-          string = '"harv*"'
+        it "does not escape '*' meta-character" do
+          string = 'harv*'
           expect(subject.protect_metacharacters(string)).to eq string
+        end
+
+        it "preserves double-quote wrapping" do
+          string = '"harv"'
+          expect(subject.protect_metacharacters(string)).to eq string
+        end
+
+        it "escapes internal double quotes" do
+          string = 'ha"rv'
+          expect(subject.protect_metacharacters(string)).to eq 'ha\"rv'
+        end
+
+        it "escapes internal double quotes and preserves double-quote wrapping" do
+          string = '"ha"rv"'
+          expect(subject.protect_metacharacters(string)).to eq '"ha\"rv"'
         end
 
         it "escapes meta-characters at the beginning of a string" do

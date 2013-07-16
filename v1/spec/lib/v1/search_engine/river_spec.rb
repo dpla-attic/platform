@@ -40,12 +40,6 @@ module V1
                    )
           end
 
-          describe "#river_creation_script" do
-            it "returns the correct content" do
-              
-            end
-          end
-
         end
 
       end

@@ -27,6 +27,15 @@ module V1
         'date_detection' => false,
         'properties' => {
           '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
+          'admin' => {
+            'properties' => { #shadow_sort fields
+              'sourceResource' => {
+                'properties' => {
+                  'title' => { 'type' => 'string', 'index' => 'not_analyzed' },
+                }
+              }
+            }
+          },
           'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
           'sourceResource' => {
             'properties' => {
@@ -146,13 +155,7 @@ module V1
                   'end'  => { 'type' => 'date', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true, 'null_value' => '9999' }
                 }
               },
-              'title' => {
-                'type' => 'multi_field',
-                'fields' => {
-                  'title' => { 'type' => 'string', 'sort' => 'multi_field' },
-                  'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script'}
-                }
-              },
+              'title' => { 'type' => 'string', 'sort' => 'shadow' },
               'type' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
             }
           },  #/sourceResource
@@ -197,7 +200,6 @@ module V1
             }
           },
           '@context' => { 'type' => 'object', 'enabled' => false },
-          'admin' => { 'type' => 'object', 'enabled' => false },
           'originalRecord' => { 'type' => 'object', 'enabled' => false },
           'ingestType' => { 'enabled' => false },
           'ingestDate' => { 'enabled' => false },

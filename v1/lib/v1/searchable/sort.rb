@@ -75,13 +75,16 @@ module V1
           # script sort to work around ElasticSearch not supporting sort by array value fields
           # Could be a potential performance issue.
           raise "Cannot script-sort on analyzed field" if sort_field.analyzed?
-
           {
             '_script' => {
               'script' => "s='';foreach(val : doc['#{sort_field.name}'].values) {s += val + ' '} s",
               'type' => 'string',
               'order' => sort_order
             }
+          }
+        elsif sort_field.sort == 'shadow'
+          {
+            'admin.' + sort_field.name => sort_order
           }
         elsif sort_field.sort == 'geo_distance'
           if params['sort_by_pin'].to_s == ''

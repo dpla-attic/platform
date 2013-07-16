@@ -24,3 +24,19 @@ Feature: Search for items by keyword with meta-characters in the query string
     When I item-search for "}?harv[a:z]("
     Then I should get http status code "200"
 
+  Scenario: Basic keyword search with embedded double-quote
+    When I item-search for '2 pieces, 3 3/4" x 7'
+    Then I should get http status code "200"
+
+  Scenario: Basic keyword search with embedded double-quote wrapped in outer double-quotes
+    When I item-search for '"2 pieces, 3 3/4" x 7"'
+    Then I should get http status code "200"
+
+  Scenario: Basic keyword search wrapped in outer double-quotes
+    When I item-search for '"2 pieces, 3 x 7"'
+    Then I should get http status code "200"
+
+  Scenario: Basic keyword search with embedded double-quote wrapped in outer double-quotes, expecting a search hit
+    When I item-search for '"1 1/2" by 3 1/2""'
+    Then the API should return record item-wood
+
