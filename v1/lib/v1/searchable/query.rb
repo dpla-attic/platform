@@ -10,7 +10,7 @@ module V1
 
       # not escaped, but probably could be: '&&', '||'
       # not escaped, because they don't seem to need it: '+', '-',
-      ESCAPED_METACHARACTERS = [ '!', '(', ')', '{', '}', '[', ']', '^', '~', '?', ':', '\\' ]
+      ESCAPED_METACHARACTERS = [ '"', '!', '(', ')', '{', '}', '[', ']', '^', '~', '?', ':', '\\' ]
 
       def self.execute_empty_search(search)
         # We need to be explicit with an empty search
@@ -53,25 +53,23 @@ module V1
         end
         true
       end
-      
-      # def self.ids_query(resource, params)
-      #   # This is not actually available via the front-end, but it could be if we wanted
-      #TODO: This should actually be done as a filter 
-      #   ids = params['ids'].to_s
-      #   return [] if ids == ''
-
-      #   [ids.split(/,\s*/), resource]
-      # end
 
       def self.escaped_metacharacters
         ESCAPED_METACHARACTERS
       end
 
       def self.protect_metacharacters(string)
-        escaped_metacharacters.each do |mc|
-          string.gsub!(mc, '\\' + mc.split('').join('\\\\') )
+        # Note that we preserve double-quote wrapping, which needs no escaping
+        tmp = string.dup
+        if tmp =~ /^"(.+)"$/
+          tmp = $1
+          quoted = true
         end
-        string
+        escaped_metacharacters.each do |mc|
+          tmp.gsub!(mc, '\\' + mc.split('').join('\\\\') )
+        end
+        
+        quoted ? %Q("#{tmp}") : tmp
       end
 
       def self.string_queries(resource, params)
@@ -93,7 +91,7 @@ module V1
           end
 
           query_strings << [
-                            protect_metacharacters(value.dup),
+                            protect_metacharacters(value),
                             default_attributes.merge({'fields' => fields})
                            ]
         end

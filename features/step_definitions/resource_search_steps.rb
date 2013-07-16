@@ -37,6 +37,16 @@ When /^I (.+)-search for( the phrase)? "(.*?)"( in the "(.*?)" field)?$/ do |res
                  })
 end
 
+When /^I (.+)-search for '(.*?)'$/ do |resource, keyword|
+  # For queries wrapped in single quotes
+  @resource = resource
+  @query_field = 'q'
+  @query_string = keyword
+  @params.merge!({
+                   @query_field => @query_string
+                 })
+end
+
 # When /^I search the "(.*?)" field for records with a date between "(.*?)" and "(.*?)"$/ do |field, start_date, end_date|
 #   @params.merge!({
 #     "#{field}.after" => start_date,
