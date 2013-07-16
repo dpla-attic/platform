@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'rails', '3.2.13'
-gem 'unicorn'
+gem 'unicorn', '4.6.3'
 gem 'rubygems-bundler'
 gem 'pg', :require => 'pg'
 gem 'sqlite3'  
