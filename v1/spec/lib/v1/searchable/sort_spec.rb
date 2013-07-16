@@ -140,6 +140,20 @@ module V1
 
         end
 
+        it "returns correct value for shadow sort" do
+          name = 'sourceResource.title'
+          params = {'sort_by' => name}
+          field = stub(:name => name, :sort => 'shadow', :sortable? => true ) #, :analyzed? => true
+
+          subject.stub(:sort_by).with(resource, name) { field }
+          expect(
+                 subject.build_sort_attributes(resource, params)
+                 ).to eq( 
+                         { 'admin.sourceResource.title' => 'asc' }
+                         )
+          
+        end
+
       end
 
     end

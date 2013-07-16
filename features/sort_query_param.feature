@@ -21,7 +21,13 @@ Feature: Sort search results
     And set page to 2
     Then the API should return sorted records C, D, Doppel1
 
-  Scenario: Item sort on multi_field field
+  Scenario: Item sort on shadow field
+    When I item-search for "shadowsort" in the "sourceResource.contributor" field
+    And sort by "sourceResource.title"
+    And set page_size to 2
+    Then the API should return sorted records item-ss2, item-ss1
+
+  Scenario: Item sort on shadow field with a mix of string/array data
     When I item-search for "titlesort" in the "sourceResource.contributor" field
     And sort by "sourceResource.title"
     And set page_size to 3
