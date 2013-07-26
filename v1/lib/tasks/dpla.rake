@@ -22,9 +22,9 @@ namespace :v1 do
     V1::SearchEngine.deploy_index(args.index)
   end
 
-  desc "Creates new ElasticSearch index, schema"
+  desc "Creates new ElasticSearch index"
   task :create_search_index => :environment do
-    V1::SearchEngine.create_index
+    V1::SearchEngine.create_index 'foo'
   end
 
   desc "Lists existing ElasticSearch indices"
@@ -40,17 +40,25 @@ namespace :v1 do
     V1::SearchEngine.safe_delete_index(args.index)
   end
 
-  desc "Creates new ElasticSearch index, schema and river"
+  desc "Creates new ElasticSearch index and river"
   task :create_search_index_with_river => :environment do
     V1::SearchEngine.create_index_with_river
   end
 
-  desc "Re-creates ElasticSearch index, schema"
+  desc "Creates new ElasticSearch index and river and *immediately* deploys it"
+  task :create_and_deploy_index => :environment do
+    if Rails.env.production?
+      raise "Refusing to run create_and_deploy_index in production b/c it would deploy an empty index"
+    end
+    V1::SearchEngine.create_and_deploy_index
+  end
+
+  desc "Re-creates ElasticSearch index"
   task :recreate_search_index => :environment do
     V1::SearchEngine.recreate_index!
   end
 
-  desc "Re-creates ElasticSearch index, schema, river and re-populates index with test dataset"
+  desc "Re-creates ElasticSearch index, river and re-populates index with test dataset"
   task :recreate_search_env => :environment do
     V1::SearchEngine.recreate_env!
   end
@@ -91,7 +99,7 @@ namespace :v1 do
     puts V1::Config.search_endpoint
   end
 
-  desc "Displays the schema that ElasticSearch is currently using, according to ElasticSearch."
+  desc "Displays the current schema in ElasticSearch, according to ElasticSearch."
   task :search_schema => :environment do
     puts V1::SearchEngine.search_schema
   end

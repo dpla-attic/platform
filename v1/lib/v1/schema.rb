@@ -31,7 +31,8 @@ module V1
             'properties' => { #shadow_sort fields
               'sourceResource' => {
                 'properties' => {
-                  'title' => { 'type' => 'string', 'index' => 'not_analyzed' },
+#                  'title' => { 'type' => 'string', 'index' => 'not_analyzed' },
+                  'title' => { 'type' => 'string', 'analyzer' => 'canonical_sort' },
                 }
               }
             }

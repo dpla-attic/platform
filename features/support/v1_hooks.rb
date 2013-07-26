@@ -11,14 +11,6 @@ Before do
   @invalid_api_key = '6c30d962ed96c45c7f007635ef011354'
 end
 
-Before("@api_key_generation") do
-  puts 'Before("@api_key_generation") do'
-end
-
-After("@api_key_generation") do
-  puts 'After("@api_key_generation") do'
-end
-
 if ENV['CUKE_SETUP'] == 'skip'
   puts "~~~~~~~~~~~~~~~~\n~~~~~~~~~~~~ SKIPPING Setup Yo. ~~~~~~~~~~~~"
   puts "~~~~~~~ (ENV['CUKE_SETUP'] == 'skip' ~~~~~~~"
@@ -31,14 +23,14 @@ else
 
   puts "Initializing test environment for the repository and search index..."
   V1::Repository.recreate_env
-  sleep 1
+  sleep 2
   V1::SearchEngine.create_and_deploy_index
   
   # Sleep a bit to let CouchDB finish doing its thing internally, as well as letting 
   # the river catch up on indexing the docs added to CouchDB.
   # Note: A HTTP 419 error from CouchDB means you need to increase that sleep value
   # a second or two.
-  sleep 4
+  sleep 5
   puts "Search docs       : #{V1::SearchEngine.doc_count}"
 end
 

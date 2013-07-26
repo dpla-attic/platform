@@ -1,6 +1,7 @@
 require_relative 'config'
 require_relative 'schema'
 require_relative 'search_engine/river'
+require_relative 'search_engine/analysis'
 require 'tire'
 
 module V1
@@ -127,7 +128,10 @@ module V1
       endpoint_config_check
 
       index = Tire.index(name)
-      index.create( 'mappings' => schema_mapping )
+      index.create(
+                   'mappings' => schema_mapping,
+                   'settings' => SearchEngine::Analysis.for_new_index
+                   )
 
       if index.response.code == 200
         puts "Created index '#{name}'"
@@ -145,7 +149,7 @@ module V1
     def self.endpoint_config_check
       # Catch any calls that skipped the Tire initializer (perhaps from being run outside of Rails)
       if Tire::Configuration.url != Config.search_endpoint
-        raise "It doesn't look like Tire has been initalized to use the correct search endpoint"
+        raise "It doesn't look like Tire has been initialized to use the correct search endpoint"
       end
     end
 
