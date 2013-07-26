@@ -19,27 +19,27 @@ module V1
       describe "#build_all" do
         it "returns true if it created any facets"
         it "returns false if it did not create any facets" do
-          expect(subject.build_all(resource, stub, {}, false)).to be_false
+          expect(subject.build_all(resource, double, {}, false)).to be_false
         end
         it "calls the search.facet block with the correct params"
         it "raises an error for a facet request on a invalid field" do
           invalid_name = 'invalid_field_name'
-          field = stub(:facetable? => false)
+          field = double(:facetable? => false)
           subject.stub(:expand_facet_fields) { [invalid_name] }
           subject.stub(:parse_facet_name) { nil }
 
           expect {
-            subject.build_all(stub, stub, {'facets' => invalid_name})
+            subject.build_all(double, double, {'facets' => invalid_name})
           }.to raise_error BadRequestSearchError, /Invalid field.+ specified in facets param: #{invalid_name}/i
 
         end
         it "raises an error for a facet request on a valid, but not-facetable field" do
-          field = stub(:facetable? => false)
+          field = double(:facetable? => false)
           subject.stub(:expand_facet_fields) { ['title'] }
           subject.stub(:parse_facet_name) { field }
 
           expect {
-            subject.build_all(stub, stub, {'facets' => 'title'})
+            subject.build_all(double, double, {'facets' => 'title'})
           }.to raise_error BadRequestSearchError, /Non-facetable field.+ param: title/i
         end
       end
@@ -47,7 +47,7 @@ module V1
 
       describe "#parse_facet_name" do
         it "returns the result of Schema.field" do
-          field = stub
+          field = double
           Schema.should_receive(:field).with(resource, 'format') { field }
           expect(subject.parse_facet_name(resource, 'format')).to eq field
         end
@@ -75,29 +75,29 @@ module V1
 
       describe "#facet_type" do
         it "returns 'geo_distance' for geo_point type fields" do
-          field = stub('spatial.coordinates', :geo_point? => true)
+          field = double('spatial.coordinates', :geo_point? => true)
           expect(subject.facet_type(field)).to eq 'geo_distance'
         end
         
         it "returns 'date' for date type field with no interval" do
-          field = stub('date', :geo_point? => false, :date? => true, :facet_modifier => nil)
+          field = double('date', :geo_point? => false, :date? => true, :facet_modifier => nil)
           expect(subject.facet_type(field)).to eq 'date'
         end
         
         it "returns 'date' for date type field with a date_histogram interval" do
-          field = stub('date', :geo_point? => false, :date? => true, :facet_modifier => 'year')
+          field = double('date', :geo_point? => false, :date? => true, :facet_modifier => 'year')
           expect(subject.facet_type(field)).to eq 'date'
         end
         
         it "returns 'range' for date type field with a custom range interval" do
-          field = stub('date', :geo_point? => false, :date? => true, :facet_modifier => 'century')
+          field = double('date', :geo_point? => false, :date? => true, :facet_modifier => 'century')
           expect(subject.facet_type(field)).to eq 'range'
-          field = stub('date', :geo_point? => false, :date? => true, :facet_modifier => 'decade')
+          field = double('date', :geo_point? => false, :date? => true, :facet_modifier => 'decade')
           expect(subject.facet_type(field)).to eq 'range'
         end
         
         it "returns 'terms' for string type fields" do
-          field = stub('date', :geo_point? => false, :date? => false, :facet_modifier => nil)
+          field = double('date', :geo_point? => false, :date? => false, :facet_modifier => nil)
           expect(subject.facet_type(field)).to eq 'terms'
         end
       end
@@ -105,8 +105,8 @@ module V1
       describe "#expand_facet_fields" do
 
         it "returns all facetable subfields for a non-facetable field" do
-          subfield = stub(:facetable? => true, :name => 'somefield.sub2a', :geo_point? => false)
-          field = stub(:facetable? => false, :name => 'somefield', :subfields => [subfield], :geo_point? => false)
+          subfield = double(:facetable? => true, :name => 'somefield.sub2a', :geo_point? => false)
+          field = double(:facetable? => false, :name => 'somefield', :subfields => [subfield], :geo_point? => false)
           Schema.stub(:field).with(resource, 'somefield') { field }
           expect(
                  subject.expand_facet_fields(resource, %w( somefield ) )
@@ -114,7 +114,7 @@ module V1
         end
 
         it "returns a facetable field with no subfields" do
-          field = stub(:facetable? => true, :name => 'id', :subfields => [])
+          field = double(:facetable? => true, :name => 'id', :subfields => [])
           Schema.stub(:field).with(resource, 'id') { field }
           expect(
                  subject.expand_facet_fields(resource, %w( id ) )
@@ -122,7 +122,7 @@ module V1
         end
 
         it "returns a non-facetable field with no facetable subfields" do
-          field = stub(:facetable? => false, :name => 'description', :subfields => [])
+          field = double(:facetable? => false, :name => 'description', :subfields => [])
           Schema.stub(:field).with(resource, 'description') { field }
           expect(
                  subject.expand_facet_fields(resource, %w( description ) )
@@ -130,9 +130,9 @@ module V1
         end
 
         it "returns all facetable subfields for a non-facetable field" do
-          sub1 = stub(:facetable? => true, :name => 'somefield.sub2a', :geo_point? => false)
-          sub2 = stub(:facetable? => true, :name => 'somefield.sub2a_geo', :geo_point? => true)
-          field = stub(:facetable? => false, :name => 'somefield', :subfields => [sub1, sub2], :geo_point? => false)
+          sub1 = double(:facetable? => true, :name => 'somefield.sub2a', :geo_point? => false)
+          sub2 = double(:facetable? => true, :name => 'somefield.sub2a_geo', :geo_point? => true)
+          field = double(:facetable? => false, :name => 'somefield', :subfields => [sub1, sub2], :geo_point? => false)
           Schema.stub(:field).with(resource, 'somefield') { field }
           expect(
                  subject.expand_facet_fields(resource, %w( somefield ) )
@@ -140,11 +140,11 @@ module V1
         end
 
         it "returns the correct values when called with a mix of fields" do
-          subfield = stub(:facetable? => true, :name => 'somefield.sub2a', :geo_point? => false)
-          somefield = stub(:facetable? => false, :name => 'somefield', :subfields => [subfield], :geo_point? => false)
+          subfield = double(:facetable? => true, :name => 'somefield.sub2a', :geo_point? => false)
+          somefield = double(:facetable? => false, :name => 'somefield', :subfields => [subfield], :geo_point? => false)
           Schema.stub(:field).with(resource, 'somefield') { somefield }
 
-          id_field = stub(:facetable? => true, :name => 'id', :subfields => [])
+          id_field = double(:facetable? => true, :name => 'id', :subfields => [])
           Schema.stub(:field).with(resource, 'id') { id_field }
 
           expect(
@@ -156,11 +156,11 @@ module V1
 
       describe "#facet_display_name" do
         it "returns correct value for non-modified date facets" do
-          field = stub(:name => 'somename', :date? => false )
+          field = double(:name => 'somename', :date? => false )
           expect(subject.facet_display_name(field)).to eq 'somename'
         end
         it "returns correct value for date facets with a facet modifier" do
-          field = stub(:name => 'somename', :date? => true, :facet_modifier => 'modified' )
+          field = double(:name => 'somename', :date? => true, :facet_modifier => 'modified' )
           expect(subject.facet_display_name(field)).to eq 'somename.modified'
         end
       end

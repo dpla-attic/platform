@@ -46,7 +46,7 @@ module V1
 
         expect {
           subject.validate_query_params({'q' => 'banana', 'title' => 'curious george'})
-        }.not_to raise_error BadRequestSearchError
+        }.not_to raise_error
 
         expect {
           subject.validate_query_params({'invalid_field' => 'banana'})
@@ -139,13 +139,14 @@ module V1
         params = {'fields' => 'title,description'}
         expect {
           subject.validate_field_params(params)
-        }.not_to raise_error BadRequestSearchError
+        }.not_to raise_error
       end
       it "does not raise an error when no fields are specified" do
+        Schema.stub(:queryable_field_names).with(resource) { %w( title description ) }
         params = {}
         expect {
           subject.validate_field_params(params)
-        }.not_to raise_error BadRequestSearchError
+        }.not_to raise_error
       end
       
     end
@@ -197,14 +198,14 @@ module V1
 
     describe "#wrap_results" do
       it "wraps results set correctly" do
-        results = stub("results", :total => 10, :facets => nil)
-        search = stub("search", :results => results, :options => {:from => 0, :size => 10})
-        formatted_results = stub
-        facets = stub
+        results = double("results", :total => 10, :facets => nil)
+        search = double("search", :results => results, :options => {:from => 0, :size => 10})
+        formatted_results = double
+        facets = double
         
         subject.stub(:format_results) { formatted_results }
         subject.stub(:format_facets) { facets }
-        params = stub
+        params = double
         subject.stub(:get_facet_size)
 
         expect(subject.wrap_results(search, params))
@@ -418,8 +419,8 @@ module V1
 
     describe "#get_facet_size" do
       it "delegates to Facet module" do
-        params = stub
-        facet_size = stub
+        params = double
+        facet_size = double
         Searchable::FacetOptions.should_receive(:facet_size).with(params) { facet_size }
         expect(subject.get_facet_size(params)).to eq facet_size
       end
@@ -427,7 +428,7 @@ module V1
 
     describe "#build_queries" do
       it "calls query, filter (but not facet) build_all methods with correct params" do
-        search = stub
+        search = double
         params = {'q' => 'banana'}
         Searchable::Query.should_receive(:build_all).with(resource, search, params) { true }
         Searchable::Filter.should_receive(:build_all).with(resource, search, params) { false }
@@ -437,7 +438,7 @@ module V1
     end
 
     describe "#search" do
-      let(:mock_search) { mock('mock_search').as_null_object }
+      let(:mock_search) { double('mock_search').as_null_object }
 
       before(:each) do
         Tire.stub(:search).and_yield(mock_search)
@@ -469,8 +470,8 @@ module V1
 
       it "returns search.results() with dictionary wrapper" do
         params = {'q' => 'banana'}
-        results = stub("results")
-        dictionary_results = stub("dictionary_wrapped")
+        results = double("results")
+        dictionary_results = double("dictionary_wrapped")
         mock_search.stub(:results) { results }
         subject.stub(:wrap_results).with(mock_search, params) { dictionary_results }
         expect(subject.search(params)).to eq dictionary_results

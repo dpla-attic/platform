@@ -219,14 +219,9 @@ module V1
       # is a concern, though.
       raise "Invalid resource: #{resource}" unless full_mapping[resource]
 
-      field_names = name.split('.')
-      first_name = field_names.shift
+      current_mapping = full_mapping[resource]
 
-      #TODO: skip shift and just start current_mapping at ...[resource].
-      #init starting point for the mapping traversal.
-      current_mapping = full_mapping[resource]['properties'][first_name]
-
-      field_names.each do |word|
+      name.split('.').each do |word|
         # the rescue nil handles invalid field names at any level
         current_mapping = current_mapping['properties'][word] rescue nil
       end
@@ -239,9 +234,8 @@ module V1
       # every node in the mapping, meaning node "levelA" will be included even if
       # it has subfields.
       names = {}
-      top_level_names = full_mapping[resource]['properties'].keys
       
-      top_level_names.map do |name|
+      full_mapping[resource]['properties'].keys.each do |name|
         field = Schema.field(resource, name)
         next unless field.enabled?
 
@@ -251,14 +245,15 @@ module V1
           names[subfield.name] = subfield
         end
       end
+      
       names.values
     end
 
     def self.queryable_field_names(resource)
       # Renders mapping into a list of fields, $field.subfields, AND any additional
       # query params that can be extrapolated from certain field types.
-
       names = []
+
       all_fields(resource).each do |field|
         names << field.name
         # special handling for date ranges on this subfield's parent field name
@@ -269,6 +264,7 @@ module V1
           names << field.name.sub(/^(.+)\.(.+)$/, '\1.distance')
         end
       end
+      
       names
     end
 

@@ -4,7 +4,7 @@ module V1
   
   describe ApiKey do
     let(:owner) { 'key-email@dp.la' }
-    let(:db) { stub } 
+    let(:db) { double } 
     let(:test_params) { { 'db' => db, 'owner' => owner } }
     let(:test_key_id) { '2db038dfbbb42b9bd6ae6797e119eecc' }
     
@@ -53,19 +53,19 @@ module V1
 
       it "delegates to its db with the correct params" do
         key_id = '2db038dfbbb42b9bd6ae6797e119eecc'
-        db = mock
+        db = double
         db.should_receive(:get).with(key_id)
         ApiKey.find_by_key(db, key_id)
       end
 
       it "returns nil if a key is not found" do
-        db = mock
+        db = double
         db.should_receive(:get).with(test_key_id).and_raise RestClient::ResourceNotFound
         expect(ApiKey.find_by_key(db, test_key_id)).to be_false
       end
 
       it "lets Errno::ECONNREFUSED exceptions bubble up" do
-        db = mock
+        db = double
         db.stub(:get).and_raise Errno::ECONNREFUSED
         expect {
           ApiKey.find_by_key(db, test_key_id)
@@ -78,7 +78,7 @@ module V1
       it "returns the correct data from a key it finds" do
         owner = 'foo@bar.com'
         found_key = {'value' => 'found_key_id'}
-        db = mock
+        db = double
         ApiKey.should_receive(:sanitize_email).with(owner) { owner }
         key = db.should_receive(:view)
           .with('api_auth_utils/find_by_owner', 'key' => owner)  {
@@ -92,7 +92,7 @@ module V1
     describe "#save" do
 
       it "delegates to its db and passes itself as a hash" do
-        db = mock
+        db = double
         key = ApiKey.new('db' => db, 'owner' => 'a@b.com')
         db.should_receive(:save_doc).with(key.to_hash)
         key.save
@@ -119,7 +119,7 @@ module V1
     end
 
     describe "#authenticate" do
-      let(:db) { stub }
+      let(:db) { double }
 
       it "returns false for keys with an invalid format" do
         ApiKey.should_not_receive(:find_by_key)
