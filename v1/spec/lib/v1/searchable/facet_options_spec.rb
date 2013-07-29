@@ -25,14 +25,14 @@ module V1
 
       describe "#build_options" do
         it "raises an error for geo_point facet missing a lat/lon value" do
-          field = stub(:name => 'spatial.coordinates', :geo_point? => true, :facet_modifier => nil)
+          field = double(:name => 'spatial.coordinates', :geo_point? => true, :facet_modifier => nil)
           expect {
             subject.build_options('geo_distance', field, {})
           }.to raise_error BadRequestSearchError, /Facet 'spatial.coordinates' missing lat\/lon modifiers/i
         end
         it "returns correct options for geo_point fields with no range"  do
-          field = stub(:name => 'spatial.coordinates', :facet_modifier => '42:-71')
-          geo_facet_stub = stub
+          field = double(:name => 'spatial.coordinates', :facet_modifier => '42:-71')
+          geo_facet_stub = double
           subject.should_receive(:facet_ranges)
             .with(
                   subject.default_geo_distance_miles,
@@ -50,8 +50,8 @@ module V1
                    )
         end
         it "returns correct options for geo_point fields with explicit range"  do
-          field = stub(:name => 'spatial.coordinates', :facet_modifier => '42:-71:50mi')
-          geo_facet_stub = stub
+          field = double(:name => 'spatial.coordinates', :facet_modifier => '42:-71:50mi')
+          geo_facet_stub = double
           subject.stub(:facet_ranges) { geo_facet_stub }
           expect(subject.build_options('geo_distance', field, {}))
             .to eq(
@@ -63,7 +63,7 @@ module V1
                    )
         end
         it "returns correct options for date_histogram facet with a native interval"  do
-          field = stub(:name => 'date', :facet_modifier => 'year')
+          field = double(:name => 'date', :facet_modifier => 'year')
           expect(subject.build_options('date', field, {}))
             .to eq({
                      :interval => 'year',
@@ -71,13 +71,13 @@ module V1
                    })
         end
         it "raises an error for an unrecognized interval on a date_histogram facet" do
-          field = stub(:name => 'date', :facet_modifier => 'invalid_interval')
+          field = double(:name => 'date', :facet_modifier => 'invalid_interval')
           expect {
             subject.build_options('date', field, {})
           }.to raise_error BadRequestSearchError, /date facet 'date.invalid_interval' has invalid interval/i
         end
         it "returns correct default interval for date_histogram facet with no interval"  do
-          field = stub(:name => 'date', :facet_modifier => nil)
+          field = double(:name => 'date', :facet_modifier => nil)
           expect(subject.build_options('date', field, {}))
             .to eq({
                      :interval => 'day',
@@ -85,8 +85,8 @@ module V1
                    })
         end
         it "returns correct hash for decade date range facet"  do
-          field = stub(:name => 'date', :facet_modifier => 'decade')
-          ranges_stub = stub
+          field = double(:name => 'date', :facet_modifier => 'decade')
+          ranges_stub = double
           subject.stub(:facet_ranges).with(100, 10, 200, false) { ranges_stub}
           expect(subject.build_options('range', field, {}))
             .to eq({
@@ -95,8 +95,8 @@ module V1
                    })
         end
         it "returns correct hash for century date range facet"  do
-          field = stub(:name => 'date', :facet_modifier => 'century')
-          ranges_stub = stub
+          field = double(:name => 'date', :facet_modifier => 'century')
+          ranges_stub = double
           subject.stub(:facet_ranges).with(100, 100, 20, false) { ranges_stub}
           expect(subject.build_options('range', field, {}))
             .to eq({
@@ -106,7 +106,7 @@ module V1
         end
         it "returns size and order hash for terms filter" do
           subject.stub(:filter_facet) {{}}
-          field = stub(:name => 'subject.name', :string? => true)
+          field = double(:name => 'subject.name', :string? => true)
           expect(subject.build_options('terms', field, {}))
             .to eq({
                      :size => 50,

@@ -222,7 +222,7 @@ module V1
           end
 
           it "creates a top level field with no subfields correctly" do
-            fieldstub = stub
+            fieldstub = double
             name = 'dataProvider'
             Field.should_receive(:new)
               .with(resource,
@@ -234,7 +234,7 @@ module V1
           end
 
           it "creates a top level field with subfields correctly" do
-            fieldstub = stub
+            fieldstub = double
             name = 'sourceResource.temporal'
             Field.should_receive(:new)
               .with(resource,
@@ -246,7 +246,7 @@ module V1
           end
 
           it "creates a subfield field correctly" do
-            subfieldstub = stub
+            subfieldstub = double
             name = 'sourceResource.temporal.begin'
             Field.should_receive(:new)
               .with(
@@ -259,7 +259,7 @@ module V1
           end
 
           it "passes modifier to Field.new" do
-            fieldstub = stub
+            fieldstub = double
             name = 'dataProvider'
             Field.should_receive(:new)
               .with(resource,
@@ -271,7 +271,7 @@ module V1
           end
 
           it "handles mid-level field with subfields" do
-            midfield = stub
+            midfield = double
             name = 'sourceResource.level1.level2'
             Field.should_receive(:new)
               .with(
@@ -284,7 +284,7 @@ module V1
           end
 
           it "handles deeply nested field" do
-            subfieldstub = stub
+            subfieldstub = double
             name = 'sourceResource.level1.level2.level3A'
             Field.should_receive(:new)
               .with(

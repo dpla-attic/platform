@@ -37,7 +37,7 @@ module V1
           }.to raise_error /Error loading config file/i
       end
       it "returns existing config file parsed as yaml" do
-        yaml = stub
+        yaml = double
         YAML.stub(:load_file) { yaml }
         expect(subject.dpla).to eq yaml
       end

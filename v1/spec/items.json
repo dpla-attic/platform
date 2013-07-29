@@ -701,7 +701,7 @@
         "ingestType": "item",
         "sourceResource": {
             "contributor": "shadowarraysort",
-            "title": ["AAA", "CCC"]
+            "title": ["CCC", "AAA"]
         }
     },
     {
@@ -719,7 +719,7 @@
         "ingestType": "item",
         "sourceResource": {
             "contributor": "shadowarraysort",
-            "title": ["AAA", "DDD"]
+            "title": ["DDD", "AAA"]
         }
     },
     {
@@ -728,6 +728,51 @@
         "ingestType": "item",
         "sourceResource": {
             "title": "2 x 4 pieces of wood are actually 1 1/2\" by 3 1/2\" after milling"
+        }
+    },
+    {
+        "_id": "item-canoncasesort1",
+        "id": "item-canoncasesort1",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "canonicalcasesort",
+            "title": "ABSOLUTE ZERO2"
+        }
+    },
+    {
+        "_id": "item-canoncasesort2",
+        "id": "item-canoncasesort2",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "canonicalcasesort",
+            "title": "absolute zero1"
+        }
+    },
+    {
+        "_id": "item-canonsort1",
+        "id": "item-canonsort1",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "canonicalsort",
+            "title": "\"Honest Abe\" Lincoln, Killing Vampires"
+        }
+    },
+    {
+        "_id": "item-canonsort2",
+        "id": "item-canonsort2",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "canonicalsort",
+            "title": "[X-Files Cast Party photo]"
+        }
+    },
+    {
+        "_id": "item-canonsort3",
+        "id": "item-canonsort3",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "canonicalsort",
+            "title": "absolutely no monkeys allowed"
         }
     }
 ]

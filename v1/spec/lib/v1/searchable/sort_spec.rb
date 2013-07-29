@@ -5,7 +5,7 @@ module V1
   module Searchable
 
     describe Sort do      
-      let(:search) { stub.as_null_object }
+      let(:search) { double.as_null_object }
       let(:resource) { 'testitem' }
 
       context "Constants" do
@@ -21,9 +21,9 @@ module V1
       describe "#build_sort" do
 
         it "calls search.sort" do
-          subject.stub(:build_sort_attributes) { stub }
+          subject.stub(:build_sort_attributes) { double }
           search.should_receive(:sort)
-          subject.build_sort(resource, search, stub)
+          subject.build_sort(resource, search, double)
         end
 
       end
@@ -45,7 +45,7 @@ module V1
       describe "#sort_by" do
 
         it "returns a valid, sortable field" do
-          field = stub(:sortable? => true, :sort => 'field')
+          field = double(:sortable? => true, :sort => 'field')
           Schema.stub(:field) { field }
           expect(subject.sort_by(resource, 'id')).to eq field
         end
@@ -58,14 +58,14 @@ module V1
         end
 
         it "raises a BadRequestSearchError on a non-sortable sort_by param" do
-          Schema.stub(:field) { stub(:sortable? => false) }
+          Schema.stub(:field) { double(:sortable? => false) }
           expect  { 
             subject.sort_by(resource, 'some_analyzed_field')
           }.to raise_error BadRequestSearchError, /non-sortable field.* sort_by parameter: some_analyzed_field/i
         end
 
         it "raises a InternalServerSearchError on a multi_field sort that is missing its not_analyzed_field" do
-          Schema.stub(:field) { stub(:sortable? => true, :sort => 'multi_field', :not_analyzed_field => nil) }
+          Schema.stub(:field) { double(:sortable? => true, :sort => 'multi_field', :not_analyzed_field => nil) }
           expect  { 
             subject.sort_by(resource, 'some_analyzed_field')
           }.to raise_error InternalServerSearchError, /multi_field sort attribute missing not_analyzed sibling/i
@@ -77,7 +77,7 @@ module V1
 
         it "raises an error trying to script sort on an analyzed field" do
           params = {'sort_by' => 'raw_title'}
-          field = stub(:name => 'raw_title', :analyzed? => true, :sort => 'script')
+          field = double(:name => 'raw_title', :analyzed? => true, :sort => 'script')
           subject.stub(:sort_by) { field }
 
           expect {
@@ -101,7 +101,7 @@ module V1
 
         it "uses default sort_order if no sort_order param present" do
           name = 'id'
-          field = stub(:name => name, :sortable? => true, :sort => 'field')
+          field = double(:name => name, :sortable? => true, :sort => 'field')
           subject.stub(:sort_by).with(resource, name) { field }
           params = {'sort_by' => name}
           expect(
@@ -113,7 +113,7 @@ module V1
         it "returns correct array values for geo_point types" do
           name = 'coordinates'
           params = {'sort_by' => name, 'sort_by_pin' => '41,-71', 'order' => 'asc'}
-          field = stub(:sort => 'geo_distance', :sortable? => true, :name => name)
+          field = double(:sort => 'geo_distance', :sortable? => true, :name => name)
           subject.stub(:sort_by).with(resource, name) { field }
           expect(
                  subject.build_sort_attributes(resource, params)
@@ -123,7 +123,7 @@ module V1
         it "returns correct array for script sort" do
           name = 'title'
           params = {'sort_by' => name}
-          field = stub(:name => name, :sort => 'script', :sortable? => true, :analyzed? => false)
+          field = double(:name => name, :sort => 'script', :sortable? => true, :analyzed? => false)
 
           subject.stub(:sort_by).with(resource, name) { field }
           expect(
@@ -143,7 +143,7 @@ module V1
         it "returns correct value for shadow sort" do
           name = 'sourceResource.title'
           params = {'sort_by' => name}
-          field = stub(:name => name, :sort => 'shadow', :sortable? => true ) #, :analyzed? => true
+          field = double(:name => name, :sort => 'shadow', :sortable? => true ) #, :analyzed? => true
 
           subject.stub(:sort_by).with(resource, name) { field }
           expect(

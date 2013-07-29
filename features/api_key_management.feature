@@ -8,7 +8,3 @@ Feature: API Key Management through API endpoints
     Then I should get http status code "500"
     And I should get a JSON message containing "http://dp.la/info/developers/codex/policies/#get-a-key"
 
-  @api_key_generation @wip
-  Scenario: Create a new API key for a new user
-    When I request a new api key for "cuketest-1@dp.la"
-    Then a new key is created but not emailed to me yet

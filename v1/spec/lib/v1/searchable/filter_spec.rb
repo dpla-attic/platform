@@ -30,18 +30,18 @@ module V1
         it "Passes all the generated filters to its search arg" do
           subject.stub(:build_filters).with(resource, anything()) { built_filters } 
 
-          search = mock(:filter => nil)
+          search = double(:filter => nil)
           search.should_receive(:filter).with( *['distance', 'coords' => '42,-71'])
           search.should_receive(:filter).with( *['bbox', 'left' => '41,-70', 'right' => '43,-72'])
 
-          subject.build_all(resource, search, stub)
+          subject.build_all(resource, search, double)
         end
 
         it "returns true if it generated any filters" do
           subject.stub(:build_filters).with(resource, anything()) { built_filters } 
 
-          search = mock(:filter => nil)
-          expect(subject.build_all(resource, search, stub)).to be_true
+          search = double(:filter => nil)
+          expect(subject.build_all(resource, search, double)).to be_true
         end
         
       end

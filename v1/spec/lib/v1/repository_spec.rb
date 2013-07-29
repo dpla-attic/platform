@@ -16,7 +16,7 @@ module V1
 
       describe "#recreate_database" do
         it "deletes and creates a database correctly" do
-          couchdb = mock
+          couchdb = double
           couchdb.should_receive(:delete!)
           couchdb.should_receive(:create!)
 
@@ -87,7 +87,7 @@ module V1
         results = [{"key"=>"a", "error"=>"not_found"}]
         expect {
           subject.format_results(results)
-        }.not_to raise_error NoMethodError
+        }.not_to raise_error
       end
       
       it "gracefully handles 2/2 missing fetch results" do
@@ -97,7 +97,7 @@ module V1
                   ]
         expect {
           subject.format_results(results)
-        }.not_to raise_error NoMethodError
+        }.not_to raise_error
       end
       
       it "gracefully handles 1/2 missing fetch results" do
@@ -107,7 +107,7 @@ module V1
                   ]
         expect {
           subject.format_results(results)
-        }.not_to raise_error NoMethodError
+        }.not_to raise_error
       end
       
     end
@@ -116,7 +116,7 @@ module V1
 
       it "hits the reader endpoint" do
         subject.stub(:wrap_results)
-        db_mock = stub(:get_bulk => { "rows" => [stub] } )
+        db_mock = double(:get_bulk => { "rows" => [double] } )
         subject.should_receive(:reader_cluster_database) { db_mock }
         subject.fetch("1")
       end
@@ -125,8 +125,8 @@ module V1
 
     describe "#import_data_file" do
       it "calls import_docs with correct params" do
-        data_file = stub
-        processed_input_file = stub
+        data_file = double
+        processed_input_file = double
         SearchEngine.should_receive(:process_input_file).with(data_file, false) { processed_input_file }
         subject.should_receive(:import_docs).with(processed_input_file)
         subject.import_data_file(data_file)
@@ -143,32 +143,32 @@ module V1
 
     describe "#import_docs" do
       it "imports the correct resource type via the admin endpoint" do
-        couchdb = mock
+        couchdb = double
         subject.stub(:admin_cluster_database) { couchdb }
 
-        docs = [stub]
+        docs = [double]
         couchdb.should_receive(:bulk_save).with(docs)
 
         subject.import_docs(docs)
       end
 
       it "raises an Exception if the bulk_save raises a BadRequest exception" do
-        couchdb = mock
+        couchdb = double
         subject.stub(:admin_cluster_database) { couchdb }
         couchdb.stub(:bulk_save).and_raise RestClient::BadRequest
 
         expect {
-          subject.import_docs([stub])
+          subject.import_docs([double])
         }.to raise_error Exception, /^Error/
       end
     end
 
     describe "#delete_docs" do
       it "delegates to CouchRest with correct params" do
-        couchdb = mock
+        couchdb = double
         subject.stub(:admin_cluster_database) { couchdb }
 
-        docs = [stub, stub]
+        docs = [double, double]
         # lazy way to test that it calls delete on all elements of docs array param
         couchdb.should_receive(:delete_doc).with(docs.first)
         couchdb.should_receive(:delete_doc).with(docs.last)
@@ -193,8 +193,8 @@ module V1
         subject.stub(:database).with('node_endpoint/_users') { user_db }
       end
 
-      let(:user_db) { mock('db') }
-      let(:reader) { mock('ro_user') }
+      let(:user_db) { double('db') }
+      let(:reader) { double('ro_user') }
 
       it "deletes the existing read-only users" do
         user_db.stub(:get).with("org.couchdb.user:dpla-reader") { reader }
@@ -242,7 +242,7 @@ module V1
 
     # describe "#assign_roles" do
     #   it "should lock down database roles and create design doc for validation" do
-    #     db = mock
+    #     db = double
     #     CouchRest.stub(:database) { db }
     #     db.should_receive(:get).with('_security') { nil }
     #     db.should_receive(:save_doc)
@@ -336,9 +336,9 @@ module V1
 
       describe "#cluster_endpoint" do
         it "delegates to build_endpoint with correct host param" do
-          cluster_stub = stub
+          cluster_stub = double
           subject.stub(:cluster_host) { cluster_stub }
-          endpoint = stub 
+          endpoint = double 
           subject.should_receive(:build_endpoint).with(cluster_stub, anything, anything) { endpoint }
           subject.stub(:database).with(endpoint) { endpoint }
           expect(subject.cluster_endpoint()).to eq endpoint
@@ -403,10 +403,10 @@ module V1
 
       describe "#create_api_key" do
         it "calls key.new with the correct params" do
-          db = stub
-          owner = stub
+          db = double
+          owner = double
           subject.stub(:admin_cluster_auth_database) { db }
-          key_stub = stub(:save => nil)
+          key_stub = double(:save => nil)
           
           ApiKey.should_receive(:new).with( {'db' => db,'owner' => owner} ) { key_stub }
           expect(subject.create_api_key(owner)).to eq key_stub

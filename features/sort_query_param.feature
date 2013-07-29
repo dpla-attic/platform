@@ -8,6 +8,32 @@ Feature: Sort search results
       And the default page size is 10
       And the default test dataset is loaded
 
+  Scenario: Collection sort on multi_field field with array values using script sort
+    When I make an empty collection-search
+    And sort by "title"
+    Then I should get http status code "200"
+
+  Scenario: Sort on shadow sort field
+    When I make an empty item-search
+    And sort by "sourceResource.title"
+    Then I should get http status code "200"
+
+  Scenario: Sort on non-sortable field
+    When I make an empty item-search
+    And sort by "sourceResource.description"
+    Then I should get http status code "400"
+
+  Scenario: Sort on invalid field
+    When I make an empty item-search
+    And sort by "dingle.hopper.x"
+    Then I should get http status code "400"
+
+  Scenario: Sort with a valid field and an invalid sort_order
+    When I make an empty item-search
+    And sort by "id"
+    And order the sort by "invalid-dir"
+    Then I should get http status code "400"
+
   Scenario: Sort on sortable field
     When I make an empty item-search
     And sort by "id"
@@ -33,37 +59,29 @@ Feature: Sort search results
     And set page_size to 3
     Then the API should return sorted records item-ts3, item-ts2, item-ts1
 
+  Scenario: Item sort on shadow field on first element of array data
+    When I item-search for "shadowarraysort" in the "sourceResource.contributor" field
+    And sort by "sourceResource.title"
+    And set page_size to 3
+    Then the API should return sorted records item-ss2-array, item-ss1-array, item-ss3-array
+
+  Scenario: Item sort on canonical_sort analyzed field with mixed case values
+    When I item-search for "canonicalcasesort" in the "sourceResource.contributor" field
+    And sort by "sourceResource.title"
+    And set page_size to 2
+    Then the API should return sorted records item-canoncasesort2, item-canoncasesort1
+
+  Scenario: Item sort on canonical_sort analyzed field with non-alpha characters and mixed-case values
+    When I item-search for "canonicalsort" in the "sourceResource.contributor" field
+    And sort by "sourceResource.title"
+    And set page_size to 3
+    Then the API should return sorted records item-canonsort3, item-canonsort1, item-canonsort2
+
   Scenario: Collection sort on multi_field field
     When I collection-search for "titlesort" in the "description" field
     And sort by "title"
     And set page_size to 3
     Then the API should return sorted records coll-ts2, coll-ts1, coll-ts3
-
-  Scenario: Collection sort on multi_field field with array values using script sort
-    When I make an empty collection-search
-    And sort by "title"
-    Then I should get http status code "200"
-
-  Scenario: Sort on multi_field field with array values using script sort
-    When I make an empty item-search
-    And sort by "sourceResource.title"
-    Then I should get http status code "200"
-
-  Scenario: Sort on non-sortable field
-    When I make an empty item-search
-    And sort by "sourceResource.description"
-    Then I should get http status code "400"
-
-  Scenario: Sort on invalid field
-    When I make an empty item-search
-    And sort by "dingle.hopper.x"
-    Then I should get http status code "400"
-
-  Scenario: Sort with a valid field and an invalid sort_order
-    When I make an empty item-search
-    And sort by "id"
-    And order the sort by "invalid-dir"
-    Then I should get http status code "400"
 
   Scenario: geo_distance sort request 
     When I make an empty item-search

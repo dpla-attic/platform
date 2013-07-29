@@ -36,7 +36,7 @@ module V1
       describe "#recreate_index!" do
 
         it "re-creates the search index with correct name and mapping" do
-          tire = mock
+          tire = double
           tire.stub_chain(:response, :code) { 200 }
           subject.stub(:sleep)
           subject.should_receive(:delete_river)
@@ -53,8 +53,8 @@ module V1
           subject.stub(:display_import_result)
         end
         it "imports the correct resource type" do
-          tire = mock.as_null_object
-          input_file = stub
+          tire = double.as_null_object
+          input_file = double
           Tire.should_receive(:index).with(Config.search_index).and_yield(tire)
 
           subject.should_receive(:process_input_file).with('foo.json', true) { input_file }
@@ -75,7 +75,7 @@ module V1
 
       describe "#process_input_file" do
         it "injects a new _type field using the ingestType field when requested" do
-          file_stub = stub
+          file_stub = double
           File.should_receive(:read).with(file_stub)
           json_contents = [ {'id' => 1, 'ingestType' => 'sometype'}, {'id' => 2, 'ingestType' => 'sometype'} ]
           JSON.stub(:load) { json_contents }
@@ -88,7 +88,7 @@ module V1
         end
         
         it "does not inject a new _type field when it's not requested" do
-          file_stub = stub
+          file_stub = double
           File.should_receive(:read).with(file_stub)
           json_contents = [ {'id' => 1, 'ingestType' => 'sometype'}, {'id' => 2, 'ingestType' => 'sometype'} ]
           JSON.stub(:load) { json_contents }
@@ -102,7 +102,7 @@ module V1
         it "raises an error when there is invalid JSON in a test data file" do
           File.stub(:read) { "invalid json here\nAnd on the second line" }
           expect {
-            expect(subject.process_input_file('foo', stub))
+            expect(subject.process_input_file('foo', double))
           }.to raise_error /JSON parse error/i
         end
       end

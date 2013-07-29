@@ -6,15 +6,15 @@ describe Dpla do
 
     it "should return false if it cannot find a given config file" do
       File.stub(:exists? ) {false}
-      Dpla.stub!(:puts)  #suppress stdout, basically
+      Dpla.stub(:puts)  #suppress stdout, basically
       check = Dpla.check_config( __FILE__, %w( config/file.yml ) )
-      check.should == false
+      expect(check).to be_false
     end
 
     it "should return true if it can find a given config file" do
       File.stub(:exists? ) {true}
       check = Dpla.check_config( __FILE__, %w( config/file.yml ) )
-      check.should == true
+      expect(check).to be_true
     end
 
   end

@@ -9,7 +9,7 @@ module V1
 
       describe "#build_all" do
         it "executes an empty search if no explicit queries are created" do
-          search = mock
+          search = double
           subject.should_receive(:execute_empty_search).with(search)
           expect(subject.build_all(resource, search, {})).to be_false
         end
@@ -18,10 +18,10 @@ module V1
         # it "should set up proper 'boolean.must' blocks for each search field" do
         #   params = {'title' => 'title1'  , 'description' => 'description2'}
         #   subject.should_receive(:string_queries).with(params) { ['titleQString', 'descQString'] }
-        #   mock_boolean = mock('boolean')
+        #   mock_boolean = double('boolean')
         #   subject.should_receive(:lambda).twice.and_yield(mock_boolean)
 
-        #   mock_must = mock('must')
+        #   mock_must = double('must')
         #   mock_boolean.should_receive(:must).twice.and_yield(mock_must)
 
         #   mock_must.should_receive(:string).with('titleQString')
@@ -32,20 +32,20 @@ module V1
         # it "returns generated queries as flattened array" do
         #   subject.stub(:build_string_queries) { [:fq1, :fq2] }
         #   subject.stub(:build_temporal_query) { [:tq1, :tq2] }
-        #   expect(subject.build_all(stub, {})).to match_array [:fq1, :fq2, :tq1, :tq2]
+        #   expect(subject.build_all(double, {})).to match_array [:fq1, :fq2, :tq1, :tq2]
         # end
       end
 
       describe "#field_boost" do
         
         it "handles a boosted field with no subfields" do
-          field = stub(:name => 'field1', :subfields? => false)
+          field = double(:name => 'field1', :subfields? => false)
           subject.stub(:field_boost_for) { 42 }
           expect(subject.field_boost('testitem', field)).to eq "field1^42"
         end
         
         it "handles a boosted field with subfields" do
-          field = stub(:name => 'field1', :subfields? => true)
+          field = double(:name => 'field1', :subfields? => true)
           subject.stub(:field_boost_for) { 42 }
           expect(subject.field_boost('testitem', field)).to eq "field1.*^42"
         end
@@ -74,7 +74,7 @@ module V1
         
         it "returns correct query string for field search" do
           name = 'sourceResource.title'
-          field = stub(:name => name, :geo_point? => false, :date? => false, :subfields? => false, :subfields => [])
+          field = double(:name => name, :geo_point? => false, :date? => false, :subfields? => false, :subfields => [])
           subject.stub(:field_for).with(resource, name) { field }
           params = {name => 'some title'}
           attrs = subject.default_attributes.merge( {'fields'=>[name]} )
@@ -86,7 +86,7 @@ module V1
 
         it "handles 'sourceResource.spatial.state' as a normal field search" do
           name = 'sourceResource.spatial.state'
-          field = stub(:name => name, :geo_point? => false, :date? => false, :subfields? => false, :subfields => [])
+          field = double(:name => name, :geo_point? => false, :date? => false, :subfields? => false, :subfields => [])
           Schema.stub(:field).with(resource, name) { field }
           params = {name => 'MA'}
           attrs = subject.default_attributes.merge( {'fields'=>[name]} )
@@ -98,7 +98,7 @@ module V1
 
         it "ignores geo_point field" do
           name = 'sourceResource.spatial.coordinates'
-          field = stub(:name => name, :geo_point? => true, :date? => false)
+          field = double(:name => name, :geo_point? => true, :date? => false)
           Schema.stub(:field).with(resource, name) { field }
           params = {name => '42,-71'}
           expect(subject.string_queries(resource, params)).to match_array []
@@ -106,7 +106,7 @@ module V1
 
         it "searches all subfields of 'sourceResource.date'" do
           name = 'sourceResource.date'
-          field = stub(:name => name, :geo_point? => false, :date? => false, :subfields? => true, :subfields => [stub.as_null_object])
+          field = double(:name => name, :geo_point? => false, :date? => false, :subfields? => true, :subfields => [double.as_null_object])
           Schema.stub(:field).with(resource, name) { field }
           params = {name => '1999-08-07'}
           attrs = subject.default_attributes.merge( {'fields' => ['sourceResource.date.*']} )
