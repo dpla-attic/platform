@@ -24,7 +24,7 @@ namespace :v1 do
 
   desc "Creates new ElasticSearch index"
   task :create_search_index => :environment do
-    V1::SearchEngine.create_index 'foo'
+    V1::SearchEngine.create_index
   end
 
   desc "Lists existing ElasticSearch indices"

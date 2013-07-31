@@ -774,5 +774,23 @@
             "contributor": "canonicalsort",
             "title": "absolutely no monkeys allowed"
         }
+    },
+    {
+        "_id": "item-stopwordsort1",
+        "id": "item-stopwordsort1",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "stopwordsort",
+            "title": "--- The Beaver Book"
+        }
+    },
+    {
+        "_id": "item-stopwordsort2",
+        "id": "item-stopwordsort2",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "stopwordsort",
+            "title": "Aardvark Avenue"
+        }
     }
 ]
