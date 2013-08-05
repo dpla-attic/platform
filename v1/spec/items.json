@@ -22,7 +22,7 @@
         "id": "2",
         "ingestType": "item",
         "sourceResource": {
-            "id": "partnerhubid1",
+            "identifier": "partnerhubid1",
             "title": "title two",
             "description": "perplexed two",
             "creator": "foo-bar-baz",

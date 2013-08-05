@@ -1,4 +1,4 @@
-require 'v1/searchable'
+require_relative 'searchable'
 
 module V1
 
