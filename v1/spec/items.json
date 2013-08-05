@@ -22,7 +22,7 @@
         "id": "2",
         "ingestType": "item",
         "sourceResource": {
-            "id": "partnerhubid1",
+            "identifier": "partnerhubid1",
             "title": "title two",
             "description": "perplexed two",
             "creator": "foo-bar-baz",
@@ -773,6 +773,24 @@
         "sourceResource": {
             "contributor": "canonicalsort",
             "title": "absolutely no monkeys allowed"
+        }
+    },
+    {
+        "_id": "item-stopwordsort1",
+        "id": "item-stopwordsort1",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "stopwordsort",
+            "title": "--- The Beaver Book"
+        }
+    },
+    {
+        "_id": "item-stopwordsort2",
+        "id": "item-stopwordsort2",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "stopwordsort",
+            "title": "Aardvark Avenue"
         }
     }
 ]

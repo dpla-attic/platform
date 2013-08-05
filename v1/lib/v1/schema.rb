@@ -1,4 +1,4 @@
-require 'v1/field'
+require_relative 'field'
 
 module V1
 
@@ -28,19 +28,20 @@ module V1
         'properties' => {
           '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
           'admin' => {
-            'properties' => { #shadow_sort fields
-              'sourceResource' => {
+            'properties' => {
+              'sourceResource' => {  #shadow_sort fields
                 'properties' => {
-#                  'title' => { 'type' => 'string', 'index' => 'not_analyzed' },
                   'title' => { 'type' => 'string', 'analyzer' => 'canonical_sort' },
                 }
-              }
+              },
+              'ingestType' => { 'enabled' => false },
+              'ingestDate' => { 'type' => 'date' },
             }
           },
           'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
           'sourceResource' => {
             'properties' => {
-              'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
+              'identifier' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
               'collection' => {
                 'properties' => {
                   '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },

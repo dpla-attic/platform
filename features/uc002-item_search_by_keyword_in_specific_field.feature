@@ -13,7 +13,7 @@ Feature: Search for items by keyword (UC002)
     Then the API should return record 1
     
   Scenario: Basic keyword search of dotted field
-    When I item-search for "partnerhubid1" in the "sourceResource.id" field
+    When I item-search for "partnerhubid1" in the "sourceResource.identifier" field
     Then the API should return record 2
     
   Scenario: Basic keyword search with case-insensitive match

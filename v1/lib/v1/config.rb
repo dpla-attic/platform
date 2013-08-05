@@ -32,6 +32,7 @@ module V1
     end
 
     def self.initialize_search_engine
+      #TODO: Move to top level of this module and remove initializer from engine.rb
       Tire::Configuration.url(search_endpoint)
       Tire::Configuration.wrapper(Hash)
     end

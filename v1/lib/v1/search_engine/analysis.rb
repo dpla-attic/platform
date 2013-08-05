@@ -11,13 +11,14 @@ module V1
               'canonical_sort' => {
               'type' => 'custom',
                 'tokenizer' => 'keyword',
-                'filter' => ['pattern_replace', 'lowercase']
+                'filter' => ['lowercase', 'pattern_replace'],
               },
             },
             'filter' => {
               'pattern_replace' => {
                 'type' => 'pattern_replace',
-                'pattern' => '^[\\W&&[^\\s]]+',
+                # any combination of leading non-alphanumerics and/or leading stopwords: a, an, the
+                'pattern' => '^([^a-z0-9]*)(a\s|an\s|the\s)*',
                 'replacement' => '',
               }
             }
