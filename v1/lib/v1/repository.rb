@@ -1,4 +1,3 @@
-require_relative '../../app/models/v1/api_key'
 require_relative 'search_engine'
 require 'json'
 require 'couchrest'
@@ -110,25 +109,6 @@ module V1
       }
       result = db.save_doc(views_doc)
       raise "Error: #{result}" unless result['ok']
-    end
-
-    #TODO: Move api management methods into a ApiAuth module
-    def self.create_api_key(owner)
-      key = ApiKey.new(
-                       'db' => admin_cluster_auth_database,
-                       'owner' => owner
-                       )
-      key.save
-      key
-    end
-
-    def self.find_api_key_by_owner(owner)
-      key = ApiKey.find_by_owner(admin_cluster_auth_database, owner)
-      key ? key['_id'] : nil
-    end
-    
-    def self.authenticate_api_key(key_id)
-      ApiKey.authenticate(admin_cluster_auth_database, key_id)
     end
 
     def self.import_test_api_keys(owner=nil)

@@ -370,52 +370,6 @@ module V1
       
     end
 
-    context "API keys" do
-
-      describe "#authenticate_api_key" do
-        let(:key_id) { '6c30d962ed96c45c7f007635ef011354' }
-        let(:active_key) { {'_id' => key_id} }
-        let(:disabled_key) { {'_id' => key_id, 'disabled' => true} }
-        it "returns false for a key not in hex format" do
-          expect(subject.authenticate_api_key('`cat /etc/passwd`')).to be_false
-        end
-        it "returns false for a key that does not exists" do
-          subject.stub_chain(:database, :get) { raise RestClient::ResourceNotFound }
-          expect(subject.authenticate_api_key(key_id)).to be_false
-        end
-        it "returns false for a key that exists but is disabled" do
-          subject.stub_chain(:database, :get) { disabled_key }
-          expect(subject.authenticate_api_key(key_id)).to be_false
-        end
-        it "returns true for an existing key that is not disabled" do
-          subject.stub_chain(:database, :get) { active_key }
-          expect(subject.authenticate_api_key(key_id)).to be_true
-        end
-        it "allows a connection refused exception to bubble up if one is raised" do
-          subject.stub_chain(:database, :get) { raise Errno::ECONNREFUSED }
-          
-          expect {
-            subject.authenticate_api_key(key_id)
-          }.to raise_error Errno::ECONNREFUSED
-        end
-        
-      end
-
-      describe "#create_api_key" do
-        it "calls key.new with the correct params" do
-          db = double
-          owner = double
-          subject.stub(:admin_cluster_auth_database) { db }
-          key_stub = double(:save => nil)
-          
-          ApiKey.should_receive(:new).with( {'db' => db,'owner' => owner} ) { key_stub }
-          expect(subject.create_api_key(owner)).to eq key_stub
-        end
-        
-      end
-
-    end
-
   end
 
 end

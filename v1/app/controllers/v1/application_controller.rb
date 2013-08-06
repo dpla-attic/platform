@@ -14,7 +14,6 @@ module V1
       return false
     end
     
-    #TODO: refactor authentication into ApiAuth module
     def authenticate
       api_key = params['api_key']
       if !authenticate_api_key(api_key)
@@ -38,9 +37,10 @@ module V1
         return true
       end
 
+      
       begin
-        return Rails.cache.fetch(key_id, :raw => true) do
-          Repository.authenticate_api_key(key_id)
+        return Rails.cache.fetch(ApiKey.cache_key(key_id)) do
+          ApiAuth.authenticate_api_key(key_id)
         end
       rescue Errno::ECONNREFUSED
         # Avoid refusing api auth if we could not connect to the api auth server
