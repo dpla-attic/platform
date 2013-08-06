@@ -35,4 +35,7 @@ Dpla::Application.configure do
   # Print deprecation notices to the stderr
   config.active_support.deprecation = :stderr
 
+  # Never cache in the test environment
+  config.cache_store = :null_store
+
 end
