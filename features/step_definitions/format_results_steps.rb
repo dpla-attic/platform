@@ -15,7 +15,7 @@ Then(/^I should get a valid JSON response$/) do
   expect(json).not_to be_nil
   expect {
     JSON.parse(json) 
-  }.not_to raise_error JSON::ParserError
+  }.not_to raise_error
 end
 
 Then /^the API response should start with "(.*?)"$/ do |callback|

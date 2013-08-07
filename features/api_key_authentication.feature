@@ -1,4 +1,4 @@
-Feature: Search for items by keyword without valid API key (UC001)
+Feature: Search for items by keyword with/without valid API key (UC001)
 
   In order to find items through the DPLA
   Search requests must supply a valid API key
@@ -23,4 +23,8 @@ Feature: Search for items by keyword without valid API key (UC001)
     And provide a valid API key
     Then I should get http status code "200"
 
+  Scenario: Free text search with an valid and not-disabled key
+    When I make an empty item-search
+    And provide a valid API key
+    Then I should get http status code "200"
 

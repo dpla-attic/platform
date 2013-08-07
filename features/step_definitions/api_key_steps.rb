@@ -14,11 +14,6 @@ When(/^provide a valid API key$/) do
   @params['api_key'] = @valid_api_key
 end
 
-When(/^I visit the QA app homepage$/) do
-  # TODO: try http://stackoverflow.com/questions/6536503/capybara-with-subdomains-default-host
-  #visit '/qa/compare'
-end
-
 When(/^I request a new api key for "(.*?)" but use HTTP GET$/) do |email|
   visit "/v2/api_key/#{email}"
 end
