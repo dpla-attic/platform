@@ -202,13 +202,10 @@ module V1
     end
 
     def self.create_and_deploy_index
+      # returns name of previously deployed index 
       index = create_index
       sleep 4
-      previous_index = deploy_index(index)
-      if previous_index
-        sleep 2
-        safe_delete_index(previous_index)
-      end
+      deploy_index(index)
     end
 
     def self.deploy_index(index)
