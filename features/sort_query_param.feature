@@ -83,6 +83,12 @@ Feature: Sort search results
     And set page_size to 2
     Then the API should return sorted records item-stopwordsort2, item-stopwordsort1
 
+  Scenario: Item sort on canonical_sort analyzed field with layered leading non-alpha chars and stopwords
+    When I item-search for "canonsortB" in the "sourceResource.contributor" field
+    And sort by "sourceResource.title"
+    And set page_size to 6
+    Then the API should return sorted records item-canonsortB3, item-canonsortB1, item-canonsortB6, item-canonsortB2, item-canonsortB4, item-canonsortB5
+
   Scenario: Collection sort on multi_field field
     When I collection-search for "titlesort" in the "description" field
     And sort by "title"

@@ -17,8 +17,8 @@ module V1
             'filter' => {
               'pattern_replace' => {
                 'type' => 'pattern_replace',
-                # any combination of leading non-alphanumerics and/or leading stopwords: a, an, the
-                'pattern' => '^([^a-z0-9]*)(a\s|an\s|the\s)*',
+                # any combination of layered leading non-alphanumerics and/or leading stopwords: a, an, the
+                'pattern' => '^([^a-z0-9]+|a\b|an\b|the\b)*',
                 'replacement' => '',
               }
             }
