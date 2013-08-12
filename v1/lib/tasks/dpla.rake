@@ -1,5 +1,6 @@
 require 'v1/search_engine'
 require 'v1/repository'
+require 'v1/api_auth'
 
 namespace :v1 do
 
@@ -106,13 +107,19 @@ namespace :v1 do
 
   desc "Show API 'is_valid?' auth for a key"
   task :show_api_auth, [:key] do |t, args|
-    puts "Authenticated?: #{ V1::Repository.authenticate_api_key(args.key) }"
+    puts V1::ApiAuth.show_api_auth(args.key)    
+  end
+  
+  desc "Toggle the disabled status for an API key"
+  task :toggle_api_auth, [:key] => :environment do |t, args|
+    key = V1::ApiAuth.toggle_api_auth(args.key)
+    puts V1::ApiAuth.show_api_auth(key)
   end
   
   desc "Deletes cached API auth for a single api_key"
   task :clear_cached_api_auth, [:key] => :environment do |t, args|
-    previous = V1::ApiKey.clear_cached_auth(args.key)
-    puts "Done. (was '#{previous}')"
+    previous = V1::ApiAuth.clear_cached_auth(args.key)
+    puts "Done. Cached value was: #{previous || 'nil'}"
   end
   
   desc "Displays the CouchDB repository_endpoint the API is configured to use"

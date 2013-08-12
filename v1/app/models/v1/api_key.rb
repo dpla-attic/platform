@@ -8,16 +8,29 @@ module V1
     # Valid keys are 32 character hex strings
     VALID_KEY_REGEX = /^[0-9a-f]{32}$/
     
-    attr_reader :db, :owner, :id, :disabled
+    attr_reader :db, :owner, :id, :disabled, :_rev, :created_at, :updated_at
+
+    #TODO: manage _id internally using id() and id= methods
     
     def initialize(args={})
       #TODO: raise api specific exception if email looks invalid or missing
-      @db = args['db']
-      raise ArgumentError, "Missing 'db' param" if @db.nil?
+      raise ArgumentError, "Missing 'db' param" if args['db'].nil?
 
-      @owner = self.class.sanitize_email(args['owner'])
-      @id = build_key      
+      @db = args['db']
       @disabled = args['disabled']
+
+      if args['id']
+        # init from args
+        @id = args['id']
+        @owner = args['owner']
+        @_rev = args['_rev']
+        @created_at = args['created_at']
+        @updated_at = args['updated_at']
+      else
+        # init as new
+        @id = generate_key_id
+        @owner = self.class.sanitize_email(args['owner'])
+      end
     end
     
     def disable
@@ -28,23 +41,63 @@ module V1
       @disabled = false
     end
 
+    def disabled?
+      self.disabled
+    end
+
+    def toggle_disabled
+      self.disabled? ? enable : disable
+      save
+    end
+    
     def save
+      timestamp = build_timestamp
+      @created_at = created_at || timestamp 
+      @updated_at = timestamp
       db.save_doc(self.to_hash)
+    end
+
+    def build_timestamp
+      Time.now.to_s
+    end
+
+    def to_s
+      to_hash
     end
 
     def to_hash
       h = {
         '_id' => id,
+        '_rev' => _rev,
         'owner' => owner,
+        'created_at' => created_at,
+        'updated_at' => updated_at,
       }
-      h['disabled'] = true if disabled
+      h['disabled'] = true if disabled?
       h
+    end
+
+    def generate_key_id
+      SecureRandom.hex(16)
+    end
+
+    def self.cache_key(key_id)
+      # cache keys cannot be blank
+      key_id.to_s != '' ? key_id.to_s : 'none'
     end
 
     def self.find_by_key(db, key_id)
       begin
-        #TODO: THIS should return an instance of ApiKey
-        db.get(key_id)
+        db_key = db.get(key_id)
+        self.new({
+                   'db' => db,
+                   'id' => db_key['_id'],
+                   '_rev' => db_key['_rev'],
+                   'owner' => db_key['owner'],
+                   'disabled' => !!db_key['disabled'],
+                   'created_at' => db_key['created_at'],
+                   'updated_at' => db_key['updated_at'],
+                 })
       rescue RestClient::ResourceNotFound
         nil
       end
@@ -58,22 +111,19 @@ module V1
 
     def self.authenticate(db, key_id)
       # Returns the boolean of "is this key valid and authenticated"
-      return false unless key_id =~ VALID_KEY_REGEX
+      return false if key_id !~ VALID_KEY_REGEX
       
       # Let Errno::ECONNREFUSED exceptions bubble up here
       key = self.find_by_key(db, key_id)
       return false if key.nil?
 
-      !(key['disabled'] === true)
-    end
-
-    def build_key
-      SecureRandom.hex(16)
+      !key.disabled?
     end
 
     def self.clear_cached_auth(key_id)
-      previous = Rails.cache.read(key_id)
-      Rails.cache.delete(key_id)
+      cache_key = cache_key(key_id)
+      previous = Rails.cache.read(cache_key)
+      Rails.cache.delete(cache_key)
       previous
     end
 

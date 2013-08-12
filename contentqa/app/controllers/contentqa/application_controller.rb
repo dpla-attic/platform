@@ -1,4 +1,4 @@
-require 'v1/repository'
+require 'v1/api_auth'
 
 module Contentqa
   
@@ -11,7 +11,7 @@ module Contentqa
     rescue_from ApiAuthFailed, :with => :api_auth_failed
 
     def fetch_qa_api_auth
-      @@api_auth_key ||= V1::Repository.find_api_key_by_owner(API_AUTH_OWNER)
+      @@api_auth_key ||= V1::ApiAuth.find_api_key_by_owner(API_AUTH_OWNER)
     end
     
     def baseuri

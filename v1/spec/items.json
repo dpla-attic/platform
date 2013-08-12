@@ -792,5 +792,59 @@
             "contributor": "stopwordsort",
             "title": "Aardvark Avenue"
         }
+    },
+    {
+        "_id": "item-canonsortB1",
+        "id": "item-canonsortB1",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "canonsortB",
+            "title": "[The \"Chippewa\" on Toronto Bay.] on negative 20302 Photonegative"
+        }
+    },
+    {
+        "_id": "item-canonsortB2",
+        "id": "item-canonsortB2",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "canonsortB",
+            "title": "The \"Maine\" wreck from Merritt wrecking rig"
+        }
+    },
+    {
+        "_id": "item-canonsortB3",
+        "id": "item-canonsortB3",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "canonsortB",
+            "title": "AAA Fixed My Flat Tire"
+        }
+    },
+    {
+        "_id": "item-canonsortB4",
+        "id": "item-canonsortB4",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "canonsortB",
+            "title": "The \"Maine\" wreck--from the bridge"
+        }
+    },
+    {
+        "_id": "item-canonsortB5",
+        "id": "item-canonsortB5",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "canonsortB",
+            "title": "\"----- the \"Texas\"--beside the Searchlight"
+        }
+    },
+    {
+        "_id": "item-canonsortB6",
+        "id": "item-canonsortB6",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "canonsortB",
+            "title": "----the 'Iowa,' looking toward the 'Oregon.'"
+        }
     }
 ]
