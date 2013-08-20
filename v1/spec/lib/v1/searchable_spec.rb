@@ -21,7 +21,7 @@ module V1
         end
         
         it "MAX_PAGE_SIZE has the correct value" do
-          expect(MAX_PAGE_SIZE).to eq 100
+          expect(MAX_PAGE_SIZE).to eq 500
         end
 
         it "BASE_QUERY_PARAMS has the correct value" do

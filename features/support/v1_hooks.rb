@@ -1,7 +1,5 @@
 require 'cucumber/rspec/doubles'
 
-# API additions
-
 Before do
   @params = {}
   # These keys will only exist in the test environment
