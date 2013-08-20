@@ -16,7 +16,7 @@ module V1
     DEFAULT_PAGE_SIZE = 10
 
     # Default max page size
-    MAX_PAGE_SIZE = 100
+    MAX_PAGE_SIZE = 500
     
     # General query params that are not resource-specific
     BASE_QUERY_PARAMS = %w( q controller action sort_by sort_by_pin sort_order page page_size facets facet_size filter_facets fields callback _ x ).freeze
