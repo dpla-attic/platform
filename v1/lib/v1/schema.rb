@@ -84,12 +84,6 @@ module V1
               },
               'rights' => { 'type' => 'string' },
               'relation' => { 'type' => 'string' },
-              'stateLocatedIn' => {
-                'properties' => {
-                  'name' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-                  'iso3166-2' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true }
-                }
-              },
               'spatial' => {
                 'properties' => {
                   'name' => {
@@ -136,6 +130,13 @@ module V1
                   },
                   'iso3166-2' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
                   'coordinates' => { 'type' => 'geo_point', 'index' => 'not_analyzed', 'sort' => 'geo_distance', 'facet' => true }
+                }
+              },
+              'specType' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+              'stateLocatedIn' => {
+                'properties' => {
+                  'name' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+                  'iso3166-2' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true }
                 }
               },
               'subject' => {
