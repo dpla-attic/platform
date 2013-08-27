@@ -89,6 +89,12 @@ Feature: Sort search results
     And set page_size to 6
     Then the API should return sorted records item-canonsortB3, item-canonsortB1, item-canonsortB6, item-canonsortB2, item-canonsortB4, item-canonsortB5
 
+  Scenario: Item sort on canonical_sort analyzed field expecting empty fields sorted last
+    When I item-search for "canonsortZ" in the "sourceResource.contributor" field
+    And sort by "sourceResource.title"
+    And set page_size to 3
+    Then the API should return sorted records item-canonsortZ2, item-canonsortZ3, item-canonsortZ1
+
   Scenario: Collection sort on multi_field field
     When I collection-search for "titlesort" in the "description" field
     And sort by "title"
