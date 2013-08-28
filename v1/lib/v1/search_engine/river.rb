@@ -84,18 +84,24 @@ module V1
       end
 
       def self.river_creation_script
-        #TODO: Create this for every field in the schema where sort == 'shadow'
-        field = %q(['sourceResource']['title'])
-        "
-        ctx._type = ctx['doc']['ingestType'] || 'unknown';
-        if (ctx._type == 'item') {
-          if (ctx['doc']#{field}) {
-            ctx['doc']['admin'] = ctx['doc']['admin'] || {};
-            ctx['doc']['admin']['sourceResource'] = ctx['doc']['admin']['sourceResource'] || {};
-            ctx['doc']['admin']#{field} = ctx['doc']#{field}[0].length > 1 ? ctx['doc']#{field}[0] : ctx['doc']#{field};
-          }
-        }
-        "
+        #Note: The null value assignment below works in conjunction with the schema's
+        #null_value attribute to force empty/null values to sort last, ascending.
+        #(ElasticSearch's 'missing' sort attr only works on numeric fields at the moment.)
+        beginning = "ctx._type = ctx['doc']['ingestType'] || 'unknown';"
+        middle = ""
+        fields = [ "['sourceResource']['title']" ]
+        fields.each do |field|
+          middle += "
+            if (ctx._type == 'item') {
+              ctx['doc']['admin'] = ctx['doc']['admin'] || {};
+              ctx['doc']['admin']['sourceResource'] = ctx['doc']['admin']['sourceResource'] || {};
+              if (ctx['doc']#{field}) {
+                ctx['doc']['admin']#{field} = ctx['doc']#{field}[0].length > 1 ? ctx['doc']#{field}[0] : ctx['doc']#{field};
+              } else {ctx['doc']['admin']#{field} = null;}
+            }
+          "
+        end
+        beginning + middle
       end
 
       def self.service_status(river=river_name)
@@ -107,7 +113,7 @@ module V1
       end
 
       def self.river_name
-        V1::Config.river_name
+        Config.river_name
       end
       
       def self.endpoint(name=river_name)

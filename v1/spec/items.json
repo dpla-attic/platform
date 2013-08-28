@@ -846,5 +846,32 @@
             "contributor": "canonsortB",
             "title": "----the 'Iowa,' looking toward the 'Oregon.'"
         }
+    },
+    {
+        "_id": "item-canonsortZ1",
+        "id": "item-canonsortZ1",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "canonsortZ",
+            "title": null
+        }
+    },
+    {
+        "_id": "item-canonsortZ2",
+        "id": "item-canonsortZ2",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "canonsortZ",
+            "title": "R8 Coupe with 6-speed manual transmission"
+        }
+    },
+    {
+        "_id": "item-canonsortZ3",
+        "id": "item-canonsortZ3",
+        "ingestType": "item",
+        "sourceResource": {
+            "contributor": "canonsortZ",
+            "title": "Zebras have stripes inside their ears, too."
+        }
     }
 ]

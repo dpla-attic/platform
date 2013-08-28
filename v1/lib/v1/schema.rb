@@ -31,7 +31,7 @@ module V1
             'properties' => {
               'sourceResource' => {  #shadow_sort fields
                 'properties' => {
-                  'title' => { 'type' => 'string', 'analyzer' => 'canonical_sort' },
+                  'title' => { 'type' => 'string', 'analyzer' => 'canonical_sort', 'null_value' => 'zzzzzzzz' },
                 }
               },
               'ingestType' => { 'enabled' => false },
@@ -84,12 +84,6 @@ module V1
               },
               'rights' => { 'type' => 'string' },
               'relation' => { 'type' => 'string' },
-              'stateLocatedIn' => {
-                'properties' => {
-                  'name' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-                  'iso3166-2' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true }
-                }
-              },
               'spatial' => {
                 'properties' => {
                   'name' => {
@@ -138,6 +132,13 @@ module V1
                   'coordinates' => { 'type' => 'geo_point', 'index' => 'not_analyzed', 'sort' => 'geo_distance', 'facet' => true }
                 }
               },
+              'specType' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+              'stateLocatedIn' => {
+                'properties' => {
+                  'name' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+                  'iso3166-2' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true }
+                }
+              },
               'subject' => {
                 'properties' => {
                   '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
@@ -165,7 +166,7 @@ module V1
             'type' => 'multi_field',
             'fields' => {
               'dataProvider' => { 'type' => 'string', 'sort' => 'multi_field' },
-              'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true }
+              'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
             }
           },
           'hasView' => {

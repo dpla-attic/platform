@@ -29,7 +29,7 @@ module V1
             it "has the correct number of fields for 'item/sourceResource'" do
               expect(
                      subject.full_mapping[resource]['properties']['sourceResource']['properties']
-                     ).to have(19).items
+                     ).to have(20).items
             end
           end
 
