@@ -8,9 +8,9 @@ module V1
 
     module Query
 
-      # not escaped, but probably could be: '&&', '||'
+      # not escaped, but probably could be if escape code was tweaked: '&&', '||'
       # not escaped, because they don't seem to need it: '+', '-',
-      ESCAPED_METACHARACTERS = [ '"', '!', '(', ')', '{', '}', '[', ']', '^', '~', '?', ':', '\\' ]
+      ESCAPED_METACHARACTERS = [ '"', '!', '(', ')', '{', '}', '[', ']', '^', '~', '?', ':' ]
 
       def self.execute_empty_search(search)
         # We need to be explicit with an empty search
@@ -23,13 +23,13 @@ module V1
         date_range_queries = date_range_queries(params)
         # ids_queries = ids_query(resource, params)
         
+        # Only call search.query.boolean if we have some queries to pass it.
+        # Otherwise we'll get incorrect search results.
         if (string_queries + date_range_queries).empty?
           execute_empty_search(search)
           return false
         end
 
-        # Only call search.query.boolean if we have some queries to pass it.
-        # Otherwise we'll get incorrect search results.
         search.query do |query|
           # if ids_queries.any?
           #   query.ids *ids_queries
@@ -65,8 +65,9 @@ module V1
           tmp = $1
           quoted = true
         end
+
         escaped_metacharacters.each do |mc|
-          tmp.gsub!(mc, '\\' + mc.split('').join('\\\\') )
+          tmp.gsub!(mc, '\\' + mc)
         end
         
         quoted ? %Q("#{tmp}") : tmp

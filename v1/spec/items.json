@@ -723,11 +723,19 @@
         }
     },
     {
-        "_id": "item-wood",
-        "id": "item-wood",
+        "_id": "item-meta1",
+        "id": "item-meta1",
         "ingestType": "item",
         "sourceResource": {
             "title": "2 x 4 pieces of wood are actually 1 1/2\" by 3 1/2\" after milling"
+        }
+    },
+    {
+        "_id": "item-meta2",
+        "id": "item-meta2",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "My cat's name is }?harv[a:z]("
         }
     },
     {
