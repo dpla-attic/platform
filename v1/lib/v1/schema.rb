@@ -188,8 +188,8 @@ module V1
               }                      
             }
           },
-          'isShownAt' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-          'object' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+          'isShownAt' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
+          'object' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
           'provider' => {
             'properties' => {
               '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
