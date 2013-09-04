@@ -43,7 +43,7 @@ When /^sort by pin "(.*?)"$/ do |arg1|
   @params['sort_by_pin'] = arg1
 end
 
-When(/^order the sort by "(.*?)"$/) do |arg1|
+When(/^set sort_order to (\w+)$/) do |arg1|
   @params['sort_order'] = arg1
 end
 

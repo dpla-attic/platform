@@ -74,9 +74,8 @@ module V1
       end
 
       def self.string_queries(resource, params)
-        # Only handles 'q' and non-geo field searches
-
         query_strings = []
+
         params.each do |name, value|
           # Skip all query types that are handled elsewhere
           next if value.to_s == ''
@@ -86,7 +85,7 @@ module V1
             fields = field_boost_for_all(resource) + ['_all']
           else
             field = field_for(resource, name)
-            next if field.nil? || field.date? || field.geo_point?
+            next if field.nil? || field.date? || field.multi_field_date? || field.geo_point?
 
             fields = field_boost_deep(resource, field)
           end
@@ -148,7 +147,7 @@ module V1
       end
 
       def self.date_range_queries(params)
-        #TODO: Reimplement as a filter
+        #TODO: Reimplement as a filter like Filter.date_range()
         ranges = []
         params.each do |name, value|
           next unless name =~ /^(.+)\.(before|after)$/

@@ -74,7 +74,7 @@ module V1
         
         it "returns correct query string for field search" do
           name = 'sourceResource.title'
-          field = double(:name => name, :geo_point? => false, :date? => false, :subfields? => false, :subfields => [])
+          field = double(:name => name, :geo_point? => false, :date? => false, :multi_field_date? => false, :subfields? => false, :subfields => [])
           subject.stub(:field_for).with(resource, name) { field }
           params = {name => 'some title'}
           attrs = subject.default_attributes.merge( {'fields'=>[name]} )
@@ -86,7 +86,7 @@ module V1
 
         it "handles 'sourceResource.spatial.state' as a normal field search" do
           name = 'sourceResource.spatial.state'
-          field = double(:name => name, :geo_point? => false, :date? => false, :subfields? => false, :subfields => [])
+          field = double(:name => name, :geo_point? => false, :date? => false, :multi_field_date? => false, :subfields? => false, :subfields => [])
           Schema.stub(:field).with(resource, name) { field }
           params = {name => 'MA'}
           attrs = subject.default_attributes.merge( {'fields'=>[name]} )
@@ -98,7 +98,7 @@ module V1
 
         it "ignores geo_point field" do
           name = 'sourceResource.spatial.coordinates'
-          field = double(:name => name, :geo_point? => true, :date? => false)
+          field = double(:name => name, :geo_point? => true, :date? => false, :multi_field_date? => false)
           Schema.stub(:field).with(resource, name) { field }
           params = {name => '42,-71'}
           expect(subject.string_queries(resource, params)).to match_array []
@@ -106,7 +106,7 @@ module V1
 
         it "searches all subfields of 'sourceResource.date'" do
           name = 'sourceResource.date'
-          field = double(:name => name, :geo_point? => false, :date? => false, :subfields? => true, :subfields => [double.as_null_object])
+          field = double(:name => name, :geo_point? => false, :date? => false, :multi_field_date? => false, :subfields? => true, :subfields => [double.as_null_object])
           Schema.stub(:field).with(resource, name) { field }
           params = {name => '1999-08-07'}
           attrs = subject.default_attributes.merge( {'fields' => ['sourceResource.date.*']} )

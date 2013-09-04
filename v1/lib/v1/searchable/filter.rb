@@ -1,5 +1,5 @@
-require 'v1/schema'
-require 'v1/search_error'
+require_relative '../schema'
+require_relative '../search_error'
 
 module V1
 
@@ -29,7 +29,7 @@ module V1
           next if field.nil?
           filter = nil
           
-          if field.date?
+          if field.date? || field.multi_field_date?
             filter = date_range(name, value)
           elsif field.geo_point?
             filter = value =~ /:/ ? geo_bounding_box(name, value) : geo_distance(name, params)
@@ -45,8 +45,8 @@ module V1
         # As a courtesy, remove double-quote wrapping
         date = value =~ /^"(.+)"$/ ? $1 : value
         [
-         'range',
-         name => {
+          'range',
+          name => {
            'gte' => date,
            'lt' => calculate_end_date(date)
          }

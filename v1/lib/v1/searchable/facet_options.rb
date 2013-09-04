@@ -31,7 +31,6 @@ module V1
       end
 
       def self.build_options(type, field, params)
-        #TODO: Move to separate module
         # Returns options for variable facet types.
 
         # NOTE: Tire requires the :interval key in options, if present, to be a symbol

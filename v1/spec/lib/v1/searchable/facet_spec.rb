@@ -75,29 +75,29 @@ module V1
 
       describe "#facet_type" do
         it "returns 'geo_distance' for geo_point type fields" do
-          field = double('spatial.coordinates', :geo_point? => true)
+          field = double(:geo_point? => true)
           expect(subject.facet_type(field)).to eq 'geo_distance'
         end
         
         it "returns 'date' for date type field with no interval" do
-          field = double('date', :geo_point? => false, :date? => true, :facet_modifier => nil)
+          field = double(:geo_point? => false, :date? => true, :facet_modifier => nil)
           expect(subject.facet_type(field)).to eq 'date'
         end
         
         it "returns 'date' for date type field with a date_histogram interval" do
-          field = double('date', :geo_point? => false, :date? => true, :facet_modifier => 'year')
+          field = double(:geo_point? => false, :date? => true, :facet_modifier => 'year')
           expect(subject.facet_type(field)).to eq 'date'
         end
         
         it "returns 'range' for date type field with a custom range interval" do
-          field = double('date', :geo_point? => false, :date? => true, :facet_modifier => 'century')
+          field = double(:geo_point? => false, :date? => true, :facet_modifier => 'century')
           expect(subject.facet_type(field)).to eq 'range'
-          field = double('date', :geo_point? => false, :date? => true, :facet_modifier => 'decade')
+          field = double(:geo_point? => false, :date? => true, :facet_modifier => 'decade')
           expect(subject.facet_type(field)).to eq 'range'
         end
         
         it "returns 'terms' for string type fields" do
-          field = double('date', :geo_point? => false, :date? => false, :facet_modifier => nil)
+          field = double(:geo_point? => false, :date? => false, :multi_field_date? => false, :facet_modifier => nil)
           expect(subject.facet_type(field)).to eq 'terms'
         end
       end
@@ -156,7 +156,7 @@ module V1
 
       describe "#facet_display_name" do
         it "returns correct value for non-modified date facets" do
-          field = double(:name => 'somename', :date? => false )
+          field = double(:name => 'somename', :date? => false, :multi_field_date? => false )
           expect(subject.facet_display_name(field)).to eq 'somename'
         end
         it "returns correct value for date facets with a facet modifier" do
