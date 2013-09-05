@@ -39,7 +39,6 @@ module V1
           tire = double
           tire.stub_chain(:response, :code) { 200 }
           subject.stub(:sleep)
-          subject.should_receive(:delete_river)
           subject.should_receive(:delete_index).with(Config.search_index)
           subject.should_receive(:create_index).with(Config.search_index)
 

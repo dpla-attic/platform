@@ -32,11 +32,6 @@ module V1
       indices.keys.select {|index| index != '_river'}.sort
     end
 
-    def self.alias_to_index(alias_name)
-      alias_object = Tire::Alias.find(alias_name)
-      alias_object ? alias_object.index.first : nil
-    end
-
     def self.recreate_env!
       recreate_index!
       import_test_dataset
@@ -100,10 +95,6 @@ module V1
     def self.recreate_index!
       endpoint_config_check
       
-      # Delete the river here to avoid it tripping all over itself and getting
-      # confused when we create it later
-      delete_river
-      
       index_name = Config.search_index
       delete_index(index_name)
       sleep 1
@@ -111,10 +102,10 @@ module V1
     end
 
     def self.delete_index(name)
-      Tire.index(name).delete
+      delete_river(name)
+      Tire.index(name).delete 
       puts "Deleted index '#{name}'"
     end
-    
 
     def self.create_index_with_river
       endpoint_config_check
@@ -229,7 +220,7 @@ module V1
 
     def self.move_alias_to(index)
       alias_name = Config.search_index
-      current_alias = Tire::Alias.find(alias_name)
+      current_alias = find_alias(alias_name)
 
       if current_alias.nil?
         puts "Expected alias '#{alias_name}' not found. Creating..."
@@ -255,6 +246,15 @@ module V1
 
     def self.create_alias(options)
       Tire::Alias.new(options).save
+    end
+
+    def self.find_alias(alias_name)
+      Tire::Alias.find(alias_name)
+    end
+    
+    def self.alias_to_index(alias_name)
+      alias_object = find_alias(alias_name)
+      alias_object ? alias_object.index.first : nil
     end
 
     def self.recreate_river

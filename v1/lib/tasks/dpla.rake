@@ -7,11 +7,6 @@ namespace :v1 do
   # NOTE: Any task that calls a method that internally makes calls to Tire, must pass
   # the :environment symbol in the task() call so the Tire initializer gets called.
 
-  desc "Tests river by posting test doc to CouchDB and verifying it in ElasticSearch"
-  task :test_river => :environment do
-    V1::SearchEngine::River.test_river
-  end
-
   desc "Updates existing ElasticSearch schema *without* deleting the current index"
   task :update_search_schema => :environment do
     V1::SearchEngine.update_schema
@@ -28,7 +23,7 @@ namespace :v1 do
     V1::SearchEngine.create_index
   end
 
-  desc "Lists existing ElasticSearch indices"
+  desc "Lists ElasticSearch indices"
   task :search_indices => :environment do
     V1::SearchEngine.display_indices
   end
@@ -54,16 +49,6 @@ namespace :v1 do
     V1::SearchEngine.create_and_deploy_index
   end
 
-  desc "Re-creates ElasticSearch index"
-  task :recreate_search_index => :environment do
-    V1::SearchEngine.recreate_index!
-  end
-
-  desc "Re-creates ElasticSearch index, river and re-populates index with test dataset"
-  task :recreate_search_env => :environment do
-    V1::SearchEngine.recreate_env!
-  end
-
   desc "Re-creates ElasticSearch river for the currently deployed index"
   task :recreate_river => :environment do
     V1::SearchEngine::River.recreate_river
@@ -80,9 +65,25 @@ namespace :v1 do
     V1::SearchEngine::River.delete_river or puts "River does not exist, so nothing to delete"
   end
 
+  desc "Lists ElasticSearch rivers"
+  task :river_list => :environment do
+    puts V1::SearchEngine::River.list_all
+  end
+
   desc "Gets ElasticSearch river status"
   task :river_status do
-    puts V1::SearchEngine::River.service_status
+    puts V1::SearchEngine::River.verify_river_status
+  end
+
+  desc "Gets ElasticSearch river last_sequence"
+  task :river_last_sequence do
+    puts V1::SearchEngine::River.last_sequence
+  end
+
+  desc "Tests river by posting test doc to CouchDB and verifying it in ElasticSearch"
+  task :river_test => :environment do
+    puts V1::SearchEngine::River.verify_river_status
+    V1::SearchEngine::River.river_test
   end
 
   desc "Gets ElasticSearch search cluster status"

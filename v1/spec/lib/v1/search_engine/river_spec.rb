@@ -29,9 +29,9 @@ module V1
                        'db' => 'db1',
                        'user' => 'user1',
                        'password' => 'pass1',
-                       'bulk_size' => '100',
-                       'bulk_timeout' => '2s',
-                       'script' => subject.river_creation_script
+                       'bulk_size' => '500',
+                       'bulk_timeout' => '3s',
+                       'script' => subject.river_script
                      },
                      'index' => {
                        'index' => 'index1'
