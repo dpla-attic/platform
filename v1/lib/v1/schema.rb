@@ -61,8 +61,20 @@ module V1
               'date' => {
                 'properties' => {
                   'displayDate' =>  { 'type' => 'string', 'index' => 'not_analyzed'},
-                  'begin' => { 'type' => 'date', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true, 'null_value' => '-9999' },
-                  'end' => { 'type' => 'date', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true, 'null_value' => '9999' }
+                  'begin' => {
+                    'type' => 'multi_field',
+                    'fields' => {
+                      'begin' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '-9999' },
+                      'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true }
+                    }
+                  },
+                  'end' => {
+                    'type' => 'multi_field',
+                    'fields' => {
+                      'end' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '9999' },
+                      'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true }
+                    }
+                  }
                 }
               },
               'description' => { 'type' => 'string' },
@@ -154,8 +166,21 @@ module V1
               },
               'temporal' => {
                 'properties' => {
-                  'begin' => { 'type' => 'date', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true, 'null_value' => '-9999' },
-                  'end'  => { 'type' => 'date', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true, 'null_value' => '9999' }
+                  'begin' => {
+                    'type' => 'multi_field',
+                    'fields' => {
+                      'begin' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '-9999' },
+                      'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true }
+                    }
+                  },
+                  'end' => {
+                    'type' => 'multi_field',
+                    'fields' => {
+                      'end' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '9999' },
+                      'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true }
+                    }
+                  }
+
                 }
               },
               'title' => { 'type' => 'string', 'sort' => 'shadow' },
@@ -188,8 +213,8 @@ module V1
               }                      
             }
           },
-          'isShownAt' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-          'object' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+          'isShownAt' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
+          'object' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
           'provider' => {
             'properties' => {
               '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
@@ -258,8 +283,9 @@ module V1
 
       all_fields(resource).each do |field|
         names << field.name
-        # special handling for date ranges on this subfield's parent field name
-        if field.date?
+        
+        # Special handling for straight date or multi_field->date fields
+        if field.date? || field.multi_field_date?
           names << field.name.sub(/\.end$/, '.after') if field.name =~ /\.end$/
           names << field.name.sub(/\.begin$/, '.before') if field.name =~ /\.begin$/
         elsif field.geo_point?

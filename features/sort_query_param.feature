@@ -31,7 +31,7 @@ Feature: Sort search results
   Scenario: Sort with a valid field and an invalid sort_order
     When I make an empty item-search
     And sort by "id"
-    And order the sort by "invalid-dir"
+    And set sort_order to invaliddirection
     Then I should get http status code "400"
 
   Scenario: Sort on sortable field
@@ -46,6 +46,19 @@ Feature: Sort search results
     And set page_size to 3
     And set page to 2
     Then the API should return sorted records C, D, Doppel1
+
+  Scenario: Item sort on sortable field
+    When I item-search for "description" in the "sourceResource.description" field
+    And sort by "id"
+    And set page_size to 3
+    Then the API should return sorted records 1, Doppel1, Doppel2
+
+  Scenario: Item sort on sortable field, descending
+    When I item-search for "description" in the "sourceResource.description" field
+    And sort by "id"
+    And set page_size to 3
+    And set sort_order to desc
+    Then the API should return sorted records Doppel2, Doppel1, 1
 
   Scenario: Item sort on shadow field
     When I item-search for "shadowsort" in the "sourceResource.contributor" field
@@ -126,4 +139,23 @@ Feature: Sort search results
     When I make an empty item-search
     And sort by "sourceResource.spatial.coordinates"
     Then I should get http status code "400"
+
+  Scenario: Item sort on multi_field_date field
+    When I make an empty item-search
+    And sort by "sourceResource.date.begin"
+    And set page_size to 4
+    Then the API should return sorted records F, 1, 2, S1
+
+  Scenario: Item sort on multi_field_date field, desc, expecting null fields last
+    When I item-search for "datesortA" in the "sourceResource.title" field
+    And sort by "sourceResource.date.begin"
+    And set page_size to 4
+    And set sort_order to desc
+    Then the API should return sorted records item-datesortA1, item-datesortA4, item-datesortA2, item-datesortA3
+
+  Scenario: Item sort on multi_field_date field, desc, expecting null fields last
+    When I item-search for "datesortA" in the "sourceResource.title" field
+    And sort by "sourceResource.date.end"
+    And set page_size to 4
+    Then the API should return sorted records item-datesortA4, item-datesortA3, item-datesortA2, item-datesortA1
 

@@ -95,29 +95,6 @@ module V1
       end
     end
 
-    def repo_status
-      status = :ok
-      message = nil
-
-      begin
-        response = JSON.parse(Repository.service_status(true))
-        
-        if response['doc_count'].to_s == ''
-          status = :error
-          message = response.to_s
-        end
-      rescue Errno::ECONNREFUSED => e
-        status = :service_unavailable
-        message = e.to_s
-      rescue => e
-        status = :error
-        message = e.to_s
-      end
-
-      logger.warn "REPO_STATUS Check: #{message}" if message
-      head status
-    end
-    
     def connection_refused(exception)
       logger.warn "search_controller#connection_refused handler firing"
       render_error(ServiceUnavailableSearchError.new, params)

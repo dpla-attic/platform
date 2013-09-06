@@ -8,9 +8,9 @@ module V1
 
     module Query
 
-      # not escaped, but probably could be: '&&', '||'
+      # not escaped, but probably could be if escape code was tweaked: '&&', '||'
       # not escaped, because they don't seem to need it: '+', '-',
-      ESCAPED_METACHARACTERS = [ '"', '!', '(', ')', '{', '}', '[', ']', '^', '~', '?', ':', '\\' ]
+      ESCAPED_METACHARACTERS = [ '"', '!', '(', ')', '{', '}', '[', ']', '^', '~', '?', ':' ]
 
       def self.execute_empty_search(search)
         # We need to be explicit with an empty search
@@ -23,13 +23,13 @@ module V1
         date_range_queries = date_range_queries(params)
         # ids_queries = ids_query(resource, params)
         
+        # Only call search.query.boolean if we have some queries to pass it.
+        # Otherwise we'll get incorrect search results.
         if (string_queries + date_range_queries).empty?
           execute_empty_search(search)
           return false
         end
 
-        # Only call search.query.boolean if we have some queries to pass it.
-        # Otherwise we'll get incorrect search results.
         search.query do |query|
           # if ids_queries.any?
           #   query.ids *ids_queries
@@ -65,17 +65,17 @@ module V1
           tmp = $1
           quoted = true
         end
+
         escaped_metacharacters.each do |mc|
-          tmp.gsub!(mc, '\\' + mc.split('').join('\\\\') )
+          tmp.gsub!(mc, '\\' + mc)
         end
         
         quoted ? %Q("#{tmp}") : tmp
       end
 
       def self.string_queries(resource, params)
-        # Only handles 'q' and non-geo field searches
-
         query_strings = []
+
         params.each do |name, value|
           # Skip all query types that are handled elsewhere
           next if value.to_s == ''
@@ -85,7 +85,7 @@ module V1
             fields = field_boost_for_all(resource) + ['_all']
           else
             field = field_for(resource, name)
-            next if field.nil? || field.date? || field.geo_point?
+            next if field.nil? || field.date? || field.multi_field_date? || field.geo_point?
 
             fields = field_boost_deep(resource, field)
           end
@@ -147,7 +147,7 @@ module V1
       end
 
       def self.date_range_queries(params)
-        #TODO: Reimplement as a filter
+        #TODO: Reimplement as a filter like Filter.date_range()
         ranges = []
         params.each do |name, value|
           next unless name =~ /^(.+)\.(before|after)$/

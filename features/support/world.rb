@@ -98,6 +98,10 @@ module CukeApiHelper
     json
   end
 
+  def visit_status_endpoint(service)
+    visit "/v2/status/#{service}"
+  end
+
 end
 
 World(CukeApiHelper)

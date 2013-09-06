@@ -15,7 +15,7 @@ module V1
       end
 
       def self.delete_river(name=river_name)
-        return if HTTParty.head(endpoint(name) + '/_status').code == 404
+        return if HTTParty.head(endpoint(name)).code == 404
 
         puts "Deleting river '#{name}'"
         result = HTTParty.delete(endpoint(name))
@@ -23,8 +23,6 @@ module V1
         if result.success?
           # Give a successful river delete a chance to finish on the search server
           sleep 3
-        elsif result.code == 404
-          #puts "INFO: Could not delete river '#{name}' because it doesn't exist. (Which is probably harmless.)"
         else
           puts "INFO: Could not delete river '#{name}' because: #{result}"
         end
@@ -32,24 +30,39 @@ module V1
         result
       end
 
-      def self.create_river(options={})
-        # defaults are the active index and river
-        index = options['index'] || SearchEngine.alias_to_index(Config.search_index)
-        river = options['river'] || Config.river_name
+      def self.list_all
+        url = Config.search_endpoint + '/_river/_mapping'
+        rivers = HTTParty.get(url).parsed_response['_river'].keys rescue []
+        rivers.map do |river|
+          "#{river} -> index:#{ service_meta(river)['_source']['index']['index'] }"
+        end
+      end
 
+      def self.validate_river_params_for(index)
         if index.nil?
-          if SearchEngine.index_exists?(Config.search_index)
-            message = "is actually an index. That won't do."
+          if SearchEngine.index_exists?(index)
+            message = "is actually an index. It should always point to an alias."
           else
             message = "doesn't point to any index. Perhaps you forgot to deploy an index first."
           end
           raise "Error: Expected alias '#{Config.search_index}' #{message}"
+        elsif SearchEngine.find_alias(index)
+          # Don't create a river pointed at an alias
+          raise "Refusing to create river pointed at an alias" 
         end
-        
+      end
+      
+      def self.create_river(options={})
+        # defaults are the active index and river
+        river = options['river'] || Config.river_name
+        index = options['index'] || SearchEngine.alias_to_index(Config.search_index)
+        validate_river_params_for(index)
+
+        #TODO: refuse to create a river that already exists #HTTParty.head ...
         repository = Repository.reader_cluster_database.to_s
         river_payload = river_creation_doc(index, repository).to_json
 
-        #TODO rename endpoint and create _meta method and update dpla.rake
+        # :body key must be a symbol
         result = HTTParty.put(
                               "#{endpoint(river)}/_meta",
                               :body => river_payload
@@ -59,7 +72,7 @@ module V1
         
         # Sleep a bit to let creation process finish on elasticsearch server
         sleep 1
-        puts "Created river '#{river}' pointed at index '#{index}'" if verify_river_exists(river)
+        puts verify_river_status(river)
       end
       
       def self.river_creation_doc(index, database_uri)
@@ -73,9 +86,9 @@ module V1
             'db' => repo_uri.path.sub('/', ''),
             'user' => repo_uri.user,
             'password' => repo_uri.password,
-            'bulk_size' => '100',
-            'bulk_timeout' => '2s',
-            'script' => river_creation_script
+            'bulk_size' => '500',
+            'bulk_timeout' => '3s',
+            'script' => river_script
           },
           'index' => {
             'index' => index
@@ -83,7 +96,7 @@ module V1
         }
       end
 
-      def self.river_creation_script
+      def self.river_script
         #Note: The null value assignment below works in conjunction with the schema's
         #null_value attribute to force empty/null values to sort last, ascending.
         #(ElasticSearch's 'missing' sort attr only works on numeric fields at the moment.)
@@ -95,9 +108,11 @@ module V1
             if (ctx._type == 'item') {
               ctx['doc']['admin'] = ctx['doc']['admin'] || {};
               ctx['doc']['admin']['sourceResource'] = ctx['doc']['admin']['sourceResource'] || {};
-              if (ctx['doc']#{field}) {
-                ctx['doc']['admin']#{field} = ctx['doc']#{field}[0].length > 1 ? ctx['doc']#{field}[0] : ctx['doc']#{field};
-              } else {ctx['doc']['admin']#{field} = null;}
+              if (ctx['doc']['sourceResource']) {
+                if (ctx['doc']#{field}) {
+                  ctx['doc']['admin']#{field} = ctx['doc']#{field}[0].length > 1 ? ctx['doc']#{field}[0] : ctx['doc']#{field};
+                } else {ctx['doc']['admin']#{field} = null;}
+              }
             }
           "
         end
@@ -106,7 +121,15 @@ module V1
 
       def self.service_status(river=river_name)
         begin
-          HTTParty.get("#{endpoint(river)}/_meta?pretty").body
+          HTTParty.get("#{endpoint(river)}/_status").parsed_response
+        rescue Exception => e
+          "Error: #{e}"
+        end
+      end
+
+      def self.service_meta(river=river_name)
+        begin
+          HTTParty.get("#{endpoint(river)}/_meta").parsed_response
         rescue Exception => e
           "Error: #{e}"
         end
@@ -120,78 +143,99 @@ module V1
         Config.search_endpoint + '/_river/' + name
       end
 
-      def self.verify_river_exists(river)
+      def self.verify_river_status(name=river_name)
         # Verify that the river was actually created successfully. ElasticSearch's initial
         # response in $create_result won't report if there was a deeper problem with the
-        # river we tried to create. 
-        status = JSON.parse(service_status(river))
+        # river we tried to create.
+        name ||= river_name
+        status = service_status(name)
 
-        if status['_source'] && status['_source']['error']
-          node = status['_source']['node']['name']
-          error = status['_source']['error']
-          raise "Error creating river on node '#{node}': #{error}"
+        raise "River '#{name}' does not exist" unless status['exists']
+        source = status['_source']
+        node = source['node']['name']
+
+        if source && source['error']
+          error = source['error']
+          raise "Problem with river on node '#{node}': #{error}"
         else
-          true
+          if last_sequence.nil?
+            raise "River exists but is not working properly (last_seq is nil)"
+          else
+            index = service_meta(name)['_source']['index']['index']
+            return "River '#{name}' pointed at index '#{index}' running on node '#{node}'"
+          end
         end
       end
-      
-      def self.test_river
+
+      def self.last_sequence
+        response = HTTParty.get(endpoint + '/_seq').parsed_response
+        # 'couchdb' is from river_creation_doc['type']
+        seq = response['_source']['couchdb']['last_seq'] rescue nil
+        seq.nil? ? seq : seq.to_i
+      end
+
+      def self.current_velocity(name=river_name)
+        name ||= river_name
+        sleep_time = 3
+        
+        start_seq = last_sequence
+        if start_seq.nil?
+          raise "Can't get velocity for river '#{name}' because looks broken (last_seq is nil)"
+        end
+        sleep sleep_time
+        velocity = (last_sequence.to_f - start_seq.to_f) / sleep_time
+
+        "#{ sprintf("%.1f", velocity) } docs/sec"
+      end
+
+      def self.river_test
         # End to end test integration to verify that changes are making it from the
         # repository to the search index via the River properly. It is driven by a rake
         # task (rather than an integration test) because it is safe to run in production.
         SearchEngine.endpoint_config_check
 
-        # get doc with id: DPLARIVERTEST from the test dataset
-        test_doc_id = 'DPLARIVERTEST'
-        timestamp = Time.now.to_s
+        verify_river_status
+        puts "River velocity: " + V1::SearchEngine::River.current_velocity
+        
+        original_seq = last_sequence
+
+        doc_id = "DPLARIVERTEST-#{Time.now.to_i}"
         doc = {
-          '_id' => test_doc_id,
-          'id' => test_doc_id,
-          'title' => timestamp,
-          'ingestType' => 'item'  #any valid resource type
+          '_id' => doc_id,
+          'id' => doc_id,
+          'ingestType' => 'item'
         }
         
-        # post it to couchdb as a new doc
+        # post it to the repo as a new doc
+        puts "Saving test doc to repository..."
         import_result = Repository.import_docs([doc]).first
 
         if !import_result['ok']
-          # it already exist, so we need to update it
-          # fetch doc from couchdb to get latst _rev
-          update_result = Repository.raw_fetch([test_doc_id]).first
-
-          # update doc with required _rev info and new title
-          doc = update_result['doc'].merge('title' => doc['title'])
-          import_result = Repository.import_docs([doc]).first
+          raise "Unexpected error saving test doc to repository: #{import_result}"
         end
 
-        # add a delay to give time for ES to get the change notification from the River
-        # If CouchDB is doing any significant amount of heavy lifting when this is run,
-        # this delay will probably not be long enough, and this test will appear to fail.
-        # Repeating the test a few seconds later then most likely succeed.
         sleep 5
 
-        search_doc = Item.fetch( [doc['id']] )['docs'].first rescue nil
+        new_seq = last_sequence
 
-        if search_doc.nil?
-          puts "Fail: Test doc pushed to CouchDB but not found in ElasticSearch"
-        elsif search_doc['title'] != timestamp
-          puts "Fail: Test doc found in ElasticSearch, but was not updated correctly"
-          puts "Expected title: #{timestamp}"
-          puts "Actual title:   #{search_doc['title']}"
+        if new_seq != original_seq
+          puts "SUCCESS: River's last_seq value incremented after test doc was written to repository"
+          search_doc = Item.fetch( [doc['id']] )['docs'].first rescue nil
+
+          if search_doc.nil?
+            puts "But... the test doc was not found in ElasticSearch yet, so the river is likely backlogged"
+          end
         else
-          print "SUCCESS: Changes in test doc propogated by the River OK "
-          puts "('title' => '#{search_doc['title']}' for id: #{test_doc_id})"
+          puts "Fail: River's last_seq (#{original_seq || 'nil'}) has not changed since test doc was written to repository"
         end
 
         if !import_result.nil?
-          # remove test doc from couch
-          #TODO: Do an updelete here now that the river is type-specific
           delete_doc = {'_id' => import_result['id'], '_rev' => import_result['rev']}
           Repository.delete_docs([delete_doc])
         end
 
       end
-
+    
     end
 
   end

@@ -21,13 +21,12 @@ else
 
   puts "Initializing test environment for the repository and search index..."
   V1::Repository.recreate_env
-  sleep 2
+  sleep(ENV['TRAVIS'] ? 10 : 3)
   previous_index = V1::SearchEngine.create_and_deploy_index
-  V1::SearchEngine.safe_delete_index(previous_index)
+  V1::SearchEngine.safe_delete_index(previous_index) if previous_index
   
-  # Sleep a bit to let CouchDB finish doing its thing internally, as well as letting 
-  # the river catch up on indexing the docs added to CouchDB.
-  sleep 5
+  # Sleep a bit to let the river catch up on indexing the docs added to CouchDB.
+  sleep (ENV['TRAVIS'] ? 10 : 3)
   puts "Search docs       : #{V1::SearchEngine.doc_count}"
 end
 

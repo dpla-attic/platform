@@ -237,7 +237,7 @@ module V1
         
         auth_doc.merge!(current_auth) if current_auth
         auth_result = db.save_doc(auth_doc)
-        raise "Error: #{auth_result}" unless auth_result['ok']
+        raise "Error: #{auth_result} (current_auth is: #{current_auth})" unless auth_result['ok']
       end
     end
     

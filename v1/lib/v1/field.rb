@@ -119,6 +119,10 @@ module V1
       type == 'multi_field'
     end
 
+    def multi_field_date?
+      # aka "a date field wrapped in a multi_field"
+      multi_field? && multi_field_default && multi_field_default.date?
+    end
   end
 
 end

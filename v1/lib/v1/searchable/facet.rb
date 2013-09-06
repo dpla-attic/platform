@@ -77,8 +77,9 @@ module V1
       def self.facet_field_name(field)
         # Determines the name of the field to use for this facet. (Not to be confused
         # with what arbitrary name to call the facet in the results set.)
-
-        if field.not_analyzed_field && field.not_analyzed_field.facetable?
+        if field.date?
+          field.name
+        elsif field.not_analyzed_field && field.not_analyzed_field.facetable?
           field.not_analyzed_field.name
         else
           field.name
@@ -88,7 +89,7 @@ module V1
       def self.facet_display_name(field)
         # Retrail the facet_modifier string for date fields to better support date_histogram
         # intervals in the facet payload returned to the client
-        if field.date? && field.facet_modifier
+        if (field.date? || field.multi_field_date?) && field.facet_modifier
           field.name + ".#{field.facet_modifier}"
         else
           field.name
@@ -113,9 +114,9 @@ module V1
         # Returns correct facet type based on field type.
         if field.geo_point?
           'geo_distance'
-        elsif field.date? && %w( decade century ).include?(field.facet_modifier)
+        elsif (field.date? || field.multi_field_date?) && %w( decade century ).include?(field.facet_modifier)
           'range'
-        elsif field.date?
+        elsif field.date? || field.multi_field_date?
           'date'
         else
           'terms'

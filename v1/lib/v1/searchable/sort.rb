@@ -21,8 +21,8 @@ module V1
         order = raw_order.downcase
 
         if order == ''
-          DEFAULT_SORT_ORDER
-        elsif VALID_SORT_ORDERS.include?(order)
+          default_sort_order
+        elsif valid_sort_orders.include?(order)
           order
         else
           raise BadRequestSearchError, "Invalid sort_order value: #{raw_order}"
@@ -41,7 +41,6 @@ module V1
         end
 
         if sort_by.sort == 'multi_field'
-          # multi_field sort always uses the not_analyzed field
           sort_by = sort_by.not_analyzed_field
           
           if sort_by.nil?
@@ -60,16 +59,17 @@ module V1
             raise BadRequestSearchError, "Nonsense use of sort_by_pin parameter without corresponding sort_by parameter"
           end
           
-          # Default sort order
-          return { '_score' => 'desc' }
+          # Default
+          return { '_score' => { 'order' => 'desc' } }
         end
 
         sort_field = sort_by(resource, sort_by_name)
         sort_order = sort_order(params)
 
         if sort_field.sort == 'field'
+          missing_attr = sort_field.date? ? {'missing' => '_last'} : {}
           {
-            sort_field.name => sort_order
+            sort_field.name => { 'order' => sort_order }.merge(missing_attr)
           }
         elsif sort_field.sort == 'script'
           # script sort to work around ElasticSearch not supporting sort by array value fields
@@ -84,7 +84,7 @@ module V1
           }
         elsif sort_field.sort == 'shadow'
           {
-            'admin.' + sort_field.name => sort_order
+            'admin.' + sort_field.name => { 'order' => sort_order }
           }
         elsif sort_field.sort == 'geo_distance'
           if params['sort_by_pin'].to_s == ''
@@ -96,6 +96,13 @@ module V1
         end
       end
 
+      def self.default_sort_order
+        DEFAULT_SORT_ORDER
+      end
+
+      def self.valid_sort_orders
+        VALID_SORT_ORDERS
+      end
     end
 
   end

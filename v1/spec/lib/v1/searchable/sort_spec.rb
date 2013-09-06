@@ -10,9 +10,15 @@ module V1
 
       context "Constants" do
 
-        describe "DEFAULT_SORT_ORDER" do
+        describe "default_sort_order" do
           it "has the correct value" do
-            expect(subject::DEFAULT_SORT_ORDER).to eq 'asc'
+            expect(subject.default_sort_order).to eq 'asc'
+          end
+        end
+
+        describe "valid_sort_orders" do
+          it "has the correct value" do
+            expect(subject.valid_sort_orders).to match_array %w( asc desc )
           end
         end
 
@@ -31,7 +37,7 @@ module V1
       describe "#sort_order" do
 
         it "supplies a default value" do
-          expect(subject.sort_order( {'sort_order' => ''} )).to eq subject::DEFAULT_SORT_ORDER
+          expect(subject.sort_order( {'sort_order' => ''} )).to eq subject.default_sort_order
         end
 
         it "raises an exception for an invalid value" do
@@ -96,19 +102,18 @@ module V1
           params = {}
           expect(
                  subject.build_sort_attributes(resource, params)
-                 ).to eq({ '_score' => 'desc' })
+                 ).to eq({ '_score' => {'order' => 'desc'} })
         end
 
         it "uses default sort_order if no sort_order param present" do
           name = 'id'
-          field = double(:name => name, :sortable? => true, :sort => 'field')
+          field = double(:name => name, :date? => false, :sortable? => true, :sort => 'field')
           subject.stub(:sort_by).with(resource, name) { field }
           params = {'sort_by' => name}
           expect(
                  subject.build_sort_attributes(resource, params)
-                 ).to eq({name => subject::DEFAULT_SORT_ORDER})
+                 ).to eq( {name => {'order' => subject.default_sort_order}} )
         end
-
 
         it "returns correct array values for geo_point types" do
           name = 'coordinates'
@@ -149,7 +154,7 @@ module V1
           expect(
                  subject.build_sort_attributes(resource, params)
                  ).to eq( 
-                         { 'admin.sourceResource.title' => 'asc' }
+                         { 'admin.sourceResource.title' => {'order' => 'asc'} }
                          )
           
         end

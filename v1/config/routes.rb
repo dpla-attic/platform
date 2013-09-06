@@ -24,15 +24,14 @@ V1::Engine.routes.draw do
   # not fully implemented yet
   #get "/api_key(.:format)/*owner" => "api_key#show", :defaults => { :format => 'json' }
 
-  # place-holder
+  # place-holder for HTTP GET request that should be PUT
   get "/api_key(.:format)/*owner" => "api_key#show_placeholder", :defaults => { :format => 'json' }
-
   # friendly error message
   get "/api_key" =>  "api_key#index"
   
-  # General Utils
-  get "/repo/status" => "search#repo_status"
-  # get "/repository/status" => "repository#status", :defaults => { :format => 'json' }
-  # get "/search/status" => "search#status", :defaults => { :format => 'json' }
-
+  # Monitoring endpoints
+  get "/status/repository" => "status#repository", :defaults => { :format => 'json' }
+  # get "/status/river" => "status#river", :defaults => { :format => 'json' }
+  # get "/status/search_engine" => "status#search_engine", :defaults => { :format => 'json' }
+  # get "/status/search_shards" => "status#search_shards", :defaults => { :format => 'json' }
 end
