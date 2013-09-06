@@ -7,6 +7,12 @@ namespace :v1 do
   # NOTE: Any task that calls a method that internally makes calls to Tire, must pass
   # the :environment symbol in the task() call so the Tire initializer gets called.
 
+  desc "Displays the river's current indexing velocity"
+  task :river_velocity, [:river] => :environment do |t, args|
+    puts V1::SearchEngine::River.verify_river_status(args.river)
+    puts "River velocity: " + V1::SearchEngine::River.current_velocity(args.river)
+  end
+
   desc "Updates existing ElasticSearch schema *without* deleting the current index"
   task :update_search_schema => :environment do
     V1::SearchEngine.update_schema
@@ -54,7 +60,6 @@ namespace :v1 do
     V1::SearchEngine::River.recreate_river
   end
 
-  #TODO: This is confusing to use.
   desc "Creates new ElasticSearch river, pointed at $index (defaults to currently deployed index)"
   task :create_river, [:index,:river] => :environment do |t, args|
     V1::SearchEngine::River.create_river('index' => args.index, 'river' => args.river)

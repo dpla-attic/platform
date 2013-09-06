@@ -147,6 +147,7 @@ module V1
         # Verify that the river was actually created successfully. ElasticSearch's initial
         # response in $create_result won't report if there was a deeper problem with the
         # river we tried to create.
+        name ||= river_name
         status = service_status(name)
 
         raise "River '#{name}' does not exist" unless status['exists']
@@ -169,9 +170,24 @@ module V1
       def self.last_sequence
         response = HTTParty.get(endpoint + '/_seq').parsed_response
         # 'couchdb' is from river_creation_doc['type']
-        response['_source']['couchdb']['last_seq'] rescue nil
+        seq = response['_source']['couchdb']['last_seq'] rescue nil
+        seq.nil? ? seq : seq.to_i
       end
-      
+
+      def self.current_velocity(name=river_name)
+        name ||= river_name
+        sleep_time = 3
+        
+        start_seq = last_sequence
+        if start_seq.nil?
+          raise "Can't get velocity for river '#{name}' because looks broken (last_seq is nil)"
+        end
+        sleep sleep_time
+        velocity = (last_sequence.to_f - start_seq.to_f) / sleep_time
+
+        "#{ sprintf("%.1f", velocity) } docs/sec"
+      end
+
       def self.river_test
         # End to end test integration to verify that changes are making it from the
         # repository to the search index via the River properly. It is driven by a rake
@@ -179,14 +195,14 @@ module V1
         SearchEngine.endpoint_config_check
 
         verify_river_status
+        puts "River velocity: " + V1::SearchEngine::River.current_velocity
+        
         original_seq = last_sequence
 
-        test_doc_id = 'DPLARIVERTEST'
-        timestamp = Time.now.to_s
+        doc_id = "DPLARIVERTEST-#{Time.now.to_i}"
         doc = {
-          '_id' => test_doc_id,
-          'id' => test_doc_id,
-          'title' => timestamp,
+          '_id' => doc_id,
+          'id' => doc_id,
           'ingestType' => 'item'
         }
         
@@ -195,15 +211,9 @@ module V1
         import_result = Repository.import_docs([doc]).first
 
         if !import_result['ok']
-          # it already exists, so update it in repo
-          update_result = Repository.raw_fetch([test_doc_id]).first
-
-          # update doc with required _rev info and new title
-          doc = update_result['doc'].merge('title' => doc['title'])
-          import_result = Repository.import_docs([doc]).first
+          raise "Unexpected error saving test doc to repository: #{import_result}"
         end
 
-        # Add a delay to give time for ES to get the change notification from the River
         sleep 5
 
         new_seq = last_sequence
@@ -213,7 +223,7 @@ module V1
           search_doc = Item.fetch( [doc['id']] )['docs'].first rescue nil
 
           if search_doc.nil?
-            puts "But... the test doc has not updated in ElasticSearch yet, so the river is likely backlogged"
+            puts "But... the test doc was not found in ElasticSearch yet, so the river is likely backlogged"
           end
         else
           puts "Fail: River's last_seq (#{original_seq || 'nil'}) has not changed since test doc was written to repository"
