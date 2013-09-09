@@ -7,12 +7,6 @@ namespace :v1 do
   # NOTE: Any task that calls a method that internally makes calls to Tire, must pass
   # the :environment symbol in the task() call so the Tire initializer gets called.
 
-  desc "Displays the river's current indexing velocity"
-  task :river_velocity, [:river] => :environment do |t, args|
-    puts V1::SearchEngine::River.verify_river_status(args.river)
-    puts "River velocity: " + V1::SearchEngine::River.current_velocity(args.river)
-  end
-
   desc "Updates existing ElasticSearch schema *without* deleting the current index"
   task :update_search_schema => :environment do
     V1::SearchEngine.update_schema
@@ -68,6 +62,11 @@ namespace :v1 do
   desc "Deletes ElasticSearch river named '#{V1::Config.river_name}'"
   task :delete_river do
     V1::SearchEngine::River.delete_river or puts "River does not exist, so nothing to delete"
+  end
+
+  desc "Displays the river's current indexing velocity"
+  task :river_velocity, [:river] => :environment do |t, args|
+    puts "River velocity: " + V1::SearchEngine::River.current_velocity(args.river)
   end
 
   desc "Lists ElasticSearch rivers"

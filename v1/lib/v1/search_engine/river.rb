@@ -167,26 +167,54 @@ module V1
         end
       end
 
-      def self.last_sequence
-        response = HTTParty.get(endpoint + '/_seq').parsed_response
+      def self.last_sequence(name=river_name)
+        name ||= river_name
+        response = HTTParty.get(endpoint(name) + '/_seq').parsed_response
+
         # 'couchdb' is from river_creation_doc['type']
         seq = response['_source']['couchdb']['last_seq'] rescue nil
-        seq.nil? ? seq : seq.to_i
+        return nil if seq.nil?
+
+        seq = JSON.parse(seq).first if seq !~ /^\d+$/
+
+        seq.to_i
       end
 
       def self.current_velocity(name=river_name)
         name ||= river_name
         sleep_time = 3
-        
-        start_seq = last_sequence
+
+        start_seq = last_sequence(name)
         if start_seq.nil?
-          raise "Can't get velocity for river '#{name}' because looks broken (last_seq is nil)"
+          raise "Can't get velocity for river '#{name}'. It looks borkened (last_seq is nil)"
         end
         sleep sleep_time
-        velocity = (last_sequence.to_f - start_seq.to_f) / sleep_time
+        end_seq = last_sequence(name)
 
+        velocity = (end_seq.to_f - start_seq.to_f) / sleep_time
         "#{ sprintf("%.1f", velocity) } docs/sec"
       end
+
+      # def self.last_sequence
+      #   response = HTTParty.get(endpoint + '/_seq').parsed_response
+      #   # 'couchdb' is from river_creation_doc['type']
+      #   seq = response['_source']['couchdb']['last_seq'] rescue nil
+      #   seq.nil? ? seq : seq.to_i
+      # end
+
+      # def self.current_velocity(name=river_name)
+      #   name ||= river_name
+      #   sleep_time = 3
+        
+      #   start_seq = last_sequence
+      #   if start_seq.nil?
+      #     raise "Can't get velocity for river '#{name}' because looks broken (last_seq is nil)"
+      #   end
+      #   sleep sleep_time
+      #   velocity = (last_sequence.to_f - start_seq.to_f) / sleep_time
+
+      #   "#{ sprintf("%.1f", velocity) } docs/sec"
+      # end
 
       def self.river_test
         # End to end test integration to verify that changes are making it from the
@@ -207,7 +235,6 @@ module V1
         }
         
         # post it to the repo as a new doc
-        puts "Saving test doc to repository..."
         import_result = Repository.import_docs([doc]).first
 
         if !import_result['ok']
