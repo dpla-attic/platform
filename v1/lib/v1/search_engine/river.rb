@@ -181,6 +181,8 @@ module V1
       end
 
       def self.current_velocity(name=river_name)
+        # Sadly, a delta of 10 does not guarantee 10 docs have been processed, but this
+        # is still a relatively useful metric. Zero velocity means "no activity at all."
         name ||= river_name
         sleep_time = 3
 
@@ -195,59 +197,40 @@ module V1
         "#{ sprintf("%.1f", velocity) } docs/sec"
       end
 
-      # def self.last_sequence
-      #   response = HTTParty.get(endpoint + '/_seq').parsed_response
-      #   # 'couchdb' is from river_creation_doc['type']
-      #   seq = response['_source']['couchdb']['last_seq'] rescue nil
-      #   seq.nil? ? seq : seq.to_i
-      # end
-
-      # def self.current_velocity(name=river_name)
-      #   name ||= river_name
-      #   sleep_time = 3
-        
-      #   start_seq = last_sequence
-      #   if start_seq.nil?
-      #     raise "Can't get velocity for river '#{name}' because looks broken (last_seq is nil)"
-      #   end
-      #   sleep sleep_time
-      #   velocity = (last_sequence.to_f - start_seq.to_f) / sleep_time
-
-      #   "#{ sprintf("%.1f", velocity) } docs/sec"
-      # end
-
       def self.river_test
         # End to end test integration to verify that changes are making it from the
         # repository to the search index via the River properly. It is driven by a rake
         # task (rather than an integration test) because it is safe to run in production.
         SearchEngine.endpoint_config_check
+        resource = Item.resource
 
-        verify_river_status
-        puts "River velocity: " + V1::SearchEngine::River.current_velocity
+        puts verify_river_status
+        puts "River velocity: " + SearchEngine::River.current_velocity
         
         original_seq = last_sequence
 
-        doc_id = "DPLARIVERTEST-#{Time.now.to_i}"
-        doc = {
+        doc_id = "DPLARIVERTEST"
+        test_doc = {
           '_id' => doc_id,
           'id' => doc_id,
-          'ingestType' => 'item'
+          '@id' => Time.now,
+          'ingestType' => resource
         }
-        
-        # post it to the repo as a new doc
-        import_result = Repository.import_docs([doc]).first
 
-        if !import_result['ok']
-          raise "Unexpected error saving test doc to repository: #{import_result}"
+        fetched_doc = Repository.raw_fetch([doc_id]).first
+
+        if fetched_doc['doc']
+          # update pre-existing doc with new @id
+          test_doc = fetched_doc['doc'].merge('@id' => test_doc['@id'])
         end
+        Repository.save_doc(test_doc)
 
-        sleep 5
-
+        sleep 4
         new_seq = last_sequence
 
         if new_seq != original_seq
           puts "SUCCESS: River's last_seq value incremented after test doc was written to repository"
-          search_doc = Item.fetch( [doc['id']] )['docs'].first rescue nil
+          search_doc = Item.fetch( [test_doc['id']] )['docs'].first rescue nil
 
           if search_doc.nil?
             puts "But... the test doc was not found in ElasticSearch yet, so the river is likely backlogged"
@@ -256,11 +239,9 @@ module V1
           puts "Fail: River's last_seq (#{original_seq || 'nil'}) has not changed since test doc was written to repository"
         end
 
-        if !import_result.nil?
-          delete_doc = {'_id' => import_result['id'], '_rev' => import_result['rev']}
-          Repository.delete_docs([delete_doc])
-        end
-
+        Repository.delete_docs([test_doc])
+        sleep 1
+        HTTParty.delete(Config.search_endpoint + '/' + Config.search_index + '/' + resource + '/' + doc_id)
       end
     
     end

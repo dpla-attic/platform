@@ -86,7 +86,6 @@ namespace :v1 do
 
   desc "Tests river by posting test doc to CouchDB and verifying it in ElasticSearch"
   task :river_test => :environment do
-    puts V1::SearchEngine::River.verify_river_status
     V1::SearchEngine::River.river_test
   end
 
