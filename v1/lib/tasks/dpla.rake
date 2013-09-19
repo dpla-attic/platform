@@ -94,6 +94,11 @@ namespace :v1 do
     puts V1::SearchEngine.service_status
   end
 
+  desc "Gets ElasticSearch search shards and statuses"
+  task :search_shard_status => :environment do
+    V1::SearchEngine.display_shard_status
+  end
+
   desc "Gets number of docs in search index"
   task :search_doc_count do
     puts V1::SearchEngine.doc_count

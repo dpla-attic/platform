@@ -18,6 +18,43 @@ module V1
       ]
     end
 
+    def self.display_shard_status
+      status = shard_status
+      puts "Shard allocation for index: #{status['index']}"
+      status['assigned'].sort_by {|k,v| k}.each do |node, list|
+        puts "#{node}: #{list.join(', ')}"
+      end
+
+      status['shard_state'].keys.select {|s| s != 'STARTED'}.each do |state|
+        puts "#{ state }: #{ status['shard_state'][state].join(', ') }"
+      end
+    end
+    
+    def self.shard_status
+      res = HTTParty.get(Config.search_endpoint + '/_cluster/state').parsed_response
+      
+      nodes = res['nodes'].inject({}) {|memo,(code,body)| memo[code] = body['name']; memo}
+      shards_by_nodes = nodes.inject({}) {|memo, (code,name)| memo[name] = [] ; memo}
+
+      current = alias_to_index(Config.search_index)
+
+      shard_state = {}
+      res['routing_table']['indices'][current]['shards'].each do |shard_id, shardlist|
+        shardlist.each do |status|
+          shard = status['primary'] ? "#{status['shard']}" : "#{status['shard']}r"
+          state = status['state']
+
+          shard_state[ state ] ||= []
+          shard_state[ state ] << shard
+          if state != 'UNASSIGNED'
+            shards_by_nodes[ nodes[ status['node'] ] ] << shard
+          end
+        end
+      end
+
+      { 'index' => current, 'assigned' => shards_by_nodes, 'shard_state' => shard_state }
+    end
+
     def self.display_indices
       endpoint_config_check
       
