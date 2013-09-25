@@ -40,3 +40,8 @@ Feature: Search for items by keyword with meta-characters in the query string
     When I item-search for '"1 1/2" by 3 1/2""'
     Then the API should return record item-meta1
 
+  Scenario: Field search with two double-quote wrapped terms joined with 'AND'
+    When I item-search for ""Toast" AND "Bread Truck Fires"" in the "sourceResource.subject.name" field
+    Then the API should return record MSN1
+
+

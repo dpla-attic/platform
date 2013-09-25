@@ -7,12 +7,6 @@ namespace :v1 do
   # NOTE: Any task that calls a method that internally makes calls to Tire, must pass
   # the :environment symbol in the task() call so the Tire initializer gets called.
 
-  desc "Displays the river's current indexing velocity"
-  task :river_velocity, [:river] => :environment do |t, args|
-    puts V1::SearchEngine::River.verify_river_status(args.river)
-    puts "River velocity: " + V1::SearchEngine::River.current_velocity(args.river)
-  end
-
   desc "Updates existing ElasticSearch schema *without* deleting the current index"
   task :update_search_schema => :environment do
     V1::SearchEngine.update_schema
@@ -70,6 +64,11 @@ namespace :v1 do
     V1::SearchEngine::River.delete_river or puts "River does not exist, so nothing to delete"
   end
 
+  desc "Displays the river's current indexing velocity"
+  task :river_velocity, [:river] => :environment do |t, args|
+    puts "River velocity: " + V1::SearchEngine::River.current_velocity(args.river)
+  end
+
   desc "Lists ElasticSearch rivers"
   task :river_list => :environment do
     puts V1::SearchEngine::River.list_all
@@ -87,13 +86,17 @@ namespace :v1 do
 
   desc "Tests river by posting test doc to CouchDB and verifying it in ElasticSearch"
   task :river_test => :environment do
-    puts V1::SearchEngine::River.verify_river_status
     V1::SearchEngine::River.river_test
   end
 
   desc "Gets ElasticSearch search cluster status"
   task :search_status do
     puts V1::SearchEngine.service_status
+  end
+
+  desc "Gets ElasticSearch search shards and statuses"
+  task :search_shard_status => :environment do
+    V1::SearchEngine.display_shard_status
   end
 
   desc "Gets number of docs in search index"

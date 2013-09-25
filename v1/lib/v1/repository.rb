@@ -68,6 +68,16 @@ module V1
       import_docs(SearchEngine.process_input_file(file, false))
     end
 
+    def self.save_doc(doc)
+      begin
+        admin_cluster_database.save_doc doc
+      rescue RestClient::BadRequest => e
+        error = JSON.parse(e.response) rescue {}
+        raise Exception, "Error: #{error['reason'] || e.to_s}"
+      end
+    end
+    
+
     def self.import_docs(docs)
       db = admin_cluster_database
       begin
@@ -149,7 +159,7 @@ module V1
       end
 
       begin
-        db.create!
+        db.create! && sleep(3)
       rescue StandardError => e
         raise "DB Create Error: #{e}"
       end

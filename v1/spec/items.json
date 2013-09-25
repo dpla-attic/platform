@@ -570,6 +570,17 @@
         }
     },
     {
+        "_id": "MSN1",
+        "id": "MSN1",
+        "ingestType": "item",
+        "sourceResource": {
+            "subject": [
+                { "name": "Toast" },
+                { "name": "Bread Truck Fires" }
+            ]
+        }
+    },
+    {
         "_id": "FF1",
         "id": "ff1",
         "ingestType": "item",

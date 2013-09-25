@@ -22,7 +22,7 @@ module V1
 
   class UnauthorizedSearchError < SearchError
     def initialize(msg=nil)
-      msg ||= 'Unauthorized: Missing, invalid or inactive auth_token'
+      msg ||= 'Unauthorized: Missing, invalid or inactive api_key'
       super
       @http_status = 401
     end

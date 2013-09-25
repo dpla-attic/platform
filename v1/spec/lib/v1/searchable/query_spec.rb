@@ -169,12 +169,17 @@ module V1
 
         it "escapes internal double quotes" do
           string = 'ha"rv'
-          expect(subject.protect_metacharacters(string)).to eq 'ha\"rv'
+          expect(subject.protect_metacharacters(string)).to eq 'ha\\"rv'
         end
 
         it "escapes internal double quotes and preserves double-quote wrapping" do
           string = '"ha"rv"'
-          expect(subject.protect_metacharacters(string)).to eq '"ha\"rv"'
+          expect(subject.protect_metacharacters(string)).to eq '"ha\\"rv"'
+        end
+
+        it "escapes internal double quotes without double-escaping them" do
+          string = '"ha\\"rv"'
+          expect(subject.protect_metacharacters(string)).to eq '"ha\\"rv"'
         end
 
         it "escapes meta-characters at the beginning of a string" do
