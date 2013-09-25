@@ -159,7 +159,7 @@ module V1
       end
 
       begin
-        db.create!
+        db.create! && sleep(3)
       rescue StandardError => e
         raise "DB Create Error: #{e}"
       end

@@ -10,7 +10,7 @@ module V1
 
       # not escaped, but probably could be if escape code was tweaked: '&&', '||'
       # not escaped, because they don't seem to need it: '+', '-',
-      ESCAPED_METACHARACTERS = [ '"', '!', '(', ')', '{', '}', '[', ']', '^', '~', '?', ':' ]
+      ESCAPED_METACHARACTERS = [ '!', '(', ')', '{', '}', '[', ']', '^', '~', '?', ':' ]  # '"',
 
       def self.execute_empty_search(search)
         # We need to be explicit with an empty search
@@ -34,7 +34,6 @@ module V1
           # if ids_queries.any?
           #   query.ids *ids_queries
           # end
-
           query.boolean do |boolean|
 
             string_queries.each do |query_string|
@@ -67,7 +66,15 @@ module V1
         end
 
         escaped_metacharacters.each do |mc|
+          # Try: tmp.gsub!(/(?=#{mc})/, '\\') #=> Foo\ Bar\!
           tmp.gsub!(mc, '\\' + mc)
+        end
+        
+        # How do we handle this query: '"Toast" AND "Bread Trucks"'
+        # and also handle: '1 and 3/8" boards'
+        if tmp.count('"') % 2 == 1
+          tmp.gsub!(/"/, '\\"')
+          tmp.gsub!(/\\{2,}"/, '\\"')
         end
         
         quoted ? %Q("#{tmp}") : tmp
