@@ -42,11 +42,26 @@ module V1
     def items
       begin
         results = Rails.cache.fetch(search_cache_key('items', params), :raw => true) do
-          Item.search(params).to_json
+          begin
+            Item.search(params).to_json
+          rescue BadRequestSearchError => e
+            # This requests's params will always return this error, so cache it as such
+            e
+          end
         end
-        render :json => render_as_json(results, params)
+        # render :json => render_as_json(results, params)
       rescue SearchError => e
-        render_error(e, params)
+        # render_error(e, params)
+        results = e
+      end
+      render_search_results(results, params)
+    end
+
+    def render_search_results(results, options)
+      if results.is_a? SearchError
+        render_error(results, params)
+      else
+        render :json => render_as_json(results, params)
       end
     end
 
@@ -64,12 +79,17 @@ module V1
     def collections
       begin
         results = Rails.cache.fetch(search_cache_key('collections', params), :raw => true) do
-          Collection.search(params).to_json
+          begin
+            Collection.search(params).to_json
+          rescue BadRequestSearchError => e
+            # This requests's params will always return this error, so cache it as such
+            e
+          end
         end
-        render :json => render_as_json(results, params)
       rescue SearchError => e
-        render_error(e, params)
+        results = e
       end
+      render_search_results(results, params)
     end
 
     def fetch_collections
