@@ -8,6 +8,7 @@ vendor/bundle/
 logs/
 public/assets/
 pgsql/
+.bundle/
 *.swp
 .sass-cache/
 apache2/

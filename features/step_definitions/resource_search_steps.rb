@@ -148,3 +148,6 @@ Then /^the API should return (\d+) items with "(.*?)"$/ do |count, keyword|
   end
 end
 
+Then(/^the API should not hit the search engine$/) do
+  V1::Item.should_not_receive(:wrap_results)
+end

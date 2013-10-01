@@ -46,12 +46,43 @@ module V1
         
       end
 
+      describe "#build_filters" do
+        it "raises BadRequestSearchError for an invalid date value in a date field" do
+          subject.stub(:field_for).with(resource, 'datefield') { double(:date? => true) }
+          params = {'datefield' => '?year=1969'}
+          expect {
+            subject.build_filters(resource, params)
+          }.to raise_error BadRequestSearchError, 'Invalid date in datefield field'
+
+        end
+      end
+
+      describe "#parse_date_query" do
+        it "returns a valid YYYY date" do
+          expect(subject.parse_date_query('1973')).to eq '1973'
+        end
+
+        it "returns a valid YYYY-MM" do
+          expect(subject.parse_date_query('1973-12')).to eq '1973-12'
+        end
+
+        it "returns a valid YYYY-MM-DD" do
+          expect(subject.parse_date_query('1973-12-31')).to eq '1973-12-31'
+        end
+
+        it "strips double-quote wrapping from dates" do
+          expect(subject.parse_date_query('"1973"')).to eq '1973'
+        end
+
+        it "returns nil for an invalid date" do
+          expect(subject.parse_date_query('?year=1973')).to be_nil
+        end
+        
+      end
+
       describe "#date_range" do
         let(:expected_range) { [ 'range', 'datefield' => {'gte' => '1973', 'lt' => '1974'} ] }
 
-        it "strips double-quote wrapping from dates" do
-          expect(subject.date_range('datefield', '"1973"')).to eq( expected_range )
-        end
         it "returns the expected array" do
           expect(subject.date_range('datefield', '1973')).to eq( expected_range )
         end

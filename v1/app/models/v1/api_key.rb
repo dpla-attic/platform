@@ -5,9 +5,6 @@ module V1
 
   class ApiKey 
 
-    # Valid keys are 32 character hex strings
-    VALID_KEY_REGEX = /^[0-9a-f]{32}$/
-    
     attr_reader :db, :owner, :id, :disabled, :_rev, :created_at, :updated_at
 
     #TODO: manage _id internally using id() and id= methods
@@ -68,12 +65,13 @@ module V1
     def to_hash
       h = {
         '_id' => id,
-        '_rev' => _rev,
         'owner' => owner,
         'created_at' => created_at,
         'updated_at' => updated_at,
       }
       h['disabled'] = true if disabled?
+      h['_rev'] = _rev if _rev
+
       h
     end
 
@@ -104,14 +102,25 @@ module V1
     end
 
     def self.find_by_owner(db, owner)
+      #TODO: return ApiKey instance like find_by_key does
       owner = self.sanitize_email(owner)
       key = db.view('api_auth_utils/find_by_owner', 'key' => owner)['rows'].first
       key ? key['value'] : nil
     end
 
+    def self.looks_like_key(string)
+      # Valid keys are 32 character hex strings
+      string =~ /^[0-9a-f]{32}$/
+    end
+
+    def self.looks_like_owner(string)
+      # very loose 'email-ish' test
+      string =~ /\w+@\w+\.\w+/
+    end
+
     def self.authenticate(db, key_id)
       # Returns the boolean of "is this key valid and authenticated"
-      return false if key_id !~ VALID_KEY_REGEX
+      return false unless self.looks_like_key(key_id)
       
       # Let Errno::ECONNREFUSED exceptions bubble up here
       key = self.find_by_key(db, key_id)

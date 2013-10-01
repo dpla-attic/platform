@@ -49,6 +49,21 @@ module V1
       end
     end    
 
+    def render_as_json(results, params)
+      # Handles optional JSONP callback param
+      conversion = results.is_a?(Hash) ? :to_json : :to_s
+
+      if params['callback'].present?
+        params['callback'] + '(' + results.send(conversion) + ')'
+      else
+        results.send(conversion)
+      end
+    end
+
+    def render_error(e, params)
+      render :json => render_as_json({:message => e.message}, params), :status => e.http_status
+    end
+
   end
 
 end
