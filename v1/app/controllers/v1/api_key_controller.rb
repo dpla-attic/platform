@@ -37,16 +37,20 @@ module V1
     def create
       owner = params['owner']
       
-      # TODO: don't create if a key already exists for this user, just email it and return HTTP 200
-      key = ApiAuth.create_api_key(owner)
-      Rails.logger.info "API_KEY: Created API key for #{owner}: #{key.to_hash}"
-
-      message = 'API key created and sent via email. Be sure to check your Spam folder, too.'
-      status = :created
-      error = nil
-
       begin
+        # TODO: don't create if a key already exists for this user, just email it and return HTTP 200
+        key = ApiAuth.create_api_key(owner)
+        Rails.logger.info "API_KEY: Created API key for #{owner}: #{key.to_hash}"
+
         email_key(owner, key)
+
+        message = 'API key created and sent via email. Be sure to check your Spam folder, too.'
+        status = :created
+        error = nil
+      rescue RestClient::BadRequest => e
+        message = "API key creation failed due to an internal error. Please try again later."
+        status = :error
+        error = e
       rescue Net::SMTPSyntaxError => e
         message = "API key created but could not be sent via email. Perhaps you mis-typed your email address?"
         status = :error

@@ -114,15 +114,15 @@ namespace :v1 do
     puts V1::SearchEngine.search_schema
   end
 
-  desc "Show API 'is_valid?' auth for a key"
+  desc "Show API key by [key_id] or [email]"
   task :show_api_auth, [:key] do |t, args|
-    puts V1::ApiAuth.show_api_auth(args.key)    
+    puts (V1::ApiAuth.show_api_auth(args.key) || 'not found').to_s
   end
   
   desc "Toggle the disabled status for an API key"
   task :toggle_api_auth, [:key] => :environment do |t, args|
     key = V1::ApiAuth.toggle_api_auth(args.key)
-    puts V1::ApiAuth.show_api_auth(key)
+    puts "API key is now: #{key.disabled? ? 'Disabled' : 'Enabled' }"
   end
   
   desc "Deletes cached API auth for a single api_key"

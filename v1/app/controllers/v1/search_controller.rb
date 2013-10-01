@@ -104,17 +104,6 @@ module V1
 
     end
 
-    def render_as_json(results, params)
-      # Handles optional JSONP callback param
-      conversion = results.is_a?(Hash) ? :to_json : :to_s
-
-      if params['callback'].present?
-        params['callback'] + '(' + results.send(conversion) + ')'
-      else
-        results.send(conversion)
-      end
-    end
-
     def connection_refused(exception)
       logger.warn "search_controller#connection_refused handler firing"
       render_error(ServiceUnavailableSearchError.new, params)
@@ -124,10 +113,6 @@ module V1
       logger.warn "#{self.class}.generic_exception_handler firing for: #{exception.class}: #{exception}"
       logger.warn "#{exception.backtrace.first(15).join("\n")}\n[SNIP]"
       render_error(InternalServerSearchError.new, params)
-    end
-
-    def render_error(e, params)
-      render :json => render_as_json({:message => e.message}, params), :status => e.http_status
     end
 
     def links; end

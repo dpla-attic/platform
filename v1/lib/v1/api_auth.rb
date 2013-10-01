@@ -19,7 +19,11 @@ module V1
       key = ApiKey.find_by_owner(auth_database, owner)
       key ? key['_id'] : nil
     end
-    
+
+    def self.find_api_key_by_key(key_id)
+      ApiKey.find_by_key(auth_database, key_id)
+    end
+   
     def self.authenticate_api_key(key_id)
       ApiKey.authenticate(auth_database, key_id)
     end
@@ -29,9 +33,16 @@ module V1
     end
 
     def self.show_api_auth(key_id)
-      # Accepts an ApiKey instance or key_id string
-      key = key_id.respond_to?(:disabled?) ? key_id : ApiKey.find_by_key(auth_database, key_id)
-      key ? "API key is now: #{ key.disabled? ? 'Disabled' : 'Enabled' }" : "API key does not exist"
+      #TODO: move most of this to the ApiKey model
+      if key_id.respond_to?(:disabled?)
+        key_id
+      elsif ApiKey.looks_like_key(key_id)
+        ApiKey.find_by_key(auth_database, key_id)
+      elsif ApiKey.looks_like_owner(key_id)
+        ApiKey.find_by_owner(auth_database, key_id)
+      else
+        "Key '#{key_id}' does not look like a key or an owner, so I don't know what to tell you"
+      end
     end
 
     def self.toggle_api_auth(key_id)

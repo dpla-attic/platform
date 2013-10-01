@@ -119,7 +119,6 @@ module V1
         expect(key.to_hash)
           .to eq({
                    '_id' => test_key_id,
-                   '_rev' => nil,
                    'owner' => owner,
                    'created_at' => nil,
                    'updated_at' => nil,
@@ -144,7 +143,6 @@ module V1
         key = ApiKey.new(test_params)
         internal_hash = {
           '_id' => test_key_id,
-          '_rev' => nil,
           'owner' => test_params['owner'],
           'created_at' => 'faketimestamp',
           'updated_at' => 'faketimestamp',

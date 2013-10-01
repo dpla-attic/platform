@@ -25,9 +25,26 @@ module V1
       end
 
       describe "#show_api_auth" do
-        it "accepts an ApiKey instances" do
+        it "correctly handles an ApiKey instance" do
           key = double(:disabled? => true)
-          expect(subject.show_api_auth(key)).to match /disabled/i
+          expect(subject.show_api_auth(key)).to eq key
+        end
+
+        it "delegates correctly when passed a key_id" do
+          key_id = '6c30d962ed96c45c7f007635ef011354'
+          ApiKey.should_receive(:find_by_key).with(anything(), key_id) { 'foundkey' }
+          expect(subject.show_api_auth(key_id)).to eq 'foundkey'
+        end
+
+        it "delegates correctly when passed an owner" do
+          key_id = 'user@example.com'
+          ApiKey.should_receive(:find_by_owner).with(anything(), key_id) { 'foundkey' }
+          expect(subject.show_api_auth(key_id)).to eq 'foundkey'
+        end
+
+        it "returns error message string for unrecognizable input" do
+          key_id = 'somejunk text'
+          expect(subject.show_api_auth(key_id)).to match /does not look like a key or an owner/
         end
       end
   
