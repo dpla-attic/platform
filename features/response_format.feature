@@ -31,3 +31,8 @@ Feature: Format API results based on request format or params
     And I make an empty item-search
     And I should get a valid JSON response
 
+  Scenario: Search endpoint times out
+    When I make an empty item-search and the search endpoint times out
+    Then I should get http status code "503"
+    And I should get a valid JSON response
+

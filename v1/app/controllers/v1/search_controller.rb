@@ -8,8 +8,8 @@ module V1
 
   class SearchController < ApplicationController
     before_filter :authenticate, :except => [:repo_status]  #, :links  #links is just here for testing auth
-    rescue_from Errno::ECONNREFUSED, :with => :connection_refused
     rescue_from Exception, :with => :generic_exception_handler
+    rescue_from Errno::ECONNREFUSED, :with => :connection_refused
 
     def base_cache_key(resource, action, unique_key='')
       # ResultsCache
@@ -105,7 +105,7 @@ module V1
     end
 
     def connection_refused(exception)
-      logger.warn "search_controller#connection_refused handler firing"
+      logger.warn "#{self.class}.connection_refused handler firing"
       render_error(ServiceUnavailableSearchError.new, params)
     end
 

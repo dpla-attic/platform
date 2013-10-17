@@ -23,6 +23,11 @@ Given(/^the default test field boosts are defined$/) do
 
 end
 
+When(/^I make an empty item\-search and the search endpoint times out$/) do
+  @resource = 'item'
+  V1::Item.stub(:wrap_results) { raise RestClient::RequestTimeout }
+end
+
 When /^I make an empty ((\w+)-)?search$/ do |_, resource|
   @resource = resource
 end

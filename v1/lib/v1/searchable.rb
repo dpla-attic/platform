@@ -73,10 +73,11 @@ module V1
       rescue Tire::Search::SearchRequestFailed => e
         error = JSON.parse(search.response.body)['error'] rescue nil
         raise InternalServerSearchError, error
+      rescue RestClient::RequestTimeout => e
+        raise ServiceUnavailableSearchError, e.to_s
       end
     end
 
-    
     def search_offset(params)
       page = params["page"].to_i
       page == 0 ? 0 : search_page_size(params) * (page - 1)
