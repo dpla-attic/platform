@@ -1,4 +1,5 @@
 require_relative '../schema'
+require_relative '../search_error'
 require_relative '../field_boost'
 require 'active_support/core_ext'
 
@@ -153,6 +154,21 @@ module V1
         }
       end
 
+      def self.parse_date_query(value)
+        #TODO: consolidate with filter.rb's version of this
+        # Returns nil for values don't match any of our partial or full date formats
+        # Does not detect stuff like 1998-02-31
+
+        # As a courtesy, remove double-quote wrapping
+        date = value =~ /^"(.+)"$/ ? $1 : value
+        if date.split('-').any? {|x| x.to_i == 0}
+          nil
+        else
+          date
+        end
+      end
+
+
       def self.date_range_queries(params)
         #TODO: Reimplement as a filter like Filter.date_range()
         ranges = []
@@ -160,6 +176,10 @@ module V1
           next unless name =~ /^(.+)\.(before|after)$/
           field_name = $1
           modifier = $2
+
+          if parse_date_query(value).nil?
+            raise BadRequestSearchError, "Invalid date in #{name} field"
+          end
 
           # Note the references to 9999 and -9999. Those exclude false positives from
           # null values in the field in question. See schema.rb where those defaults are defined.

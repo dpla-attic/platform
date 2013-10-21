@@ -153,11 +153,6 @@ namespace :v1 do
     V1::Repository.create_api_auth_views
   end
   
-  desc "Imports test API keys into auth token database"
-  task :import_test_api_keys, [:owner] do |t, args|
-    V1::Repository.import_test_api_keys(args.owner)
-  end
-  
   desc "Re-creates read-only CouchDB user and re-assigns roles"
   task :recreate_repo_users do
     V1::Repository.recreate_users

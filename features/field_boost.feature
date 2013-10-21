@@ -32,10 +32,6 @@ Feature: Boost certain fields at query time
     When I item-search for "ferrari"
     Then the API should return sorted records b2, b1
 
-  Scenario: Keyword search with hit on anti-boosted, unboosted and boosted fields
-    When I item-search for "audi"
-    Then the API should return sorted records b3, b1, b2
-
   Scenario: Field search of parent field with hit on both unboosted and boosted subfields
     When I item-search for "isengard" in the "sourceResource.spatial" field
     Then the API should return sorted records b3, b2

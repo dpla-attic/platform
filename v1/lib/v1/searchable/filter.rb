@@ -47,7 +47,7 @@ module V1
       end
 
       def self.parse_date_query(value)
-        # Returns nil for values don't match any of our date formats
+        # Returns nil for values don't match any of our partial or full date formats
         # Does not detect stuff like 1998-02-31
 
         # As a courtesy, remove double-quote wrapping

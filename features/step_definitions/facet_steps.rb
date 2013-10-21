@@ -91,6 +91,13 @@ Then /^the "(.*?)" date facet contains items for every unique value within the s
 
 end
 
+Then(/^the facets should be sorted by count descending$/) do
+  facets = @results['facets']
+  facet_name = @params['facets']
+  counts = facets[facet_name]['entries'].map {|x| x['count']}
+  expect(counts).to eq(counts.sort.reverse)
+end
+
 #TODO: These steps, and the corresponding uc010 feature, could use some consolidation
 Then /^each item within each facet contains a count of matching "(.*)" facet items$/ do |facet_type|
   @facets.each do |facet|

@@ -123,6 +123,14 @@ module V1
       end
 
       describe "#date_range_queries" do
+
+        it "raises BadRequestSearchError for invalid date values" do
+          params = {'temporal.after' => 'boop'}
+          expect {
+            subject.date_range_queries(params)
+          }.to raise_error BadRequestSearchError, /Invalid date in temporal.after field/
+        end
+        
         it "handles closed date ranges (aka 'between')" do
           params = {'temporal.after' => '1980', 'temporal.before' => '1990'}
           expect(subject.date_range_queries(params))
