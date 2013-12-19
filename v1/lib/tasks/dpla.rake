@@ -114,6 +114,11 @@ namespace :v1 do
     puts V1::SearchEngine.search_schema
   end
 
+  desc "Displays the current schema as defined by the API. This is the canonical API schema."
+  task :show_api_schema do
+    puts JSON.pretty_generate(V1::Schema::ELASTICSEARCH_MAPPING)
+  end
+
   desc "Show API key by [key_id] or [email]"
   task :show_api_auth, [:key] do |t, args|
     puts (V1::ApiAuth.show_api_auth(args.key) || 'not found').to_s
