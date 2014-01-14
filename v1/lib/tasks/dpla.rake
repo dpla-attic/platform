@@ -168,7 +168,7 @@ namespace :v1 do
     puts V1::Repository.doc_count
   end
 
-  desc "Re-creates CouchDB database, users, river and re-populates Couch with test dataset"
+  desc "Re-creates CouchDB database, users, API keys and river"
   task :recreate_repo_env => :environment do
     V1::Repository.recreate_env(true)
   end

@@ -50,8 +50,12 @@ module V1
       SearchEngine.recreate_river if include_river
       recreate_users
       import_test_api_keys
-      import_test_dataset
       create_api_auth_views
+    end
+
+    def self.recreate_env_with_docs(include_river=false)
+      recreate_env(include_river)
+      import_test_dataset
       puts "CouchDB docs/views: #{ doc_count }"
     end
 

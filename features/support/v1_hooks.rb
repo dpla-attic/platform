@@ -20,7 +20,7 @@ else
   # possibility of pagination causing false negatives between test runs on different systems.
 
   puts "Initializing test environment for the repository and search index..."
-  V1::Repository.recreate_env
+  V1::Repository.recreate_env_with_docs
   sleep(ENV['TRAVIS'] ? 10 : 3)
   previous_index = V1::SearchEngine.create_and_deploy_index
   V1::SearchEngine.safe_delete_index(previous_index) if previous_index

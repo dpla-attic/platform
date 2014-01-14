@@ -39,6 +39,7 @@ module V1
       end
 
       def self.validate_river_params_for(index)
+        
         if index.nil?
           if SearchEngine.index_exists?(index)
             message = "is actually an index. It should always point to an alias."
@@ -56,6 +57,10 @@ module V1
         # defaults are the active index and river
         river = options['river'] || Config.river_name
         index = options['index'] || SearchEngine.alias_to_index(Config.search_index)
+
+        # this fails if the index has not been deployed
+        
+        raise "Cannot create river for an index that does not exist" if index.nil?
         validate_river_params_for(index)
 
         #TODO: refuse to create a river that already exists #HTTParty.head ...
@@ -71,12 +76,14 @@ module V1
         raise "Problem creating river: #{JSON.parse(result.body)}" unless result.success?
         
         # Sleep a bit to let creation process finish on elasticsearch server
-        sleep 1
+        sleep 5
         puts verify_river_status(river)
       end
       
       def self.river_creation_doc(index, database_uri)
         # bulk_size and bulk_timeout are just safe guesses at good values for production
+        # TODO: production could use larger values, but would then probably need
+        # a longer delay for river_test, etc.
         repo_uri = URI.parse(database_uri)
         {
           'type' => 'couchdb',
@@ -98,8 +105,8 @@ module V1
 
       def self.river_script
         #Note: The null value assignment below works in conjunction with the schema's
-        #null_value attribute to force empty/null values to sort last, ascending.
-        #(ElasticSearch's 'missing' sort attr only works on numeric fields at the moment.)
+        #null_value attribute to force empty/null values to sort last, ascending. (ES's
+        #'missing' sort attr only works on numeric fields as of v0.20.6.)
         beginning = "ctx._type = ctx['doc']['ingestType'] || 'unknown';"
         middle = ""
         fields = [ "['sourceResource']['title']" ]
@@ -159,7 +166,7 @@ module V1
           raise "Problem with river on node '#{node}': #{error}"
         else
           if last_sequence.nil?
-            raise "River exists but is not working properly (last_seq is nil)"
+            return "River exists but is not flowing (last_seq is nil)"
           else
             index = service_meta(name)['_source']['index']['index']
             return "River '#{name}' pointed at index '#{index}' running on node '#{node}'"
@@ -168,13 +175,14 @@ module V1
       end
 
       def self.last_sequence(name=river_name)
+        # name will be present but nil when called from a rake task
         name ||= river_name
         response = HTTParty.get(endpoint(name) + '/_seq').parsed_response
-
-        # 'couchdb' is from river_creation_doc['type']
         seq = response['_source']['couchdb']['last_seq'] rescue nil
+
         return nil if seq.nil?
 
+        # handle bigcouch's last_seq format if it looks like it
         seq = JSON.parse(seq).first if seq !~ /^\d+$/
 
         seq.to_i
@@ -188,7 +196,7 @@ module V1
 
         start_seq = last_sequence(name)
         if start_seq.nil?
-          raise "Can't get velocity for river '#{name}'. It looks borkened (last_seq is nil)"
+          raise "Can't get velocity for river '#{name}'. It looks broken. (last_seq is nil)"
         end
         sleep sleep_time
         end_seq = last_sequence(name)
@@ -205,7 +213,6 @@ module V1
         resource = Item.resource
 
         puts verify_river_status
-        puts "River velocity: " + SearchEngine::River.current_velocity
         
         original_seq = last_sequence
 
@@ -225,7 +232,8 @@ module V1
         end
         Repository.save_doc(test_doc)
 
-        sleep 4
+        # sleep for a good bit to make sure river has time to index doc
+        sleep 8
         new_seq = last_sequence
 
         if new_seq != original_seq
@@ -240,7 +248,7 @@ module V1
         end
 
         Repository.delete_docs([test_doc])
-        sleep 1
+        sleep 3
         HTTParty.delete(Config.search_endpoint + '/' + Config.search_index + '/' + resource + '/' + doc_id)
       end
     
