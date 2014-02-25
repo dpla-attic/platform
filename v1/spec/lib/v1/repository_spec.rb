@@ -33,11 +33,10 @@ module V1
           subject.should_receive(:recreate_api_keys_database)
           subject.should_receive(:recreate_users)
           subject.should_receive(:import_test_api_keys)
-          subject.should_receive(:import_test_dataset)
           subject.should_receive(:create_api_auth_views)
         end
         
-        it "has all the right moves by default" do
+        it "does not recreate_river by default" do
           SearchEngine.should_not_receive(:recreate_river)
           subject.recreate_env
         end
