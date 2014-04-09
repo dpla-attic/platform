@@ -69,6 +69,8 @@ def main(params)
   frontdoor_host = repo_uri.dup
   frontdoor_host.path = '/'
 
+  #TODO: All script to rejoin existing compaction without kicking off any new compaction 
+  # in the process. Also warn them an invite them to Control-C now...
   if compaction_status(frontdoor_host)
     puts "Compaction already running on #{repo_uri.host}: #{compaction_status(frontdoor_host)}"
     exit 0
@@ -114,7 +116,7 @@ def loop_delay(frontdoor_host)
   start_time = Time.now.to_i
   while true do
     sleep 5
-    status = compaction_status(frontdoor_host, start_time)
+    status = compaction_status(frontdoor_host)
     break if status.nil?
 
     logmsg status
@@ -138,11 +140,18 @@ def logmsg(msg)
   puts "[#{Time.now.to_s}] #{msg}"
 end
 
-def compaction_status(base_endpoint, start_time=nil)
+def compaction_status(base_endpoint)
   # This assumes that your bigcouch node is set to include that node's `hostname`
   # value in that node's vm.args config value for the -name config variable
   hostname = base_endpoint.host
-  json = JSON.parse(get(base_endpoint.to_s + '_active_tasks'))
+  begin
+    json = JSON.parse(get(base_endpoint.to_s + '_active_tasks'))
+  rescue SockerError => e
+    #return something that will be treated as true based on the assumption
+    #that this is a temporary network issues (and we won't be able to start
+    #another compaction job while the network is hosed anyways.)
+    return e.to_s
+  end
   entry = json.detect {|x| x['node'] =~ /\b#{hostname}\b/ && x['type'] =~ /Compaction$/}
 
   entry.nil? ? nil :  "#{ entry['task'] } - #{entry['status'] }"
