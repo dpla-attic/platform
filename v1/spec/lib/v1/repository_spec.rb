@@ -6,8 +6,9 @@ module V1
 
     context "Module constants" do
 
-      it "API_KEY_DATABASE has the correct value" do
-        expect(subject::API_KEY_DATABASE).to eq 'dpla_api_auth'
+      it "have the correct values" do
+        expect(subject::DEFAULT_API_AUTH_DATABASE).to eq 'dpla_api_auth'
+        expect(subject::DEFAULT_DASHBOARD_DATABASE).to eq 'dashboard'
       end
 
     end

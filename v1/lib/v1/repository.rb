@@ -1,5 +1,4 @@
 require_relative 'search_engine'
-require 'json'
 require 'couchrest'
 require 'httparty'
 
@@ -7,8 +6,9 @@ module V1
 
   module Repository
 
-    API_KEY_DATABASE = 'dpla_api_auth'
-
+    DEFAULT_API_AUTH_DATABASE = 'dpla_api_auth'
+    DEFAULT_DASHBOARD_DATABASE = 'dashboard'
+    
     def self.fetch(ids)
       # Accepts an array of ids or a string containing a comma separated list of ids
       ids = ids.split(/,\s*/) if ids.is_a?(String)
@@ -273,7 +273,7 @@ module V1
     end
 
     def self.repo_name
-      Config::REPOSITORY_DATABASE
+      Config.dpla['repository'].fetch('documents_database', Config::REPOSITORY_DATABASE)
     end
 
     def self.cluster_host
@@ -299,7 +299,13 @@ module V1
     end
 
     def self.admin_cluster_auth_database
-      database(cluster_endpoint('admin', API_KEY_DATABASE))
+      name = Config.dpla['repository'].fetch('api_auth_database', DEFAULT_API_AUTH_DATABASE)
+      database(cluster_endpoint('admin', name))
+    end
+
+    def self.admin_cluster_dashboard_database
+      name = Config.dpla['repository'].fetch('dashboard_database', DEFAULT_DASHBOARD_DATABASE)
+      database(cluster_endpoint('admin', name))
     end
 
     def self.admin_cluster_database
