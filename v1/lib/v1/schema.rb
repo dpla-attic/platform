@@ -9,8 +9,15 @@ module V1
         'date_detection' => false,
         'properties' => {
           '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
-          'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
+          'admin' => {
+            'properties' => {
+              'validate_on_enrich' => { 'type' => 'boolean'},
+              'ingestType' => { 'enabled' => false },
+              'ingestDate' => { 'type' => 'date' },
+            }
+          },
           'description' => { 'type' => 'string' },
+          'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
           'title' => {
             'type' => 'multi_field',
             'fields' => {
@@ -34,6 +41,7 @@ module V1
                   'title' => { 'type' => 'string', 'analyzer' => 'canonical_sort', 'null_value' => 'zzzzzzzz' },
                 }
               },
+              'validate_on_enrich' => { 'type' => 'boolean'},
               'ingestType' => { 'enabled' => false },
               'ingestDate' => { 'type' => 'date' },
             }
