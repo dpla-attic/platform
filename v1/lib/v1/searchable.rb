@@ -1,6 +1,7 @@
 require_relative 'search_error'
 require_relative 'repository'
 require_relative 'schema'
+require_relative 'json_ld'
 require_relative 'searchable/facet'
 require_relative 'searchable/filter'
 require_relative 'searchable/query'
@@ -253,6 +254,10 @@ module V1
 
     def verbose_debug(search)
       puts "CURL: #{search.to_curl}"
+    end
+
+    def json_ld_context
+      JsonLd.context_for(resource)
     end
 
   end

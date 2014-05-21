@@ -37,7 +37,6 @@ module V1
         return true
       end
 
-      
       begin
         return Rails.cache.fetch(ApiKey.cache_key(key_id)) do
           ApiAuth.authenticate_api_key(key_id)

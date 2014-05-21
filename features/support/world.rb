@@ -68,6 +68,10 @@ module CukeApiHelper
     JSON.parse(page.source) rescue nil
   end
 
+  def json_ld_context_fetch(resource)
+    visit("/v2/#{resource}s/context?api_key=#{@params['api_key']}")
+  end
+
   def resource_fetch(resource, ids, expected_http_code=200)
     visit("/v2/#{resource}s/#{ids}?api_key=#{@params['api_key']}")
     

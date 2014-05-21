@@ -1,7 +1,11 @@
 V1::Engine.routes.draw do
   # All these routes are relative to this engine's mount point defined in the main app
   # E.g. if this engine is mounted at "/v1", then 'get "/search"' in this routes.rb
-  # would match "/v1/search"
+  # would match "/v2/search"
+
+  # JSON-LD context
+  get "/items/context" => "search#items_context"
+  get "/collections/context" => "search#collections_context"
 
   # Search Items
   #NOTE: We cannot use the defaults->format block until the format field has been renamed in the schema
@@ -28,7 +32,7 @@ V1::Engine.routes.draw do
   get "/api_key(.:format)/*owner" => "api_key#show_placeholder", :defaults => { :format => 'json' }
   # friendly error message
   get "/api_key" =>  "api_key#index"
-  
+
   # Monitoring endpoints
   get "/status/repository" => "status#repository", :defaults => { :format => 'json' }
   # get "/status/river" => "status#river", :defaults => { :format => 'json' }

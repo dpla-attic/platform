@@ -1,5 +1,3 @@
-require 'v1/application_controller'
-
 module V1
 
   class StatusController < ApplicationController
@@ -18,7 +16,6 @@ module V1
     end
 
     def log_problem(status={})
-      puts "STATUS:#{params['action']}: HTTP #{status['status']} - #{status['message']}"  #TODO: remove
       logger.warn "STATUS:#{params['action']}: HTTP #{status['status']} - #{status['message']}"
     end
 

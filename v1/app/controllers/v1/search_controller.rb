@@ -1,4 +1,3 @@
-require 'v1/application_controller'
 require 'digest/md5'
 
 #TODO: eliminate new duplication between resources here and break this into ItemsController and CollectionsController (to invert the current topology)
@@ -7,7 +6,7 @@ require 'digest/md5'
 module V1
 
   class SearchController < ApplicationController
-    before_filter :authenticate, :except => [:repo_status]  #, :links  #links is just here for testing auth
+    before_filter :authenticate
     rescue_from Exception, :with => :generic_exception_handler
     rescue_from Errno::ECONNREFUSED, :with => :connection_refused
 
@@ -29,6 +28,17 @@ module V1
       key_hash.delete_if {|k| excluded.include? k }
 
       base_cache_key(resource, action, key_hash.sort.to_s)
+    end
+
+    def items_context
+      begin
+        results = Rails.cache.fetch('items_context', :raw => true) do
+          Item.json_ld_context
+        end
+      rescue SearchError => e
+        results = e
+      end
+      render_search_results(results, params)
     end
 
     def fetch_cache_key(resource, params)
@@ -74,6 +84,17 @@ module V1
       rescue NotFoundSearchError => e
         render_error(e, params)
       end
+    end
+
+    def collections_context
+      begin
+        results = Rails.cache.fetch('collections_context', :raw => true) do
+          Collection.json_ld_context
+        end
+      rescue SearchError => e
+        results = e
+      end
+      render_search_results(results, params)
     end
 
     def collections

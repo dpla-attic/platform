@@ -1,7 +1,3 @@
-require_relative 'search_engine'
-require_relative 'search_engine/river'
-require_relative 'repository'
-
 module V1
 
   module StatusMonitor
@@ -18,7 +14,6 @@ module V1
           message = response.to_s
         end
       rescue Errno::ECONNREFUSED => e
-        #TODO: handle this in controllers or even reraise a ServiceUnavailableSearchError.new?
         status = :service_unavailable
         message = e.to_s
       rescue => e
