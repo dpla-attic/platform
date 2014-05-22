@@ -3,6 +3,10 @@ When /^I ((\w+)-)search with "(.*?)" as the value of the fields parameter$/ do |
   @params.merge!({ 'fields' => fields })
 end
 
+When(/^I limit the requested fields to "(.*?)"$/) do |fields|
+  @params.merge!({ 'fields' => fields })
+end
+
 Then /^I should get results with only "(.*?)" as fields$/ do |fields|
   fields = fields.split(/,\s*/)
   json = item_query_to_json(@params)

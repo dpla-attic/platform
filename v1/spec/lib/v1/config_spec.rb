@@ -4,7 +4,7 @@ module V1
 
   describe Config do
 
-    after(:each) do
+    before(:each) do
       # clear memoized var
       subject.instance_variable_set(:@dpla_config, nil)
     end

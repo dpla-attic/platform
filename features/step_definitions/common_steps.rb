@@ -61,7 +61,7 @@ Then /^I should get http status code "(.*?)"$/ do |arg1|
   
   if page.status_code.to_s != arg1
     puts "Params were    : #{ @params }"
-    puts "Server Response: #{ JSON.parse(page.source)['message'] || page.source }"
+    puts "Server Response: #{ page.source }"
   end
 
   expect(page.status_code.to_s).to eq(arg1)
@@ -69,7 +69,7 @@ end
 
 Then /^I should get http status code "(.*?)" from the QA app$/ do |arg1|
   if page.status_code.to_s != arg1
-    puts "Server Response: #{ JSON.parse(page.source)['message'] || page.source }"
+    puts "Server Response: #{ page.source }"
   end
 
   expect(page.status_code.to_s).to eq(arg1)
