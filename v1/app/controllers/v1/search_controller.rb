@@ -1,4 +1,4 @@
-require 'digest/md5'
+require 'v1/results_cache'
 
 #TODO: eliminate new duplication between resources here and break this into ItemsController and CollectionsController (to invert the current topology)
 #TODO: Consider handling all our own exception classes in a: rescue_from SearchError
@@ -10,24 +10,13 @@ module V1
     rescue_from Exception, :with => :generic_exception_handler
     rescue_from Errno::ECONNREFUSED, :with => :connection_refused
 
-    def base_cache_key(resource, action, unique_key='')
-      # ResultsCache
-      [
-       'v2',
-       resource,
-       action,
-       Digest::MD5.hexdigest( unique_key )
-      ].join('-')
-    end
-
     def search_cache_key(resource, params)
-      # ResultsCache
       excluded = %w( api_key callback _ controller )
       key_hash = params.dup
       action = key_hash.delete('action')
       key_hash.delete_if {|k| excluded.include? k }
 
-      base_cache_key(resource, action, key_hash.sort.to_s)
+      ResultsCache.base_cache_key(resource, action, key_hash.sort.to_s)
     end
 
     def items_context
@@ -42,11 +31,9 @@ module V1
     end
 
     def fetch_cache_key(resource, params)
-      # ResultsCache
       action = params['action']
-      
       ids = params['ids'].to_s.split(/,\s*/)
-      base_cache_key(resource, action, ids.sort.to_s)
+      ResultsCache.base_cache_key(resource, action, ids.sort.to_s)
     end
     
     def items
