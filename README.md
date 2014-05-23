@@ -293,7 +293,7 @@ Terms and date facets are sorted by facet-count, descending. Geo-distance facets
 
 Add a 'callback' parameter to receive the results wrapped in a function
 
-<http://api.dp.la/v2/items?title=fruit&callback=myFunc>
+<http://api.dp.la/v2/items?sourceResource.title=fruit&callback=myFunc>
 
 
 ### Sample Record
