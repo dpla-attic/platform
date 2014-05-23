@@ -4,14 +4,17 @@ module V1
     before_filter :check_for_raised_errors
 
     def check_for_raised_errors
-      render_and_return_status_code(params[:raise]) if params[:raise].present?
+      #      render_and_return_status_code(params[:raise])
+      return true if params[:raise].blank?
+
+      status = %w(200 400 401 404 406 429 500 503).include?(params[:raise]) ? params[:raise] : 500
+
+      render :json => render_as_json({:message => "Raised Mock Error"}, params), :status => status
+
+      return false
     end
 
     def render_and_return_status_code(code)
-      valid_codes = %w(200 400 401 404 406 429 500 503)
-      status = valid_codes.include?(code) ? code : 500
-      render :text => "Raised Mock Error", :status => status 
-      return false
     end
     
     def authenticate
