@@ -114,6 +114,11 @@ namespace :v1 do
     puts V1::SearchEngine.search_schema
   end
 
+  desc "Displays the current schema as defined by the API. This is the canonical API schema."
+  task :show_api_schema do
+    puts JSON.pretty_generate(V1::Schema::ELASTICSEARCH_MAPPING)
+  end
+
   desc "Show API key by [key_id] or [email]"
   task :show_api_auth, [:key] do |t, args|
     puts (V1::ApiAuth.show_api_auth(args.key) || 'not found').to_s
@@ -153,11 +158,6 @@ namespace :v1 do
     V1::Repository.create_api_auth_views
   end
   
-  desc "Imports test API keys into auth token database"
-  task :import_test_api_keys, [:owner] do |t, args|
-    V1::Repository.import_test_api_keys(args.owner)
-  end
-  
   desc "Re-creates read-only CouchDB user and re-assigns roles"
   task :recreate_repo_users do
     V1::Repository.recreate_users
@@ -168,7 +168,7 @@ namespace :v1 do
     puts V1::Repository.doc_count
   end
 
-  desc "Re-creates CouchDB database, users, river and re-populates Couch with test dataset"
+  desc "Re-creates CouchDB database, users, API keys and river"
   task :recreate_repo_env => :environment do
     V1::Repository.recreate_env(true)
   end

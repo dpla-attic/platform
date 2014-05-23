@@ -30,7 +30,7 @@ field_boosts:
     sourceResource.subject.name: 1.5
     sourceResource.spatial.name: 2
     sourceResource.date: 1.25
-    isShowAt: 0.5
+    isShownAt: 0.5
   collection:
     title: 3
 

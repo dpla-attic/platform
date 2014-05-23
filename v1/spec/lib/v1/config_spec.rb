@@ -4,6 +4,11 @@ module V1
 
   describe Config do
 
+    before(:each) do
+      # clear memoized var
+      subject.instance_variable_set(:@dpla_config, nil)
+    end
+
     describe "Constants" do
       it "has the correct REPOSITORY_DATABASE value" do
         expect(V1::Config::REPOSITORY_DATABASE).to eq 'dpla'
@@ -30,15 +35,10 @@ module V1
     end
     
     describe "#dpla" do
-        it "it raises an error when the dpla config file does not exist" do
-          File.stub(:expand_path) { '/dev/null/foo' }
-          expect {
-            subject.dpla
-          }.to raise_error /Error loading config file/i
-      end
       it "returns existing config file parsed as yaml" do
         yaml = double
-        YAML.stub(:load_file) { yaml }
+        f = File.expand_path("../../../../config/dpla.yml", __FILE__)
+        YAML.should_receive(:load_file).with(f) { yaml }
         expect(subject.dpla).to eq yaml
       end
     end

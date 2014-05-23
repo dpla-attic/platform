@@ -120,3 +120,9 @@ Feature: Search the DPLA using facets (UC010)
     Then the API returns the "sourceResource.date.begin.decade" facets
       And I should get http status code "200"
 
+  Scenario: Retrieve date_histogram facet with day interval with default facet sorting
+    When I make an empty item-search
+      And request the "sourceResource.date.begin" facet
+    Then the API returns the "sourceResource.date.begin" facets
+    And the facets should be sorted by count descending
+

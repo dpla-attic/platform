@@ -1114,6 +1114,18 @@
         }
     },
     {
+        "_id": "item-datefacet1",
+        "id": "item-datesfacet1",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "datefacet1",
+            "date": {
+                "begin": "1990-03-01",
+                "end": null
+            }
+        }
+    },
+    {
         "_id": "item-datesortA1",
         "id": "item-datesortA1",
         "ingestType": "item",

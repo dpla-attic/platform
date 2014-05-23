@@ -1,0 +1,19 @@
+{
+  "@context": {
+    "dc": "http://purl.org/dc/elements/1.1/",
+    "dcmitype": "http://purl.org/dc/dcmitype/",
+    "dcterms": "http://purl.org/dc/terms/",
+    "@vocab": "http://purl.org/dc/elements/1.1/",
+    "admin": null,
+    "id": null,
+    "_id": null,
+    "ingestionSequence": null,
+    "ingestDate": null,
+    "ingestType": null,
+    "object_status": null,
+    "originalRecord": null,
+    "_rev": null,
+    "score": null,
+    "validate_on_enrich": null
+  }
+}

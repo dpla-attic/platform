@@ -27,3 +27,12 @@ Then /^(.+)s that identify errors with ids "(.*?)"$/ do |resource, missing_docs|
   error_ids = error_docs.map { |d| d['id'] }
   expect(error_ids).to match_array(missing_ids)
 end
+
+When(/^I fetch (\w+)s with ids "(.*?)" without an API key$/) do |resource, ids|
+  # This is needed because we don't have good modulatiry in our steps for fetches and the API key omission
+  @resource = resource
+  @fetch_id_string = ids
+  expected_http_code = @params.key?('api_key') ? 200 : 401
+
+  resource_fetch(resource, @fetch_id_string, expected_http_code)
+end

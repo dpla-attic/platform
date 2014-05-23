@@ -4,7 +4,7 @@ module V1
 
   module Config
 
-    REPOSITORY_DATABASE = 'dpla'
+    REPOSITORY_DATABASE = 'dpla'  #TODO: move to repository.rb
 
     def self.search_endpoint
       endpoint = dpla['search']['endpoint'] rescue 'http://127.0.0.1:9200'
@@ -12,12 +12,10 @@ module V1
     end
 
     def self.dpla
-      #TODO: memoize
-      config_file = File.expand_path("../../../config/dpla.yml", __FILE__)
       begin
-        return YAML.load_file(config_file)
+        @dpla_config ||= YAML.load_file(File.expand_path("../../../config/dpla.yml", __FILE__))
       rescue => e
-        raise "Error loading config file #{config_file}: #{e}"
+        raise "Error loading dpla.yml: #{e}"
       end
     end
 
