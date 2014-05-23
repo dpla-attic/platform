@@ -6,7 +6,7 @@ require 'digest/md5'
 module V1
 
   class SearchController < ApplicationController
-    before_filter :authenticate
+    before_filter :authenticate, :except => [:items_context, :collections_context]
     rescue_from Exception, :with => :generic_exception_handler
     rescue_from Errno::ECONNREFUSED, :with => :connection_refused
 
