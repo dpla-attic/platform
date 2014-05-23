@@ -47,11 +47,11 @@ module V1
           field = parse_facet_name(resource, name)
 
           if field.nil?
-            raise BadRequestSearchError, "Invalid field(s) specified in facets param: #{name}"
+            raise BadRequestSearchError, "Invalid field(s) specified in facets parameter: #{name}"
           end
 
           if !field.facetable?
-            raise BadRequestSearchError, "Non-facetable field(s) specified in facets param: #{name}"
+            raise BadRequestSearchError, "Non-facetable field(s) specified in facets parameter: #{name}"
           end
           
           global_hash = global ? {:global => true} : {}

@@ -18,3 +18,5 @@ erl_crash.dump
 ingestion
 config/unicorn.rb
 public/robots.txt
+.*install_done
+.bundle/config

@@ -4,26 +4,19 @@ module V1
     before_filter :check_for_raised_errors
 
     def check_for_raised_errors
-      #      render_and_return_status_code(params[:raise])
       return true if params[:raise].blank?
 
       status = %w(200 400 401 404 406 429 500 503).include?(params[:raise]) ? params[:raise] : 500
-
       render :json => render_as_json({:message => "Raised Mock Error"}, params), :status => status
-
       return false
     end
 
-    def render_and_return_status_code(code)
-    end
-    
     def authenticate
       api_key = params['api_key']
       if !authenticate_api_key(api_key)
         logger.info "UnauthorizedSearchError for api_key: #{ api_key || '(none)' }"
         render_error(UnauthorizedSearchError.new, params)
       end
-      # Delete this key now that we're done with it
       params.delete 'api_key'
     end
 

@@ -209,7 +209,7 @@ module V1
     def validate_field_params(params)
       invalid = params['fields'].to_s.split(/,\s*/) - Schema.queryable_field_names(resource)
       if invalid.any?  
-        raise BadRequestSearchError, "Invalid field(s) specified for fields parameter: #{invalid.join(',')}" 
+        raise BadRequestSearchError, "Invalid field(s) specified in fields parameter: #{invalid.join(',')}" 
       end
     end
 

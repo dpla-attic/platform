@@ -30,7 +30,7 @@ module V1
 
           expect {
             subject.build_all(double, double, {'facets' => invalid_name})
-          }.to raise_error BadRequestSearchError, /Invalid field.+ specified in facets param: #{invalid_name}/i
+          }.to raise_error BadRequestSearchError, /Invalid field.+ specified in facets parameter: #{invalid_name}/i
 
         end
         it "raises an error for a facet request on a valid, but not-facetable field" do
@@ -40,7 +40,7 @@ module V1
 
           expect {
             subject.build_all(double, double, {'facets' => 'title'})
-          }.to raise_error BadRequestSearchError, /Non-facetable field.+ param: title/i
+          }.to raise_error BadRequestSearchError, /Non-facetable field.+ parameter: title/i
         end
       end
 
