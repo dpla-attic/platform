@@ -75,6 +75,7 @@
     "originalRecord": null,
     "score": null,
     "specType": null,
-    "validate_on_enrich": null
+    "valid_after_enrich": null,
+    "validation_message": null
   }
 }
