@@ -14,6 +14,7 @@
     "originalRecord": null,
     "_rev": null,
     "score": null,
-    "validate_on_enrich": null
+    "valid_after_enrich": null,
+    "validation_message": null
   }
 }

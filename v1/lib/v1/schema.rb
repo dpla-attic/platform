@@ -11,7 +11,8 @@ module V1
           '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
           'admin' => {
             'properties' => {
-              'validate_on_enrich' => { 'type' => 'boolean'},
+              'valid_after_enrich' => { 'type' => 'boolean'},
+              'validation_message' => { 'enabled' => 'false'},
               'ingestType' => { 'enabled' => false },
               'ingestDate' => { 'type' => 'date' },
             }
@@ -41,7 +42,8 @@ module V1
                   'title' => { 'type' => 'string', 'analyzer' => 'canonical_sort', 'null_value' => 'zzzzzzzz' },
                 }
               },
-              'validate_on_enrich' => { 'type' => 'boolean'},
+              'valid_after_enrich' => { 'type' => 'boolean'},
+              'validation_message' => { 'enabled' => 'false'},
               'ingestType' => { 'enabled' => false },
               'ingestDate' => { 'type' => 'date' },
             }
