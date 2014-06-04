@@ -1,0 +1,25 @@
+/* header */
+.sortable .header,
+.sortable .tablesorter-header {
+    background-image: url(data:image/gif;base64,R0lGODlhFQAJAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAkAAAIXjI+AywnaYnhUMoqt3gZXPmVg94yJVQAAOw==);
+    background-position: center right;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    white-space: normal;
+}
+.sortable thead .headerSortUp,
+.sortable thead .tablesorter-headerSortUp,
+.sortable thead .tablesorter-headerAsc {
+    background-image: url(data:image/gif;base64,R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjI8Bya2wnINUMopZAQA7);
+    border-bottom: #000 2px solid;
+}
+.sortable thead .headerSortDown,
+.sortable thead .tablesorter-headerSortDown,
+.sortable thead .tablesorter-headerDesc {
+    background-image: url(data:image/gif;base64,R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjB+gC+jP2ptn0WskLQA7);
+    border-bottom: #000 2px solid;
+}
+.sortable thead .sorter-false {
+    background-image: none;
+    cursor: default;
+}

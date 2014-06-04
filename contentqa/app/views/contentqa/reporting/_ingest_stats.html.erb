@@ -1,0 +1,33 @@
+<h1>Reports : <%= ingest['provider'] %></h1>
+<table class="table">
+  <tr>
+    <th>Ingest Sequence</th>
+    <th>Ingest Start Time (EST)</th>
+    <th>Added</th>
+    <th>Deleted</th>
+    <th>Changed</th>
+    <th>Items Fetched</th>
+    <th>Items Enriched</th>
+    <th>Items Saved</th>
+    <th>Items Missing ID</th>
+    <th>Items Missing sourceResource</th>
+    <th>Collections Fetched</th>
+    <th>Collections Enriched</th>
+    <th>Collections Saved</th>
+  </tr>
+  <tr>
+    <td><%= ingest['ingestionSequence'] %></td>
+    <td><%= nice_est_time(ingest['ingestDate']) %></td>
+    <td><%= ingest['countAdded'] %></td>
+    <td><%= ingest['countDeleted'] %></td>
+    <td><%= ingest['countChanged'] %></td>
+    <td><%= ingest.to_hash.fetch('fetch_process', {})['total_items'] ||= '--' %></td>
+    <td><%= ingest.to_hash.fetch(get_enrich_process(ingest), {})['total_items'] ||= '--' %></td>
+    <td><%= ingest.to_hash.fetch('save_process', {})['total_items'] ||= '--' %></td>
+    <td><%= ingest.to_hash.fetch(get_enrich_process(ingest), {})['missing_id'] ||= '--' %></td>
+    <td><%= ingest.to_hash.fetch(get_enrich_process(ingest), {})['missing_source_resource'] ||= '--' %></td>
+    <td><%= ingest.to_hash.fetch('fetch_process', {})['total_collections'] ||= '--' %></td>
+    <td><%= ingest.to_hash.fetch(get_enrich_process(ingest), {})['total_collections'] ||= '--' %></td>
+    <td><%= ingest.to_hash.fetch('save_process', {})['total_collections'] ||= '--' %></td>
+  </tr>
+</table>

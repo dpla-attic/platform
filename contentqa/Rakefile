@@ -38,3 +38,5 @@ end
 
 
 task :default => :test
+
+require Bundler.load.gems.find{|i| i.name == 'delayed_job'}.gem_dir + "/lib/delayed/tasks"

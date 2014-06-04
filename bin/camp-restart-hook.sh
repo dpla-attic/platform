@@ -16,6 +16,10 @@ es_options_file="${camp_dir}/tmp/.elasticsearch_options"
 couch_pidfile="${camp_dir}/var/run/couchdb/couchdb.pid"
 couch_cmd="/usr/local/bin/couchdb -a ${camp_dir}/v1/config/couchdb.ini -p $couch_pidfile"
 
+# Delayed job
+dj_start="${camp_dir}/script/delayed_job start"
+dj_stop="${camp_dir}/script/delayed_job stop"
+
 function start {
     if [ -a $es_options_file ] ; then
         # Use this file to set camp-specific ElasticSearch options such as ES_HEAP_SIZE
@@ -25,6 +29,7 @@ function start {
     
     $couch_cmd -b -o /dev/null -e /dev/null
     $es_cmd $es_options
+    $dj_start
 }
 
 function stop {
@@ -34,6 +39,7 @@ function stop {
     if [ -e $couch_pidfile ] ; then
         $couch_cmd -d
     fi
+    $dj_stop
 }
 
 function restart {

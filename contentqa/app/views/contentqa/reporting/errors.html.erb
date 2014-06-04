@@ -1,0 +1,19 @@
+<%= render "ingest_stats", :ingest => @ingest %>
+
+<% process_errors = get_errors(@ingest) %>
+<% process_errors.keys.each do |process| %>
+  <a id="<%= process %>" class="error_link"><%= nice_process(process) %></a> |
+<% end %>
+
+<% process_errors.each do |process, errors| %>
+<table id="<%= process %>_table" class="table error_table" style="display: none;">
+  <tr>
+    <th><%= nice_process(process) %> errors</th>
+  </tr>
+  <% errors.each do |error| %>
+  <tr>
+    <td><%= error %></td>
+  </tr>
+  <% end %>
+</table>
+<% end %>

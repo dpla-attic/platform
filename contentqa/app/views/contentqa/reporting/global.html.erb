@@ -1,0 +1,35 @@
+<div>
+<div style="width: 50%; float:left;"><button type="button" class="generate_reports">Generate Reports</button></div>
+</div>
+
+<%= hidden_field_tag "id", @global_reports_id %> 
+<%= hidden_field_tag "provider", "global" %>
+
+<% if @all_reports %>
+  <td class="all_reports"><%= report_link(@all_reports, false, @global_reports_id, 'all') %><small> <%= report_details(@all_reports, false) %></small></td>
+<% else %>
+  <td class="all_reports" style="display: none"><%= report_link(@all_reports, false, @global_reports_id, 'all') %><small> <%= report_details(@all_reports, false) %></small></td>
+<% end %>
+
+<table class="table">
+  <colgroup>
+   <col span="1" style="width: 50%;">
+   <col span="1" style="width: 50%;">
+  </colgroup>
+  <th><%= check_box_tag "check_all" %> Report</th>
+  <th>Status</th>
+  <% @reports.keys.each do |type| %>
+  <tr>
+    <td><%= check_box_tag "reports[]", type, false, :disabled => (@reports[type][:file] or @reports[type][:job]), :class => "report_checkbox" %>&nbsp<%= type %></td>
+    <td class='<%= "#{type}" %>_status'><%= render "report_status", :report => @reports[type], :ingest_id => @global_reports_id, :type => type %>
+  </tr>
+  <% end %>
+  <tr>
+    <td><button type="button" class="generate_reports">Generate Reports</button></td>
+    <% if @all_reports %>
+      <td class="all_reports"><%= report_link(@all_reports, false, @global_reports_id, 'all') %><small> <%= report_details(@all_reports, false) %></small></td>
+    <% else %>
+      <td class="all_reports" style="display: none"><%= report_link(@all_reports, false, @global_reports_id, 'all') %><small> <%= report_details(@all_reports, false) %></small></td>
+    <% end %>
+  </tr>
+</table>

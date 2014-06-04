@@ -3,6 +3,7 @@ require File.expand_path('../boot', __FILE__)
 require 'rails/all'
 require 'v1'
 require 'contentqa'
+require 'delayed_job'
 
 if defined?(Bundler)
   # If you precompile assets before deploying to production, use this line
@@ -22,6 +23,7 @@ module Dpla
     # Custom directories with classes and modules you want to be autoloadable.
     # config.autoload_paths += %W(#{config.root}/lib)
     config.autoload_paths += Dir["#{config.root}/lib/**/"]
+    config.autoload_paths += Dir["#{config.root}/contentqa/lib/**/"]
 
     # Set cache_store based on dpla.yml settings
     config.cache_store = V1::Config.cache_store

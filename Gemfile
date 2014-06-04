@@ -7,8 +7,15 @@ gem 'pg', :require => 'pg'
 gem 'sqlite3'  
 gem 'devise', '2.1.2'
 gem 'jquery-rails'
+gem 'jquery-ui-rails'
 gem 'dpla_search_api_v1', :path => 'v1'
 gem 'dpla_contentqa', :path => 'contentqa'
+gem 'delayed_job_active_record'
+gem 'jquery-tablesorter'
+gem 'daemons'
+
+# twitter-bootstrap-rails can have problems finding itself when it is in the assets group
+gem 'twitter-bootstrap-rails', '~> 2.2.8'
 
 group :assets do
   gem 'sass-rails',   '~> 3.2.3'
@@ -18,8 +25,6 @@ group :assets do
   gem 'less-rails'
 end
 
-# twitter-bootstrap-rails can have problems finding itself when it is in the assets group
-gem 'twitter-bootstrap-rails', '~> 2.2.8'
 gem 'rspec-rails', :group => [:test, :development]
 
 group :test do
