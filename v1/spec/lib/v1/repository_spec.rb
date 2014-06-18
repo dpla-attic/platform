@@ -9,6 +9,7 @@ module V1
       it "have the correct values" do
         expect(subject::DEFAULT_API_AUTH_DATABASE).to eq 'dpla_api_auth'
         expect(subject::DEFAULT_DASHBOARD_DATABASE).to eq 'dashboard'
+        expect(subject::DEFAULT_BULK_DOWNLOAD_DATABASE).to eq 'bulk_download'
       end
 
     end

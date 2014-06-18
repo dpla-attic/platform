@@ -38,4 +38,7 @@ V1::Engine.routes.draw do
   # get "/status/river" => "status#river", :defaults => { :format => 'json' }
   # get "/status/search_engine" => "status#search_engine", :defaults => { :format => 'json' }
   # get "/status/search_shards" => "status#search_shards", :defaults => { :format => 'json' }
+
+  # Contributor bulk download links
+  get "/utils/contributor_bulk_download_links" => "utils#contributor_bulk_download_links", :defaults => { :format => 'json' }
 end
