@@ -1,8 +1,9 @@
 module V1
 
   class StatusController < ApplicationController
+    rescue_from Exception, :with => :generic_exception_handler
     rescue_from Errno::ECONNREFUSED, :with => :connection_refused
-    #TODO: should we also rescue_from ServiceUnavailableSearchError and re-raise that in StatusMonitor?
+
     def repository
       render_status(StatusMonitor.repository)
     end
@@ -21,12 +22,14 @@ module V1
 
     def connection_refused(exception)
       error = ServiceUnavailableSearchError.new
-      render_status('message' => e.message, 'status' => error.http_status)
-      # render_error(ServiceUnavailableSearchError.new, params)
-      #        status = :service_unavailable
-      #        message = e.to_s
+      render_status('message' => exception.message, 'status' => error.http_status)
     end
 
+    def generic_exception_handler(exception)
+      error = ServiceUnavailableSearchError.new 
+      render_status('message' => exception.message, 'status' => error.http_status)
+    end
+      
   end
 
 end
