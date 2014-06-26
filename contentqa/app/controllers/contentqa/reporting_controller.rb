@@ -1,11 +1,9 @@
-#require_dependency "contentqa/application_controller"
-#require "contentqa/reports"
-
 module Contentqa
 
   class ReportingController < ApplicationController
     include ReportingHelper
     rescue_from RestClient::ResourceNotFound, :with => :generic_exception_handler
+    rescue_from Exception, :with => :generic_exception_handler
 
     def generic_exception_handler(exception)
       logger.warn "#{self.class}.generic_exception_handler firing for: #{exception.class}: #{exception}"

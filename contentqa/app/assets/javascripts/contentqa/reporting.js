@@ -43,19 +43,21 @@ $('.generate_reports').on("click", function() {
         var total = report_types.length;
         report_types.forEach(function(report_type) {
             $.ajax({
+                cache: false,
                 url: "/qa/reporting/create",
                 data: {id: ingest_id, report_type: report_type},
                 success: function() {
+                    console.log('success!');
                     count++;
                     $("." + report_type + "_link").html("Generating.");
                     if (count == total) {
-                        if (provider == "global") {
-                            window.location.replace("/qa/reporting/global?id=" + ingest_id);
-                        }
-                        else {
-                            window.location.replace("/qa/reporting/provider?id=" + ingest_id);
-                        }
+                        var url = provider == "global" ? 'global' : 'provider';
+                        window.location.replace("/qa/reporting/" + url + "/?id=" + ingest_id);
                     }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log('ErrorStatus: ' + textStatus);
+                    console.log('ErrorThrown: ' + errorThrown);
                 }
             });
         });
