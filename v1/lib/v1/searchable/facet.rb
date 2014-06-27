@@ -2,16 +2,6 @@ require_relative '../search_error'
 require_relative '../schema'
 require_relative 'facet_options'
 
-module Tire
-  module Search
-    class Facet
-      def geo_distance(options={})
-        @value = { :geo_distance => { }.update(options) }
-      end
-    end
-  end
-end
-
 module V1
 
   module Searchable
@@ -68,7 +58,7 @@ module V1
         options = FacetOptions.build_options(type, field, params)
 
         if type == 'geo_distance'
-          [type, options]
+          [type, options].flatten(1)
         else
           [type, facet_field_name(field), options]
         end

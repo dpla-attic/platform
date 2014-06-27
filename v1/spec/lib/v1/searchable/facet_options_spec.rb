@@ -23,13 +23,15 @@ module V1
 
       end
 
-      describe "#build_options" do
+      describe "#options_for_geo_distance" do
+
         it "raises an error for geo_point facet missing a lat/lon value" do
           field = double(:name => 'spatial.coordinates', :geo_point? => true, :facet_modifier => nil)
           expect {
-            subject.build_options('geo_distance', field, {})
+            subject.options_for_geo_distance('geo_distance', field, {})
           }.to raise_error BadRequestSearchError, /Facet 'spatial.coordinates' missing lat\/lon modifiers/i
         end
+
         it "returns correct options for geo_point fields with no range"  do
           field = double(:name => 'spatial.coordinates', :facet_modifier => '42:-71')
           geo_facet_stub = double
@@ -39,29 +41,41 @@ module V1
                   subject.default_geo_distance_miles,
                   subject.default_geo_buckets,
                   true
-                  ) { geo_facet_stub }
-          expect(subject.build_options('geo_distance', field, {}))
-            .to eq(
-                   {
-                     'spatial.coordinates' => '42,-71',
-                     'ranges' => geo_facet_stub,
-                     'unit' => 'mi'
-                   }
-                   )
+                  ) { [geo_facet_stub] }
+
+          expect(subject.options_for_geo_distance('geo_distance', field, {}))
+            .to eq([
+                    'spatial.coordinates',
+                    {:lat => '42', :lon => '-71'},
+                    [geo_facet_stub],
+                    'unit' => 'mi'
+                   ])
         end
+
         it "returns correct options for geo_point fields with explicit range"  do
           field = double(:name => 'spatial.coordinates', :facet_modifier => '42:-71:50mi')
           geo_facet_stub = double
-          subject.stub(:facet_ranges) { geo_facet_stub }
-          expect(subject.build_options('geo_distance', field, {}))
-            .to eq(
-                   {
-                     'spatial.coordinates' => '42,-71',
-                     'ranges' => geo_facet_stub,
+          subject.should_receive(:facet_ranges)
+            .with(
+                  50,
+                  50,
+                  subject.default_geo_buckets,
+                  true
+                  ) { [geo_facet_stub] }
+
+          expect(subject.options_for_geo_distance('geo_distance', field, {}))
+            .to eq([
+                    'spatial.coordinates',
+                    {:lat => '42', :lon => '-71'},
+                    [geo_facet_stub],
                      'unit' => 'mi'
-                   }
-                   )
+                   ])
         end
+        
+      end
+
+      describe "#build_options" do
+        #TODO: refactor this to only test wiring and rename facet-type-specific tests
         it "returns correct options for date_histogram facet with a native interval"  do
           field = double(:name => 'date', :facet_modifier => 'year')
           expect(subject.build_options('date', field, {}))
