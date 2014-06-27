@@ -172,6 +172,7 @@ module V1
 
     def self.recreate_users
       recreate_user
+      sleep 1
       db = admin_cluster_database
       #      assign_roles(db, true)  # these aren't used yet
       recreate_auth(db, force_recreate=false)
