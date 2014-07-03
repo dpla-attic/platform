@@ -59,6 +59,17 @@ module V1
       render :json => render_as_json({:message => e.message}, params), :status => e.http_status
     end
 
+    def connection_refused(exception)
+      logger.warn "#{self.class}.connection_refused handler firing"
+      render_error(ServiceUnavailableSearchError.new, params)
+    end
+
+    def generic_exception_handler(exception)
+      logger.warn "#{self.class}.generic_exception_handler firing for: #{exception.class}: #{exception}"
+      logger.warn "#{exception.backtrace.first(15).join("\n")}\n[SNIP]"
+      render_error(InternalServerSearchError.new, params)
+    end
+
   end
 
 end

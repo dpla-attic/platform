@@ -1,0 +1,35 @@
+<div style="padding: 10px">
+  <%= global_reports_link %>
+</div>
+
+<table class="table sortable">
+  <thead>
+  <tr>
+    <th>Provider</th>
+    <th>Last Ingest Start Date (EST)</th>
+    <th>Ingest Number</th>
+    <th>Status</th>
+    <th>Errors</th>
+    <th>Added</th>
+    <th>Deleted</th>
+    <th>Changed</th>
+    <th>Report</th>
+  </tr>
+  </thead>
+
+  <tbody>
+  <% @providers.each do |p| %>
+  <tr>
+    <td><%= p['key'] %></td>
+    <td><%= nice_est_time(p['doc']['ingestDate']) %></td>
+    <td><%= p['value'] %></td>
+    <td><%= running?(p['doc']) ? "Running" : "Complete" %></td>
+    <td><%= error_link(p['doc']) %></td>
+    <td><%= p['doc']['countAdded'] %></td>
+    <td><%= p['doc']['countDeleted'] %></td>
+    <td><%= p['doc']['countChanged'] %></td>
+    <td><%= report_page_link(p['doc']) %></td>
+  </tr>
+  <% end %>
+  </tbody>
+</table>

@@ -1,0 +1,7 @@
+<% @reports.keys.each do |type| %>
+  $('.<%= type %>_status').html("<%= j(render "report_status", :report => @reports[type], :ingest_id => @global_reports_id, :type => type) %>");
+<% end %>
+
+<% if @all_reports %>
+    location.reload();
+<% end %>

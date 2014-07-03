@@ -1,3 +1,11 @@
 = Contentqa
 
-This project rocks and uses MIT-LICENSE.
+The report generation is done with delayed_job. To install run:
+
+$ bundle
+$ rails generate delayed_job:active_record
+$ rake db:migrate
+
+To start delayed_job in a camp use:
+
+$ rake jobs:work
