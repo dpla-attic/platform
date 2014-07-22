@@ -59,10 +59,14 @@ module Contentqa
     end
 
     def create
-      id = params[:id]
-      type = params[:report_type]
-      Reports.delay(:queue => "#{id}_#{type}").create_report(id, type)
-      render nothing: true
+      if params[:reports]
+        params[:reports].each do |report_type|
+          Reports.delay(:queue => "#{params[:id]}_#{report_type}").create_report(params[:id], report_type)
+        end
+      end
+
+      action = params[:provider] == "global" ? :global : :provider
+      redirect_to action: action, id: params[:id]
     end
 
     def download

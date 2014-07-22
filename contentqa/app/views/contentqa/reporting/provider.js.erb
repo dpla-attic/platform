@@ -1,5 +1,5 @@
-<% @reports.keys.each do |type| %>
-  $('.<%= type %>_status').html("<%= j(render "report_status", :report => @reports[type], :ingest_id => @ingest['_id'], :type => type) %>");
+<% @reports.each do |type, report| %>
+  $('.<%= type %>_status').html("<%= j(render "report_status", :report => report, :ingest_id => @ingest['_id'], :type => type) %>");
 <% end %>
 
 <% if @all_reports %>
