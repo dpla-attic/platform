@@ -22,46 +22,12 @@ $(".error_link").bind("click", function() {
     $("#" + $(this).attr("id") + "_table").show();
 });
 
-// provider/gloabl page
+// provider/global page
 $('#check_all').on("click", function() {
     var checked = this.checked;
     $('input[name="reports[]"]:enabled').map(function() {
         $(this).prop("checked", checked);
     })
-});
-
-$('.generate_reports').on("click", function() {
-    var report_types = $('input[name="reports[]"]:checked').map(function() {
-      return $(this).val();
-    }).get();
-    if (report_types.length) {
-        $(this).prop("disabled", true);
-        $('#check_all').prop("disabled", true);
-        var ingest_id = $('#id').val();
-        var provider = $('#provider').val();
-        var count = 0;
-        var total = report_types.length;
-        report_types.forEach(function(report_type) {
-            $.ajax({
-                cache: false,
-                url: "/qa/reporting/create",
-                data: {id: ingest_id, report_type: report_type},
-                success: function() {
-                    console.log('success!');
-                    count++;
-                    $("." + report_type + "_link").html("Generating.");
-                    if (count == total) {
-                        var url = provider == "global" ? 'global' : 'provider';
-                        window.location.replace("/qa/reporting/" + url + "/?id=" + ingest_id);
-                    }
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.log('ErrorStatus: ' + textStatus);
-                    console.log('ErrorThrown: ' + errorThrown);
-                }
-            });
-        });
-    }
 });
 
 if ($('.running').length) {
@@ -79,5 +45,5 @@ if ($('.running').length) {
             url: url,
             data: {id: ingest_id}
         });
-    }, 5000);
+    }, 10000);
 }

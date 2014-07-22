@@ -1,7 +1,7 @@
 <%= render "ingest_stats", :ingest => @ingest %>
 
 <% process_errors = get_errors(@ingest) %>
-<% process_errors.keys.each do |process| %>
+<% process_errors.each do |process, errors| %>
   <a id="<%= process %>" class="error_link"><%= nice_process(process) %></a> |
 <% end %>
 
