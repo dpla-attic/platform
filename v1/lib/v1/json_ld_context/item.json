@@ -21,7 +21,10 @@
       "@type": "dcmitype:Collection"
     },
     "extent": "dcterms:extent",
-    "temporal": "dcterms:temporal",
+    "temporal": {
+      "@id": "dcterms:temporal",
+      "@type": "edm:TimeSpan"
+    },
     "spatial": {
       "@id": "dcterms:spatial",
       "@type": "dpla:Place"
@@ -33,11 +36,13 @@
     "state": "dpla:state",
     "country": "dpla:country",
     "stateLocatedIn": "edm:currentLocation",
-    "dataProvider": "edm:dataProvider",
+    "dataProvider": "edm:dataProvider",   
+    "edmRights": "edm:rights",
     "hasView": {
       "@id": "edm:hasView",
       "@type": "edm:WebResource"
     },
+    "intermediateProvider": "dpla:intermediateProvider",
     "isShownAt": {
       "@id": "edm:isShownAt",
       "@type": "@id"
@@ -74,7 +79,7 @@
     "object_status": null,
     "originalRecord": null,
     "score": null,
-    "specType": null,
+    "specType": "edm:hasType",
     "valid_after_enrich": null,
     "validation_message": null
   }
