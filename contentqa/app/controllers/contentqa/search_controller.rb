@@ -1,4 +1,4 @@
-require_dependency "contentqa/application_controller"
+#require_dependency "contentqa/application_controller"
 
 module Contentqa
   class SearchController < ApplicationController

@@ -8,6 +8,7 @@ module V1
 
     DEFAULT_API_AUTH_DATABASE = 'dpla_api_auth'
     DEFAULT_DASHBOARD_DATABASE = 'dashboard'
+    DEFAULT_BULK_DOWNLOAD_DATABASE = 'bulk_download'
     
     def self.fetch(ids)
       # Accepts an array of ids or a string containing a comma separated list of ids
@@ -171,6 +172,7 @@ module V1
 
     def self.recreate_users
       recreate_user
+      sleep 1
       db = admin_cluster_database
       #      assign_roles(db, true)  # these aren't used yet
       recreate_auth(db, force_recreate=false)
@@ -316,6 +318,11 @@ module V1
       database(cluster_endpoint('reader', repo_name))
     end
 
+    def self.reader_cluster_bulk_download_database
+      name = Config.dpla['repository'].fetch('bulk_download_database', DEFAULT_BULK_DOWNLOAD_DATABASE)
+      database(cluster_endpoint('reader', name))
+    end
+
     def self.database(url)
       CouchRest.database(url)
     end
@@ -336,6 +343,10 @@ module V1
       end
       
       auth_string + host + suffix
+    end
+
+    def self.get_bulk_download_docs_by_contributor
+      reader_cluster_bulk_download_database.view('all_docs/by_contributor', {include_docs: true})
     end
 
   end

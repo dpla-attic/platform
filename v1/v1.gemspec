@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.add_dependency "rails"
   s.add_dependency "dalli"
   s.add_dependency "json"
-  s.add_dependency "tire", '0.5.7'
+  s.add_dependency "tire", '0.6.2'
   s.add_dependency "couchrest", '1.1.3'
   s.add_dependency "httparty"
 
