@@ -22,4 +22,5 @@ Gem::Specification.new do |s|
   s.add_dependency "couchrest", '1.1.3'
   s.add_dependency "delayed_job", "~> 4.0.2"
   s.add_dependency "delayed_job_active_record"
+  s.add_dependency "rubyzip", "~> 1.1.6"
 end

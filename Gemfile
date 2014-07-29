@@ -14,6 +14,7 @@ gem 'delayed_job'
 gem 'delayed_job_active_record'
 gem 'jquery-tablesorter'
 gem 'daemons'
+gem 'rubyzip', '~> 1.1.6'
 
 # twitter-bootstrap-rails can have problems finding itself when it is in the assets group
 gem 'twitter-bootstrap-rails', '~> 2.2.8'
