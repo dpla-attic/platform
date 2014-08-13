@@ -46,6 +46,13 @@ module V1
               'validation_message' => { 'enabled' => 'false'},
               'ingestType' => { 'enabled' => false },
               'ingestDate' => { 'type' => 'date' },
+              'contributingInstitution' => {
+                'type' => 'string',
+                'enabled' => false,
+                'include_in_all' => false,
+                'compound_fields' => ['dataProvider.not_analyzed','intermediateProvider.not_analyzed'],
+                'facet' => true
+              }
             }
           },
           'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },

@@ -74,7 +74,9 @@ module V1
         
         it "returns correct query string for field search" do
           name = 'sourceResource.title'
-          field = double(:name => name, :geo_point? => false, :date? => false, :multi_field_date? => false, :subfields? => false, :subfields => [])
+          field = double(:name => name, :geo_point? => false, :date? => false, 
+            :multi_field_date? => false, :subfields? => false, :subfields => [],
+            :compound_fields => nil)
           subject.stub(:field_for).with(resource, name) { field }
           params = {name => 'some title'}
           attrs = subject.default_attributes.merge( {'fields'=>[name]} )
@@ -86,7 +88,9 @@ module V1
 
         it "handles 'sourceResource.spatial.state' as a normal field search" do
           name = 'sourceResource.spatial.state'
-          field = double(:name => name, :geo_point? => false, :date? => false, :multi_field_date? => false, :subfields? => false, :subfields => [])
+          field = double(:name => name, :geo_point? => false, :date? => false, 
+            :multi_field_date? => false, :subfields? => false, :subfields => [],
+            :compound_fields => nil)
           Schema.stub(:field).with(resource, name) { field }
           params = {name => 'MA'}
           attrs = subject.default_attributes.merge( {'fields'=>[name]} )
@@ -106,7 +110,9 @@ module V1
 
         it "searches all subfields of 'sourceResource.date'" do
           name = 'sourceResource.date'
-          field = double(:name => name, :geo_point? => false, :date? => false, :multi_field_date? => false, :subfields? => true, :subfields => [double.as_null_object])
+          field = double(:name => name, :geo_point? => false, :date? => false, 
+            :multi_field_date? => false, :subfields? => true, :subfields => [double.as_null_object],
+            :compound_fields => nil)
           Schema.stub(:field).with(resource, name) { field }
           params = {name => '1999-08-07'}
           attrs = subject.default_attributes.merge( {'fields' => ['sourceResource.date.*']} )
@@ -119,6 +125,21 @@ module V1
         it "handles an empty search correctly" do
           params = {}
           expect(subject.string_queries(resource, params)).to match_array []
+        end
+
+        it "returns correct query string for compound field search" do
+          name = 'admin.contributingInstitution' 
+          field = double(:name => name, :geo_point? => false, :date? => false,
+            :multi_field_date? => false, :subfields? => false, 
+            :compound_fields => ['dataProvider.not_analyzed', 'intermediateProvider.not_analyzed'])
+          Schema.stub(:field).with(resource, name) { field }
+          params = {name => 'Provider A'}
+          attrs = subject.default_attributes
+            .merge( {'fields'=>['dataProvider','intermediateProvider']} )
+          expect(subject.string_queries(resource, params))
+            .to match_array(
+                             [['Provider A', attrs]]
+                           )
         end
       end
 
