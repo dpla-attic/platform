@@ -123,6 +123,14 @@ module V1
       # aka "a date field wrapped in a multi_field"
       multi_field? && multi_field_default && multi_field_default.date?
     end
+
+    def multi_field_facet?
+      type == 'multi_field_facet'
+    end
+
+    def fields
+      @mapping['fields']
+    end
   end
 
 end

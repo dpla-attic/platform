@@ -71,9 +71,12 @@ module V1
           field.name
         elsif field.not_analyzed_field && field.not_analyzed_field.facetable?
           field.not_analyzed_field.name
+        elsif field.multi_field_facet?
+          field.fields
         else
           field.name
         end
+
       end
       
       def self.facet_display_name(field)
