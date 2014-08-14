@@ -47,9 +47,10 @@ module V1
               'ingestType' => { 'enabled' => false },
               'ingestDate' => { 'type' => 'date' },
               'contributingInstitution' => {
+                'type' => 'string',
                 'enabled' => false,
                 'include_in_all' => false,
-                'fields' => ['dataProvider.not_analyzed','intermediateProvider.not_analyzed'],
+                'compound_fields' => ['dataProvider.not_analyzed','intermediateProvider.not_analyzed'],
                 'facet' => true
               }
             }

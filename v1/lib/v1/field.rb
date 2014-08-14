@@ -125,11 +125,11 @@ module V1
     end
 
     def multi_field_facet?
-      @mapping['fields'] && @mapping['fields'].is_a?(Array)
+      fields.is_a?(Array)
     end
 
     def fields
-      @mapping['fields']
+      @mapping['compound_fields']
     end
   end
 
