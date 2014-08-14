@@ -48,7 +48,7 @@ module V1
               'ingestDate' => { 'type' => 'date' },
               'contributingInstitution' => {
                 'enabled' => false,
-                'type' => 'multi_field_facet',
+                'include_in_all' => false,
                 'fields' => ['dataProvider.not_analyzed','intermediateProvider.not_analyzed'],
                 'facet' => true
               }
