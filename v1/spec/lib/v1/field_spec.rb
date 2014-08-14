@@ -69,6 +69,9 @@ module V1
         },
         'disabledField' => {
           'enabled' => false
+        },
+        'compoundFields' => {
+          'compound_fields' => ['field1, field2']
         }
       }
     }
@@ -326,6 +329,13 @@ module V1
       it "returns false if a field is explicitly not enabled" do
         field = Field.new(resource, 'disabledField', item_mapping['disabledField'])
         expect(field.enabled?).to be_false
+      end
+    end
+
+    describe "#compound_fields_facet?" do
+      it "returns true if field contains 'compound_fields' property" do
+        field = Field.new(resource, 'compound_fields', item_mapping['compoundFields'])
+        expect(field.compound_fields_facet?).to be_true
       end
     end
   end

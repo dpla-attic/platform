@@ -154,6 +154,32 @@ module V1
 
       end
 
+      describe "#facet_field_name" do
+        it "returns correct value for date" do 
+          field = double(:name =>'somename', :date? => true)
+          Schema.stub(:field).with(resource, 'somefield') { field }
+          expect(subject.facet_field_name(field)).to eq 'somename'
+        end
+        it "returns currect value for non-analyzed facetable field" do
+          not_analyzed = double(:name =>'somename', :facetable? => true)
+          field = double(:date? => false, :not_analyzed_field => not_analyzed)
+          Schema.stub(:field).with(resource, 'somefield') { field }
+          expect(subject.facet_field_name(field)).to eq 'somename'
+        end
+        it "returns correct value for compound fields" do
+          field = double(:compound_fields => ['field1, field2'], :compound_fields_facet? => true, 
+            :date? => false, :not_analyzed_field => false)
+          Schema.stub(:field).with(resource, 'somefield') { field }
+          expect(subject.facet_field_name(field)).to eq ['field1, field2']
+        end
+        it "returns correct value for non-date, non-analzyed, non-compound field" do
+          field = double(:date? => false, :not_analyzed_field => false, 
+            :compound_fields_facet? => false, :name => 'somename')
+          Schema.stub(:field).with(resource, 'somefield') { field }
+          expect(subject.facet_field_name(field)).to eq 'somename'
+        end
+      end
+
       describe "#facet_display_name" do
         it "returns correct value for non-modified date facets" do
           field = double(:name => 'somename', :date? => false, :multi_field_date? => false )
