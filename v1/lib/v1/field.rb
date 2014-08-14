@@ -124,11 +124,11 @@ module V1
       multi_field? && multi_field_default && multi_field_default.date?
     end
 
-    def multi_field_facet?
-      fields.is_a?(Array)
+    def compound_fields_facet?
+      compound_fields
     end
 
-    def fields
+    def compound_fields
       @mapping['compound_fields']
     end
   end
