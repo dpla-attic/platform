@@ -1179,5 +1179,18 @@
         "ingestType": "item",
 	"dataProvider": "Sadie",
 	"intermediateProvider": "RangerDanger"
+    },
+    {
+        "_id": "item-contributingInstitution2",
+        "id": "item-contributingInstitution2",
+        "ingestType": "item",
+        "dataProvider": "RangerDanger"
+    },
+    {
+        "_id": "item-contributingInstitution3",
+        "id": "item-contributingInstitution3",
+        "ingestType": "item",
+        "dataProvider": "Winnie Peaches",
+        "intermediateProvider": "Sadie"
     }
 ]

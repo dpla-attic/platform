@@ -116,8 +116,11 @@ Then /^the API returns items that contain the query string$/ do
   end
 end
 
-Then(/^the facets should contain some values for "(.*?)"$/) do |facet_values|
+Then(/^the facets should contain correct counts for "(.*?)"$/) do |facet_values|
   terms_facets = @results['facets']['admin.contributingInstitution']['terms']
-  results = terms_facets.map {|facet| facet['term']}
-  expect(results).to eq ['Sadie', 'RangerDanger']
+  expect(terms_facets).to include(
+    {"term" => "Sadie", "count" => 2},
+    {"term" => "RangerDanger", "count" => 2},
+    {"term" => "Winnie Peaches", "count" => 1}
+  )
 end

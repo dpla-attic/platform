@@ -130,5 +130,5 @@ Feature: Search the DPLA using facets (UC010)
     When I make an empty item-search
       And request the "admin.contributingInstitution" facet
     Then the API returns the "admin.contributingInstitution" facets
-    And the facets should contain some values for "Sadie, RangerDanger"
+    And the facets should contain correct counts for "Sadie, RangerDanger, Winnie Peaches"
 
