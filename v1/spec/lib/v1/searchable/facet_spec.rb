@@ -167,14 +167,14 @@ module V1
           expect(subject.facet_field_name(field)).to eq 'somename'
         end
         it "returns correct value for compound fields" do
-          field = double(:compound_fields => ['field1, field2'], :compound_fields_facet? => true, 
+          field = double(:compound_fields => ['field1, field2'], 
             :date? => false, :not_analyzed_field => false)
           Schema.stub(:field).with(resource, 'somefield') { field }
           expect(subject.facet_field_name(field)).to eq ['field1, field2']
         end
         it "returns correct value for non-date, non-analzyed, non-compound field" do
           field = double(:date? => false, :not_analyzed_field => false, 
-            :compound_fields_facet? => false, :name => 'somename')
+            :compound_fields => nil, :name => 'somename')
           Schema.stub(:field).with(resource, 'somefield') { field }
           expect(subject.facet_field_name(field)).to eq 'somename'
         end

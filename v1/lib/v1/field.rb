@@ -124,10 +124,6 @@ module V1
       multi_field? && multi_field_default && multi_field_default.date?
     end
 
-    def compound_fields_facet?
-      compound_fields
-    end
-
     def compound_fields
       @mapping['compound_fields']
     end

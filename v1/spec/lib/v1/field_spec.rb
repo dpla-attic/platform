@@ -332,10 +332,10 @@ module V1
       end
     end
 
-    describe "#compound_fields_facet?" do
-      it "returns true if field contains 'compound_fields' property" do
+    describe "#compound_fields" do
+      it "returns the 'compound_fields' property" do
         field = Field.new(resource, 'compound_fields', item_mapping['compoundFields'])
-        expect(field.compound_fields_facet?).to be_true
+        expect(field.compound_fields).to eq ['field1, field2']
       end
     end
   end

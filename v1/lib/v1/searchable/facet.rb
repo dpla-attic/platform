@@ -71,7 +71,7 @@ module V1
           field.name
         elsif field.not_analyzed_field && field.not_analyzed_field.facetable?
           field.not_analyzed_field.name
-        elsif field.compound_fields_facet?
+        elsif field.compound_fields
           field.compound_fields
         else
           field.name
