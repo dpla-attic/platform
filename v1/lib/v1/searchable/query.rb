@@ -95,7 +95,11 @@ module V1
             field = field_for(resource, name)
             next if field.nil? || field.date? || field.multi_field_date? || field.geo_point?
 
-            fields = field_boost_deep(resource, field)
+            if field.compound_fields 
+              fields = parse_compound_fields(field.compound_fields)
+            else
+              fields = field_boost_deep(resource, field)
+            end 
           end
 
           query_strings << [
@@ -195,6 +199,14 @@ module V1
           end
         end
         ranges
+      end
+
+      private
+      def self.parse_compound_fields(field_names)
+        # remove substring ".not_analyzed" from end of each field name
+        field_names.map do |name|
+          name.gsub(/.not_analyzed\z/, "")
+        end
       end
 
     end
