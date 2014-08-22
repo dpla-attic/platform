@@ -201,6 +201,7 @@ module V1
         ranges
       end
 
+      private
       def self.parse_compound_fields(field_names)
         # remove substring ".not_analyzed" from end of each field name
         field_names.map do |name|

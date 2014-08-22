@@ -222,18 +222,6 @@ module V1
         end
       end
 
-      describe "#parse_compound_fields" do
-
-        it "removes '.not_analyzed' from field names" do
-          field_names = ['dataProvider.not_analyzed', 'intermediateProvider.not_analyzed']
-          expect(subject.parse_compound_fields(field_names))
-            .to match_array(
-                             ['dataProvider', 'intermediateProvider']  
-                           )
-        end
-
-      end
-
     end
 
   end
