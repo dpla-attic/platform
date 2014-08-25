@@ -73,4 +73,7 @@ Feature: Search for items by keyword (UC002)
     When I item-search for "orange" in the "sourceResource.title" field
     Then the API should return no records
 
+  Scenario: Phrase search of compound field
+    When I item-search for "RangerDanger" in the "admin.contributingInstitution" field
+    Then the API should return record item-contributingInstitution1, item-contributingInstitution2
 

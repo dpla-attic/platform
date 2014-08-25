@@ -32,4 +32,5 @@ group :test do
   gem 'rake'
   gem 'database_cleaner'
   gem 'cucumber-rails', :require => false
+  gem 'awesome_print'
 end
