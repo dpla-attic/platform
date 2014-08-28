@@ -17,5 +17,20 @@ module V1
       ActionMailer::Base.default :from => Config.email_from_address
     end
 
+    # Add the engine's settings to RailsConfig
+    initializer 'settings' do
+      V1::Settings = Kernel.const_get(RailsConfig.const_name)
+
+      setting_files = [self.root.join('config', 'settings.yml'),
+                       self.root.join('config', 'settings', "#{Rails.env}.yml"),
+                       self.root.join('config', 'environments', "#{Rails.env}.yml"),
+                       self.root.join('config', 'settings.local.yml'),
+                       self.root.join('config', 'settings', "#{Rails.env}.local.yml"),
+                       self.root.join('config', 'environments', "#{Rails.env}.local.yml")]
+
+      setting_files.each { |f| V1::Settings.add_source!(f.to_s) }
+      V1::Settings.reload!
+    end
+
   end
 end
