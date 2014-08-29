@@ -1,26 +1,17 @@
-require 'v1/api_auth'
-
 module Contentqa
   
   class ApiAuthFailed < Exception; end
 
-  API_AUTH_OWNER = 'aa22-qa-app@dp.la'
-  
   class ApplicationController < ActionController::Base
-    before_filter :fetch_qa_api_auth
     rescue_from ApiAuthFailed, :with => :api_auth_failed
 
-    def fetch_qa_api_auth
-      @@api_auth_key ||= V1::ApiAuth.find_api_key_by_owner(API_AUTH_OWNER)
-    end
-    
     def baseuri
       request.protocol + request.host_with_port
     end
 
     #TODO: use v1_api.items_url
     def item_fetch_link(id)
-      baseuri + v1_api.items_path + '/' + id + "?api_key=#{ @@api_auth_key }"
+      baseuri + v1_api.items_path + '/' + id + "?api_key=#{Settings.contentqa.api_key}"
     end
 
     def item_search(params={})
@@ -32,7 +23,7 @@ module Contentqa
     end
 
     def api_query(uri)
-      uri += "&api_key=#{ @@api_auth_key }"
+      uri += "&api_key=#{Settings.contentqa.api_key}"
       search = HTTParty.get(uri, request_options)
       raise ApiAuthFailed if search.code == 401
 
@@ -54,7 +45,7 @@ module Contentqa
     end
 
     def api_auth_failed
-      logger.warn "Error: API auth failed for #{ self.class} with api key: #{@@api_auth_key || '(none)'}"
+      logger.warn "Error: API auth failed for #{ self.class} with api key: #{Settings.contentqa.api_key} || '(none)'}"
       render :text => "Error: API auth failed, which should never happen. Perhaps the QA application's API key was never imported?", :status => :error
     end
     
