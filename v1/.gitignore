@@ -1,0 +1,8 @@
+config/elasticsearch/*.yml
+config/dpla.yml
+config/couchdb.ini
+
+# rails config
+config/*.local.yml
+config/settings/*.local.yml
+config/enviornments/*.local.yml
