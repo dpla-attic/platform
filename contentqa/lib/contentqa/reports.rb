@@ -1,13 +1,20 @@
-require 'v1/repository'
+require 'couchrest'
 require 'fileutils'
 
 module Contentqa
 
   module Reports
-    @dashboard_db = V1::Repository.database(V1::Repository.cluster_endpoint('reader', 'dashboard'))
-    @dpla_db = V1::Repository.database(V1::Repository.cluster_endpoint('reader', 'dpla'))
+
     @base_path = File.expand_path("../../../../tmp/qa_reports", __FILE__)
     FileUtils.mkpath(@base_path) unless File.directory?(@base_path)
+
+    def self.dashboard_db
+      @dashboard_db ||= CouchRest.database(cluster_endpoint('dashboard'))
+    end
+
+    def self.dpla_db
+      @dpla_db ||= CouchRest.database(cluster_endpoint('dpla'))
+    end
 
     def self.all_created?(id)
       path = File.expand_path(File.join(@base_path, id))
@@ -22,12 +29,12 @@ module Contentqa
 
     # Get the document describing an ingest from the dashboard database
     def self.find_ingest(id)
-      @dashboard_db.get(id)
+      dashboard_db.get(id)
     end
 
     # Get the list of available reports (defined as the qa_reports views in the dpla database)
     def self.find_report_types(type=nil)
-      keys = @dpla_db.get('_design/qa_reports')['views'].keys.sort
+      keys = dpla_db.get('_design/qa_reports')['views'].keys.sort
 
       if type == "provider"
         keys.select{|k| k !~ /global/}
@@ -156,7 +163,13 @@ module Contentqa
     def self.ingestion_running?
       @dashboard_db.view("all_ingestion_docs/for_active_ingestions")["total_rows"] > 0
     end
-    
-  end
 
+    private 
+
+      def self.cluster_endpoint(endpoint)
+        repo = Contentqa::Settings.contentqa.repository
+        "#{repo.username}:#{repo.password}@#{repo.host}:#{repo.port}/#{endpoint}"
+      end                        
+
+  end
 end
