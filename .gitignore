@@ -22,4 +22,4 @@ db/*sqlite3
 # rails config
 config/*.local.yml
 config/settings/*.local.yml
-config/enviornments/*.local.yml
+config/environments/*.local.yml
