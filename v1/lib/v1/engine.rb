@@ -19,17 +19,21 @@ module V1
 
     # Add the engine's settings to RailsConfig
     initializer 'settings' do
-      V1::Settings = Kernel.const_get(RailsConfig.const_name)
-
       setting_files = [self.root.join('config', 'settings.yml'),
                        self.root.join('config', 'settings', "#{Rails.env}.yml"),
                        self.root.join('config', 'environments', "#{Rails.env}.yml"),
                        self.root.join('config', 'settings.local.yml'),
                        self.root.join('config', 'settings', "#{Rails.env}.local.yml"),
-                       self.root.join('config', 'environments', "#{Rails.env}.local.yml")]
+                       self.root.join('config', 'environments', "#{Rails.env}.local.yml")
+                      ].map { |path| path.to_s }
 
-      setting_files.each { |f| V1::Settings.add_source!(f.to_s) }
-      V1::Settings.reload!
+      settings_const = Kernel.const_get(RailsConfig.const_name)
+
+      source_paths = settings_const.add_source!('nil')[0..-2].map { |source| source.path }
+      source_paths = setting_files + source_paths
+      
+      RailsConfig.load_and_set_settings(source_paths)
+      V1::Settings = Kernel.const_get(RailsConfig.const_name)
     end
 
   end

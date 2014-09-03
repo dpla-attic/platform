@@ -17,6 +17,15 @@ describe Contentqa::Engine do
     it 'includes its settings in rails_config' do
       expect(Contentqa::Settings.qa_test).to eq 'test!'
     end
+
+    it 'allows app to override configuration' do
+      app_settings_path = Rails.root.join('config', 'settings.local.yml').to_s
+      File.stub(:exists?).with(app_settings_path).and_return(true)
+      IO.stub(:read).with(app_settings_path).and_return("---\n\napi_test: 'app!'")
+      Contentqa::Settings.reload!
+
+      expect(Contentqa::Settings.api_test).to eq 'app!'
+    end
   end
 
 end
