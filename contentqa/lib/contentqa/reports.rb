@@ -168,7 +168,7 @@ module Contentqa
 
       def self.cluster_endpoint(endpoint)
         repo = Contentqa::Settings.contentqa.repository
-        "#{repo.username}:#{repo.password}@#{repo.host}:#{repo.port}/#{endpoint}"
+        "#{repo.username}:#{repo.password}@#{repo.host}:#{repo.port}/#{repo.endpoints[endpoint]}"
       end                        
 
   end

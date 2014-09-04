@@ -7,3 +7,6 @@ contentqa:
     password: changeme
     host: 192.168.50.2
     port: 5984
+    endpoints:
+      dpla: dpla
+      dashboard: dashboard
