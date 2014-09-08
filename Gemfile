@@ -26,11 +26,19 @@ group :assets do
   gem 'less-rails'
 end
 
-gem 'rspec-rails', :group => [:test, :development]
-
 group :test do
-  gem 'rake'
   gem 'database_cleaner'
   gem 'cucumber-rails', :require => false
-  gem 'awesome_print'
 end
+
+group :test, :development do
+  gem 'rake'
+  gem 'rspec-rails'
+  gem 'awesome_print'
+
+  gem 'pry'
+  gem 'pry-doc'
+  gem 'pry-rails'
+end
+
+
