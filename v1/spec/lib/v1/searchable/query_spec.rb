@@ -217,8 +217,8 @@ module V1
         end
 
         it "escapes meta-characters just absolutely everywhere" do
-          string = '}?harv[a:z]('
-          expect(subject.protect_metacharacters(string)).to eq '\\}\\?harv\\[a\\:z\\]\\('
+          string = '}?harv[a:z](/'
+          expect(subject.protect_metacharacters(string)).to eq '\\}\\?harv\\[a\\:z\\]\\(\\/'
         end
       end
 
