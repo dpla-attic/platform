@@ -22,6 +22,7 @@ else
   puts "Initializing test environment for the repository and search index..."
   V1::Repository.recreate_env_with_docs
   sleep(ENV['TRAVIS'] ? 10 : 3)
+  puts "Elasticsearch status: #{V1::SearchEngine.service_status}"
   previous_index = V1::SearchEngine.create_and_deploy_index
   V1::SearchEngine.safe_delete_index(previous_index) if previous_index
   
