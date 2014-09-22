@@ -11,7 +11,7 @@ module V1
 
       # not escaped, but probably could be if escape code was tweaked: '&&', '||'
       # not escaped, because they don't seem to need it: '+', '-',
-      ESCAPED_METACHARACTERS = [ '!', '(', ')', '{', '}', '[', ']', '^', '~', '?', ':' ]  # '"',
+      ESCAPED_METACHARACTERS = [ '!', '(', ')', '{', '}', '[', ']', '^', '~', '?', ':', '/' ]  # '"',
 
       def self.execute_empty_search(search)
         # We need to be explicit with an empty search
