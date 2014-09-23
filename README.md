@@ -184,6 +184,8 @@ Sorting by geo_distance requires a coordinate value in an additional sort_by_pin
 
 ### Retrieve multiple items by their 'id' values
 
+Up to 50 items can be fetched by their 'id' values per API call.
+
 <http://api.dp.la/v2/items/a4e2346032cae75b0832abe0644e9b26,a4e2346032cae75b0832abe064c14bcb> (comma separated IDs)
 
 ## Facets

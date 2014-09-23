@@ -215,7 +215,8 @@ module V1
 
     def id_to_private_id(ids)
       #TODO: use a cacheable filter here instead?
-      search({'id' => ids.join(' OR ')})['docs'].inject({}) do |memo, doc|
+      search_params = {'id' => ids.join(' OR '), 'page_size' => 50}
+      search(search_params)['docs'].inject({}) do |memo, doc|
         memo[doc['id']] = doc['_id']
         memo
       end
