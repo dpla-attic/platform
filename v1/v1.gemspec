@@ -15,6 +15,7 @@ Gem::Specification.new do |s|
   s.files = Dir["{app,config,db,lib}/**/*"] + ["Rakefile", "README.md"]
 
   s.add_dependency "rails"
+  s.add_dependency "rails_config"
   s.add_dependency "dalli"
   s.add_dependency "json"
   s.add_dependency "tire", '0.6.2'

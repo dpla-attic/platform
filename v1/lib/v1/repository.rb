@@ -129,19 +129,20 @@ module V1
     def self.import_test_api_keys(owner=nil)
       # rake task entry point
       db = admin_cluster_auth_database
-      keys = YAML.load_file(File.expand_path("../../../config/test_api_keys.yml", __FILE__))
 
       print "Test API keys: "
       print "ONLY FOR: #{owner}" if owner
       puts ""
       
-      keys.each do |key, body|
-        # Only import key for this owner
-        next if owner && owner != body['owner']
-        print "  #{ key }  #{body['owner']}  #{'(disabled)' if body['disabled'] === true}"
+      V1::Settings.test_api_keys.each do |key|
+        next if owner && owner != key.owner 
+
+        print "  #{key.key}  #{key.owner}  #{'(disabled)' if key.disabled === true}"
 
         begin
-          result = db.save_doc( {'_id' => key}.merge(body) )
+          key_doc = { '_id' => key.key, 'owner' => key.owner }
+          key_doc['disabled'] = key.disabled unless key.disabled.nil?
+          result = db.save_doc(key_doc)
           puts ""
           puts "Error importing key: #{result}" unless result['ok']
         rescue RestClient::Conflict => e

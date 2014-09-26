@@ -1,0 +1,23 @@
+---
+
+test_api_keys:
+  - key: aa11d0958e93bb25e457a726dc10a40f
+    owner: aa11-test-suite@dp.la
+
+  # this one is used by the QA app
+  - key: aa22c5ec71f95032dbcba4afc2041deb
+    owner: aa22-qa-app@dp.la
+
+  - key: aa33453110fe536700f7c54c69de269d
+    owner: aa33@dp.la
+
+  - key: aa44b3e192d2b71912022e7378b77806
+    owner: aa44@dp.la
+
+  - key: dd11db4564399e6dc1cf26456f29f1b6
+    owner: dd11@dp.la
+    disabled: true
+
+  - key: dd22db4564399e6dc1cf26456f29f1b6
+    owner: dd22@dp.la
+    disabled: true

@@ -1,6 +1,3 @@
-v1/config/elasticsearch/*.yml
-v1/config/dpla.yml
-v1/config/couchdb.ini
 config/database.yml
 tmp/
 var/
@@ -21,3 +18,8 @@ public/robots.txt
 .*install_done
 .bundle/config
 db/*sqlite3
+
+# rails config
+config/*.local.yml
+config/settings/*.local.yml
+config/environments/*.local.yml
