@@ -1,6 +1,5 @@
 require 'v1/repository'
 require 'fileutils'
-require 'zip'
 
 module Contentqa
 
