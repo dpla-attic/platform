@@ -7,6 +7,7 @@ PATH
       delayed_job_active_record
       httparty
       rails (~> 3.2.11)
+      rubyzip (~> 1.1.6)
       twitter-bootstrap-rails
 
 PATH
@@ -196,6 +197,7 @@ GEM
     rubygems-bundler (1.4.3)
       bundler-unload (>= 1.0.2)
       executable-hooks (>= 1.2.5)
+    rubyzip (1.1.6)
     sass (3.2.14)
     sass-rails (3.2.6)
       railties (~> 3.2.0)
@@ -269,6 +271,7 @@ DEPENDENCIES
   rake
   rspec-rails
   rubygems-bundler (~> 1.4.3)
+  rubyzip (~> 1.1.6)
   sass-rails (~> 3.2.3)
   sqlite3
   therubyracer

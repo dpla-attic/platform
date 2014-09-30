@@ -26,7 +26,7 @@
       </colgroup>
       <th><%= check_box_tag "check_all" %> Report</th>
       <th>Status</th>
-      <% @reports.each do |type| %>
+      <% @reports.each do |type, report| %>
         <tr>
           <td><%= check_box_tag "reports[]", type, false, :disabled => (report[:file] or report[:job]), :class => "report_checkbox" %>&nbsp<%= type %></td>
           <td class='<%= "#{type}" %>_status'><%= render "report_status", :report => report, :ingest_id => @global_reports_id, :type => type %>
