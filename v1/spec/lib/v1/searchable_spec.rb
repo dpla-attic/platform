@@ -56,13 +56,13 @@ module V1
 
     describe "#id_to_private_id" do
       it "calls search correctly when called with a single id" do
-        subject.should_receive(:search).with({ 'id' => 'aaa' }) {
+        subject.should_receive(:search).with({ 'id' => 'aaa', 'page_size' => 50 }) {
           { 'docs' => [{"_id" => "A", "id" => "aaa"}] }
         }
         expect(subject.id_to_private_id(['aaa'])).to eq( {'aaa' => 'A'} )
       end
       it "calls search correctly when called with multiple ids" do
-        subject.should_receive(:search).with({ 'id' => 'aaa OR bbb' }) {
+        subject.should_receive(:search).with({ 'id' => 'aaa OR bbb', 'page_size' => 50 }) {
           { 'docs' => [{"_id" => "A", "id" => "aaa"}, {"_id" => "B", "id" => "bbb"}] }
         }
         expect(subject.id_to_private_id(['aaa', 'bbb'])).to eq( {'aaa' => 'A', 'bbb' => 'B'} )

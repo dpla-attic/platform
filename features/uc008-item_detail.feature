@@ -32,3 +32,6 @@ Feature: Retrieve detailed information about items (UC008)
     When I request details for items with ingestion identifiers "not_me,or_me"
     And items that identify errors with ids "not_me,or_me"
 
+  Scenario: Retrieve more than ten items with one call
+    When I request details for items with ingestion identifiers "aaa,bbb,1,2,3,P,P2,P3,P2-A,P2-B,C,D,F"
+    Then the API will return the items with the document identifiers "A,B,1,2,3,P,P2,P3,P2-A,P2-B,C,D,F"
