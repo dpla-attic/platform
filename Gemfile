@@ -18,6 +18,7 @@ gem 'rubyzip', '~> 1.1.6', :require => 'zip'
 
 # twitter-bootstrap-rails can have problems finding itself when it is in the assets group
 gem 'twitter-bootstrap-rails', '~> 2.2.8'
+gem 'turnout'
 
 group :assets do
   gem 'sass-rails',   '~> 3.2.3'
