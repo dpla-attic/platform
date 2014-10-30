@@ -5,7 +5,7 @@ rvm:
 before_install:
   - sudo service elasticsearch stop
   - wget https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-0.90.13.deb
-  - sudo dpkg -i elasticsearch-0.90.13.deb
+  - sudo dpkg --force-confnew -i elasticsearch-0.90.13.deb
   - sudo /usr/share/elasticsearch/bin/plugin -install elasticsearch/elasticsearch-lang-javascript/1.3.0
   - sudo /usr/share/elasticsearch/bin/plugin -install elasticsearch/elasticsearch-river-couchdb/1.2.0
   - sudo service elasticsearch start

@@ -1,3 +1,5 @@
+require 'turnout/rake_tasks'
+
 namespace :dpla do
 
   desc "Verify all required config files exist"
