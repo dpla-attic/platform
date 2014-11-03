@@ -37,7 +37,7 @@ Feature: Search for items by keyword with meta-characters in the query string
     Then I should get http status code "200"
 
   Scenario: Basic keyword search with embedded double-quote wrapped in outer double-quotes
-    When I item-search for '"1 1/2" by 3 1/2""'
+    When I item-search for '"1 1/2" by 3 1/2"'
     Then the API should return record item-meta1
 
   Scenario: Field search with two double-quote wrapped terms joined with 'AND'
