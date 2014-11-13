@@ -71,9 +71,8 @@ caching:
 field_boosts:
   item:
     sourceResource.title: 2
-    sourceResource.description: 1.5
-    sourceResource.subject: 0.8
+    sourceResource.description: 0.75
   collection:
-    title: 2.2
+    title: 1
 
         
