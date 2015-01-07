@@ -7,13 +7,14 @@ require "contentqa/version"
 Gem::Specification.new do |s|
   s.name        = "dpla_contentqa"
   s.version     = Contentqa::VERSION
-  s.authors     = ["Jeffrey Licht", "Miguel Alatorre", "Brian 'Phunk' Gadoury"]
-  s.email       = ["jeff@podconsulting.com", "miguel@endpoint.com", "bgadoury@endpoint.com"]
+  s.authors     = ["Digital Public Library of America", "Jeffrey Licht", "Miguel Alatorre", "Brian 'Phunk' Gadoury"]
+  s.email       = ["tech@dp.la", "jeff@podconsulting.com", "miguel@endpoint.com", "bgadoury@endpoint.com"]
+  s.license     = "AGPL-3.0"
   s.homepage    = "http://dp.la"
   s.summary     = "Support QA for content being ingested into the DPLA"
   s.description = "Support QA for content being ingested into the DPLA"
 
-  s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.rdoc"]
+  s.files = Dir["{app,config,db,lib}/**/*"] + ["../LICENSE", "Rakefile", "README.rdoc"]
   s.test_files = Dir["test/**/*"]
 
   s.add_dependency "rails", "~> 3.2.11"
