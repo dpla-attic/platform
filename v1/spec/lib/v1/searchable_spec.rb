@@ -54,21 +54,6 @@ module V1
       end
     end
 
-    describe "#id_to_private_id" do
-      it "calls search correctly when called with a single id" do
-        subject.should_receive(:search).with({ 'id' => 'aaa', 'page_size' => 50 }) {
-          { 'docs' => [{"_id" => "A", "id" => "aaa"}] }
-        }
-        expect(subject.id_to_private_id(['aaa'])).to eq( {'aaa' => 'A'} )
-      end
-      it "calls search correctly when called with multiple ids" do
-        subject.should_receive(:search).with({ 'id' => 'aaa OR bbb', 'page_size' => 50 }) {
-          { 'docs' => [{"_id" => "A", "id" => "aaa"}, {"_id" => "B", "id" => "bbb"}] }
-        }
-        expect(subject.id_to_private_id(['aaa', 'bbb'])).to eq( {'aaa' => 'A', 'bbb' => 'B'} )
-      end
-    end
-
     describe "#fetch" do
       let(:pub_a) { 'aaa' }
       let(:priv_a) { 'A' }
@@ -76,49 +61,55 @@ module V1
       let(:priv_b) { 'B' }
       let(:pub_c) { 'ccc' }
 
-      let(:fetch_result1) {
-        { "count" => 1, "docs" => [{"_id" => "A", "id" => "aaa"}] }
+      let(:fetch_result_1doc) {
+        { "count" => 1, "docs" => [{"_id" => priv_a, "id" => pub_a}] }
       }
-      let(:fetch_result2) {
-        { "count" => 1, "docs" => [{"_id" => "B", "id" => "bbb"}] }
+      let(:fetch_result_nodoc) {
+        { "count" => 0, "docs" => [] }
       }
       let(:result_ab) {
-        { "count" => 2, "docs" => [{"_id" => "A", "id" => "aaa"}, {"_id" => "B", "id" => "bbb"}] }
+        { "count" => 2, "docs" => [{"_id" => priv_a, "id" => pub_a},
+                                   {"_id" => priv_b, "id" => pub_b}] }
       }
-      let(:missing_stub){
-        { "id" => "ccc", "error" => "404" }
-      }
-
-       it "delegates transformed ids to Repository.fetch" do
-        subject.should_receive(:id_to_private_id).with( [pub_a] ) { {pub_a => priv_a} }
-        Repository.should_receive(:fetch).with([priv_a]) { fetch_result1 }
-        expect(subject.fetch([pub_a])).to eq fetch_result1 
-      end
 
       it "handles a fetch for an array of multiple IDs" do
-        subject.stub(:id_to_private_id).with( [pub_a, pub_b] ) { {pub_a => priv_a, pub_b => priv_b} }
-        Repository.should_receive(:fetch).with([priv_a, priv_b]) { result_ab }
+        subject.should_receive(:search)
+          .with({
+            "id" => "#{pub_a} OR #{pub_b}",
+            "page_size" => 50
+          }) { result_ab }
         expect(subject.fetch([pub_a, pub_b])).to eq result_ab
       end
 
       it "handles a fetch for a string containing multiple IDs" do
-        subject.stub(:id_to_private_id).with( [pub_a, pub_b] ) { {pub_a => priv_a, pub_b => priv_b} }
-        Repository.stub(:fetch).with([priv_a, priv_b]) { result_ab }
-        expect(subject.fetch("aaa,bbb")).to eq result_ab
+        subject.should_receive(:search)
+          .with({
+            "id" => "#{pub_a} OR #{pub_b}",
+            "page_size" => 50
+          }) { result_ab }
+        expect(subject.fetch("#{pub_a},#{pub_b}")).to eq result_ab
       end
 
       it "handles partial search miss" do
-        subject.stub(:id_to_private_id).with( [pub_a, pub_c] ) { {pub_a => priv_a} }
-        Repository.should_receive(:fetch).with([priv_a]) { fetch_result1 }
+        subject.should_receive(:search)
+          .with({
+            "id" => "#{pub_a} OR #{pub_c}",
+            "page_size" => 50
+          }) { fetch_result_1doc }
         expect(subject.fetch([pub_a, pub_c]))
           .to eq({
                    "count" => 2,
-                   "docs" => [{"_id" => "A", "id" => "aaa"}, { "id" => "ccc", "error" => "404" }]
+                   "docs" => [{"_id" => priv_a, "id" => pub_a},
+                              { "id" => pub_c, "error" => "404" }]
                  })
       end
 
       it "raises error on search miss on 1 of 1 IDs" do
-        subject.stub(:id_to_private_id) { {} }
+        subject.should_receive(:search)
+          .with({
+            "id" => "non-existent-ID",
+            "page_size" => 50
+          }) { fetch_result_nodoc }
         expect {
           subject.fetch(["non-existent-ID"])
         }.to raise_error(NotFoundSearchError)
