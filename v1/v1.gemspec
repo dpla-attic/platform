@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
   s.name        = "dpla_search_api_v1"
   s.version     = V1::VERSION
   s.authors     = ["Digital Public Library of America", "Brian 'Phunk' Gadoury"]
-  s.email       = ["tech@dp.la", "bgadoury@endpoint.com"]
+  s.email       = ["tech@dp.la"]
   s.license     = "AGPL-3.0"
   s.homepage    = "http://dp.la"
   s.summary     = "DPLA Search API V1"

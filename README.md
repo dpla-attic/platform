@@ -485,5 +485,4 @@ License
 --------
 This application is released under a AGPLv3 license.
 
-Copyright President and Fellows of Harvard College, 2012
-Copyright Digital Public Library of America, 2013-2014
+Copyright Digital Public Library of America, 2013-2015

@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.name        = "dpla_contentqa"
   s.version     = Contentqa::VERSION
   s.authors     = ["Digital Public Library of America", "Jeffrey Licht", "Miguel Alatorre", "Brian 'Phunk' Gadoury"]
-  s.email       = ["tech@dp.la", "jeff@podconsulting.com", "miguel@endpoint.com", "bgadoury@endpoint.com"]
+  s.email       = ["tech@dp.la"]
   s.license     = "AGPL-3.0"
   s.homepage    = "http://dp.la"
   s.summary     = "Support QA for content being ingested into the DPLA"
