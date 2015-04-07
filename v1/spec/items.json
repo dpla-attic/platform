@@ -63,7 +63,7 @@
             "format": ["image/jpeg", "Manuscripts"],
             "language": {
                 "name": "English",
-                "iso639": "eng"
+                "iso639_3": "eng"
             },
             "subject": {
                 "@id": "http://lccn.loc.gov/sh85140205",
