@@ -99,7 +99,13 @@ module V1
               'isPartOf' => { 'enabled' => false },
               'language' => {
                 'properties' => {
-                  'name' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+                  'name' => {
+                    'type' => 'multi_field',
+                    'fields' => {
+                      'name' => { 'type' => 'string', 'sort' => 'multi_field' },
+                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true },
+                    }
+                  },
                   'iso639_3' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true }
                 }
               },
