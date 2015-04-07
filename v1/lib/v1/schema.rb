@@ -81,15 +81,15 @@ module V1
                   'begin' => {
                     'type' => 'multi_field',
                     'fields' => {
-                      'begin' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '-9999' },
-                      'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true }
+                      'begin' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '-9999', 'ignore_malformed' => true },
+                      'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true, 'ignore_malformed' => true }
                     }
                   },
                   'end' => {
                     'type' => 'multi_field',
                     'fields' => {
-                      'end' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '9999' },
-                      'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true }
+                      'end' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '9999', 'ignore_malformed' => true },
+                      'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true, 'ignore_malformed' => true }
                     }
                   }
                 }
@@ -186,15 +186,15 @@ module V1
                   'begin' => {
                     'type' => 'multi_field',
                     'fields' => {
-                      'begin' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '-9999' },
-                      'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true }
+                      'begin' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '-9999', 'ignore_malformed' => true },
+                      'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true, 'ignore_malformed' => true }
                     }
                   },
                   'end' => {
                     'type' => 'multi_field',
                     'fields' => {
-                      'end' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '9999' },
-                      'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true }
+                      'end' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '9999', 'ignore_malformed' => true },
+                      'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true, 'ignore_malformed' => true }
                     }
                   }
 
