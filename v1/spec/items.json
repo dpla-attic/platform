@@ -1192,5 +1192,18 @@
         "ingestType": "item",
         "dataProvider": "Winnie Peaches",
         "intermediateProvider": "Sadie"
+    },
+    {
+        "_id": "item-bad_date",
+        "id": "item-bad_date",
+        "ingestType": "item",
+        "sourceResource": {
+            "title": "bad_date",
+            "date": {
+                "displayDate": "This is a bad date",
+                "begin": "19  ",
+                "end": "20  "
+            }
+        }
     }
 ]

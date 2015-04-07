@@ -20,8 +20,8 @@ Feature: Retrieve detailed information about items (UC008)
     Then the API will return the items with the document identifiers "one.two.three"
 
   Scenario: Retrieve multiple items with some missing
-    When I request details for items with ingestion identifiers "not_me,aaa,bbb,or_me"
-    Then the API will return the items with the document identifiers "A,B"
+    When I request details for items with ingestion identifiers "not_me,aaa,bbb,or_me,item-bad_date"
+    Then the API will return the items with the document identifiers "A,B,item-bad_date"
     And items that identify errors with ids "not_me,or_me"
 
   Scenario: Retrieve multiple items from the repository
