@@ -81,15 +81,15 @@ module V1
                   'begin' => {
                     'type' => 'multi_field',
                     'fields' => {
-                      'begin' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '-9999' },
-                      'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true }
+                      'begin' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '-9999', 'ignore_malformed' => true },
+                      'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true, 'ignore_malformed' => true }
                     }
                   },
                   'end' => {
                     'type' => 'multi_field',
                     'fields' => {
-                      'end' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '9999' },
-                      'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true }
+                      'end' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '9999', 'ignore_malformed' => true },
+                      'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true, 'ignore_malformed' => true }
                     }
                   }
                 }
@@ -99,8 +99,14 @@ module V1
               'isPartOf' => { 'enabled' => false },
               'language' => {
                 'properties' => {
-                  'name' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-                  'iso639' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true }
+                  'name' => {
+                    'type' => 'multi_field',
+                    'fields' => {
+                      'name' => { 'type' => 'string', 'sort' => 'multi_field' },
+                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true },
+                    }
+                  },
+                  'iso639_3' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true }
                 }
               },
               'format' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
@@ -186,15 +192,15 @@ module V1
                   'begin' => {
                     'type' => 'multi_field',
                     'fields' => {
-                      'begin' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '-9999' },
-                      'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true }
+                      'begin' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '-9999', 'ignore_malformed' => true },
+                      'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true, 'ignore_malformed' => true }
                     }
                   },
                   'end' => {
                     'type' => 'multi_field',
                     'fields' => {
-                      'end' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '9999' },
-                      'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true }
+                      'end' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '9999', 'ignore_malformed' => true },
+                      'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true, 'ignore_malformed' => true }
                     }
                   }
 

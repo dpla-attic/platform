@@ -272,7 +272,7 @@ Terms and date facets are sorted by facet-count, descending. Geo-distance facets
 * sourceResource.description
 * sourceResource.extent
 * sourceResource.language.name
-* sourceResource.language.iso639
+* sourceResource.language.iso639_3
 * sourceResource.physicalMedium
 * sourceResource.publisher
 * sourceResource.rights
