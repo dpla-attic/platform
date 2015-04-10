@@ -71,7 +71,8 @@ Then /^the "(.*?)" date facet contains items for every unique value within the s
     @test_data_facets[facet].each do |date, count|
       if date =~ /\d{4}-\d{2}-\d{2}/
         adjusted[date] = count
-      else
+      # ignore known invalid dates
+      elsif date !~ /\d{2} {2}/
         formatted_date = (date+'-01-01').first(10)
         # add this count to a count that may or may not already exist in this hash
         adjusted[ formatted_date ] = adjusted[ formatted_date ].to_i + count
