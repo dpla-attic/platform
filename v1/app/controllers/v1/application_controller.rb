@@ -44,6 +44,11 @@ module V1
       end
     end    
 
+    def render(*args)
+      response.headers['Access-Control-Allow-Origin'] = '*'
+      super
+    end
+
     def render_as_json(results, params)
       # Handles optional JSONP callback param
       conversion = results.is_a?(Hash) ? :to_json : :to_s
