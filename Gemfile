@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~> 3.2.15'
+gem 'rails', '~> 3.2.22'
 gem 'unicorn', '~> 4.8.3'
 gem 'rubygems-bundler', '~> 1.4.3'
 gem 'pg', :require => 'pg'
