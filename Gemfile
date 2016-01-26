@@ -9,12 +9,6 @@ gem 'devise', '~> 2.1.2'
 gem 'jquery-rails'
 gem 'jquery-ui-rails'
 gem 'dpla_search_api_v1', :path => 'v1'
-gem 'dpla_contentqa', :path => 'contentqa'
-gem 'delayed_job'
-gem 'delayed_job_active_record'
-gem 'jquery-tablesorter'
-gem 'daemons'
-gem 'rubyzip', '~> 1.1.6', :require => 'zip'
 
 # twitter-bootstrap-rails can have problems finding itself when it is in the assets group
 gem 'twitter-bootstrap-rails', '~> 2.2.8'
