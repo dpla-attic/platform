@@ -1,3 +1,3 @@
 module V1
-  VERSION = "2.4.2"
+  VERSION = "3.0.0"
 end
