@@ -127,7 +127,7 @@ module V1
           expect(subject.string_queries(resource, params)).to match_array []
         end
 
-        it "returns correct query string for compound field search" do
+        it "returns correct query string for regular compound field search" do
           name = 'admin.contributingInstitution' 
           field = double(:name => name, :geo_point? => false, :date? => false,
             :multi_field_date? => false, :subfields? => false, 
@@ -141,6 +141,57 @@ module V1
                              [['Provider A', attrs]]
                            )
         end
+
+        it "returns correct query string for exact_field_match compound " +
+           "field search" do
+          name = 'admin.contributingInstitution'
+          field = double(:name => name, :geo_point? => false, :date? => false,
+            :multi_field_date? => false, :subfields? => false,
+            :compound_fields => ['dataProvider.not_analyzed', 'intermediateProvider.not_analyzed'])
+          Schema.stub(:field).with(resource, name) { field }
+          Schema.stub(:field).with(resource, 'exact_field_match') { nil }
+          params = {name => 'Provider A', 'exact_field_match' => 'true'}
+          attrs = subject.default_attributes.merge({
+            'fields' => ['dataProvider.not_analyzed',
+                         'intermediateProvider.not_analyzed']
+          })
+          expect(subject.string_queries(resource, params))
+            .to match_array(
+                             [['"Provider A"', attrs]]  # Quoted!
+                           )
+        end
+
+        it "treats fields correctly with `exact_field_match' but does not " +
+           "quote the `q' parameter" do
+          name = 'admin.contributingInstitution'
+          field = double(:name => name, :geo_point? => false, :date? => false,
+            :multi_field_date? => false, :subfields? => false,
+            :compound_fields => ['dataProvider.not_analyzed', 'intermediateProvider.not_analyzed'])
+          boost_fields_all = ["sourceResource.title^2"]
+          Schema.stub(:field).with(resource, name) { field }
+          Schema.stub(:field).with(resource, 'exact_field_match') { nil }
+          subject.stub(:field_boost_for_all).with(resource) {
+            boost_fields_all
+          }
+          params = {
+            name => 'Provider A',
+            'q' => 'wonderful things',
+            'exact_field_match' => 'true'
+          }
+          field_attrs = subject.default_attributes.merge({
+            'fields' => ['dataProvider.not_analyzed',
+                         'intermediateProvider.not_analyzed']
+          })
+          q_attrs = subject.default_attributes.merge({
+            'fields' => boost_fields_all + ["_all"]
+          })
+          expect(subject.string_queries(resource, params))
+            .to match_array([
+                              ['"Provider A"', field_attrs],  # Quoted
+                              ['wonderful things', q_attrs]   # Not quoted
+                            ])
+        end
+
       end
 
       describe "#date_range_queries" do
@@ -220,6 +271,13 @@ module V1
           string = '}?harv[a:z](/'
           expect(subject.protect_metacharacters(string)).to eq '\\}\\?harv\\[a\\:z\\]\\(\\/'
         end
+
+        it "returns a quoted string if exact_field_match is specified" do
+          string = 'University of Pennsylvania'
+          expect(subject.protect_metacharacters(string, true))
+            .to eq '"University of Pennsylvania"'
+        end
+
       end
 
     end

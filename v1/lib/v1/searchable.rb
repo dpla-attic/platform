@@ -20,7 +20,9 @@ module V1
     MAX_PAGE_SIZE = 500
     
     # General query params that are not resource-specific
-    BASE_QUERY_PARAMS = %w( q controller action sort_by sort_by_pin sort_order page page_size facets facet_size filter_facets fields callback _ x ).freeze
+    BASE_QUERY_PARAMS = %w( q controller action sort_by sort_by_pin sort_order
+                            page page_size facets facet_size filter_facets
+                            fields callback _ x exact_field_match ).freeze
 
     def resource
       raise "Modules extending Searchable must define resource() method"
