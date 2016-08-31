@@ -18,6 +18,9 @@ module V1
         search.query { |q| q.all }
       end
 
+      # @param resource [String] "item" or "collection"
+      # @param search [Tire::Search::Search]
+      # @param params [Hash]
       def self.build_all(resource, search, params)
         # Returns boolean for "did we run any queries?"
         string_queries = string_queries(resource, params)
@@ -58,13 +61,18 @@ module V1
         ESCAPED_METACHARACTERS
       end
 
-      def self.protect_metacharacters(string)
+      def self.protect_metacharacters(string, exact_field_match=false)
         # Note that we preserve double-quote wrapping, which needs no escaping
         tmp = string.dup
         if tmp =~ /^"(.+)"$/
           tmp = $1
           quoted = true
         end
+
+        # If the `exact_field_match' query parameter is true, then we need to
+        # facilitate exact field matches by quoting strings with space
+        # characters.
+        quoted = true if exact_field_match
 
         escaped_metacharacters.each do |mc|
           # Try: tmp.gsub!(/(?=#{mc})/, '\\') #=> Foo\ Bar\!
@@ -84,6 +92,12 @@ module V1
       def self.string_queries(resource, params)
         query_strings = []
 
+        # exact_field_match: Whether to match exactly with the not_analyzed
+        # index for a field, vs. doing a tokenized search for parts of the
+        # string.  E.g. "University of Pennsylvania" -- search for exactly
+        # that string, or for ("University" OR "Pennsylvaina")?
+        exact_field_match_param = params['exact_field_match'].to_s == 'true'
+
         params.each do |name, value|
           # Skip all query types that are handled elsewhere
           next if value.to_s == ''
@@ -91,19 +105,42 @@ module V1
 
           if name == 'q'
             fields = field_boost_for_all(resource) + ['_all']
+            # The `q' parameter always wants a tokenized search, so we won't
+            # ask for it to be quoted below in our call to
+            # `.protect_metacharacters'.
+            exact_field_match = false
           else
+            exact_field_match = exact_field_match_param
+
+            # Assigns a V1::Field
+            # Note that this returns nil for parameters that are not field
+            # names (e.g. "sort_by" or "callback").
             field = field_for(resource, name)
+
             next if field.nil? || field.date? || field.multi_field_date? || field.geo_point?
 
-            if field.compound_fields 
-              fields = parse_compound_fields(field.compound_fields)
+            if field.compound_fields
+              # Assign `fields` as the corresponding analyzed fields.
+              #
+              # The only field that has compound fields is
+              # admin.contributingInstitution.
+              #
+              # Override the field names of "compound fields" (i.e. in
+              # admin.contributingInstitution) only if the "exact fields"
+              # option has not been selected.  (See .parse_compound_fields)
+              if exact_field_match
+                fields = field.compound_fields
+              else
+                fields = parse_compound_fields(field.compound_fields)
+              end
+
             else
               fields = field_boost_deep(resource, field)
             end 
           end
 
           query_strings << [
-                            protect_metacharacters(value),
+                            protect_metacharacters(value, exact_field_match),
                             default_attributes.merge({'fields' => fields})
                            ]
         end
@@ -122,8 +159,39 @@ module V1
         end.compact
       end
 
+      ##
+      # Return the string representation of the given field appended with ".*"
+      # if the field has subfields, and appended with a boost ("^")
+      # phrase if the field is supposed to be boosted per our configuration
+      # in v1/config/dpla.yml.
+      #
+      # @example
+      #
+      #   Let sourceResource.title be given a boost of 2 in v1/config/dpla.yml:
+      #
+      #   field = V1::Schema.field('item', 'sourceResource.title')
+      #   V1::Searchable::Query.field_boost('item')
+      #   => "sourceResource.title^2"
+      #
+      #   Let sourceResource.subject be given a boost of 0.8 in dpla.yml.  It
+      #   has subfields.
+      #
+      #   field = V1::Schema.field('item', 'sourceResource.subject')
+      #   V1::Searchable::Query.field_boost('item', field)
+      #   => "sourceResource.subject.*^0.8"
+      #
+      #   Where sourceResource.collection has no boost in dpla.yml and has
+      #   subfields:
+      #
+      #   field = V1::Schema.field('item', 'sourceResource.collection')
+      #   V1::Searchable::Query.field_boost('item', field)
+      #   => "sourceResource.collection.*"
+      #
+      # @see https://www.elastic.co/guide/en/elasticsearch/reference/0.90/query-dsl-query-string-query.html#_boosting_2
+      #
+      # @return String
+      #
       def self.field_boost(resource, field)
-        # Handles subfields and parent fields that have their own subfields
         name = field.name
         name += ".*" if field.subfields?
 
@@ -133,8 +201,30 @@ module V1
         name
       end
 
+      ##
+      # Return an array of strings representing the subfields of the given
+      # field as appended by .field_boost.
+      #
+      # In actual practice, we at the DPLA have never made use of these
+      # deep field boosts.  Calls to field_boost_deep tend to return an array
+      # of a single string element that would have been returned by
+      # .field_boost.
+      #
+      # @example
+      #
+      #   Let sourceResource.collection.title be given a boost of 2. Note that
+      #   sourceResource.collection has subfields `id', `description', and
+      #   `title'.
+      #
+      #   field = V1::Schema.field('item', 'sourceResource.collection')
+      #   V1::Searchable::Query.field_boost_deep('item', field)
+      #   => ["sourceResource.collection.*",
+      #       "sourceResource.collection.title^2"]
+      #
+      # @see self.field_boost
+      # @return Array  Array of String
+      #
       def self.field_boost_deep(resource, field)
-        # Generate boosts for this field and any boosted subfields it has
         boosted_subfields = field.subfields.map do |subfield|
           field_boost(resource, subfield) if is_boosted?(resource, subfield)
         end
@@ -202,8 +292,17 @@ module V1
       end
 
       private
+
+      ##
+      # Remove substring ".not_analyzed" from end of each field name in the
+      # given array.
+      #
+      # This method would be better named `analyzed_fields` or inlined into
+      # self.string_queries.
+      #
+      # @param field_names [Array]
+      # @return Array
       def self.parse_compound_fields(field_names)
-        # remove substring ".not_analyzed" from end of each field name
         field_names.map do |name|
           name.gsub(/.not_analyzed\z/, "")
         end
