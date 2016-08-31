@@ -26,7 +26,9 @@ module V1
 
         it "BASE_QUERY_PARAMS has the correct value" do
           expect(BASE_QUERY_PARAMS).to match_array %w( 
-              q controller action sort_by sort_by_pin sort_order page page_size facets facet_size filter_facets fields callback _ x
+              q controller action sort_by sort_by_pin sort_order page page_size
+              facets facet_size filter_facets fields callback _ x
+              exact_field_match
             )
         end
 

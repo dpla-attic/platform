@@ -278,6 +278,17 @@ module V1
       ELASTICSEARCH_MAPPING
     end
 
+    ##
+    # Return a V1::Field corresponding to the given field name, or nil if the
+    # name does not correspond to a field.
+    #
+    # There are request parameters (e.g. "sort_by" or "callback") that are not
+    # field names. This method returns nil in those cases.
+    #
+    # @see V1::Searchable::Query.string_queries, where it evaluates whether
+    #      field.nil?
+    #
+    # @return [V1::Field] or [nil]
     def self.field(resource, name, modifier=nil)
       # A "resource" is a top-level DPLA resource: 'item', 'collection', 'creator'
       # TODO: memoize a hash value for every $name and return it if it exists. The modifier
