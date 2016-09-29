@@ -3,6 +3,19 @@ ENV["RAILS_ENV"] ||= 'test'
 require File.expand_path("../../config/environment", __FILE__)
 require 'rspec/rails'
 require 'rspec/autorun'
+require 'stringio'
+
+##
+# Helper for evaluating stdout from puts statements for rspec < 3.0
+def capture_stdout(&blk)
+  old = $stdout
+  $stdout = fake = StringIO.new
+  blk.call
+  fake.string
+ensure
+  $stdout = old
+end
+
 
 # Requires supporting ruby files with custom matchers and macros, etc,
 # in spec/support/ and its subdirectories.
