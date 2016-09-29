@@ -54,14 +54,19 @@ namespace :v1 do
     V1::SearchEngine::River.recreate_river
   end
 
-  desc "Creates new ElasticSearch river, pointed at $index (defaults to currently deployed index)"
-  task :create_river, [:index,:river] => :environment do |t, args|
-    V1::SearchEngine::River.create_river('index' => args.index, 'river' => args.river)
+  desc "Creates new ElasticSearch river"
+  task :create_river, [:index, :river, :last_seq] => :environment do |t, args|
+    V1::SearchEngine::River.create_river(
+      'index' => args.index,
+      'river' => args.river,
+      'last_seq' => args.last_seq
+    )
   end
 
-  desc "Deletes ElasticSearch river named '#{V1::Config.river_name}'"
-  task :delete_river do
-    V1::SearchEngine::River.delete_river or puts "River does not exist, so nothing to delete"
+  desc "Deletes ElasticSearch river"
+  task :delete_river, [:river] => :environment do |t, args|
+    V1::SearchEngine::River.delete_river(args.river) \
+      or puts "River does not exist, so nothing to delete"
   end
 
   desc "Displays the river's current indexing velocity"
