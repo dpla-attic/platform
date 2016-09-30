@@ -54,7 +54,11 @@ namespace :v1 do
     V1::SearchEngine::River.recreate_river
   end
 
-  desc "Creates new ElasticSearch river"
+  desc "Creates new ElasticSearch river; see comment in " \
+       "v1/lib/tasks/dpla.rake re. formatting."
+  # BigCouch-style JSON array last sequence values should have quote and comma
+  # characters escaped as follows:
+  # rake v1:create_river[index_name,dpla_river,"[123\,\"abc123...\"]"]
   task :create_river, [:index, :river, :last_seq] => :environment do |t, args|
     V1::SearchEngine::River.create_river(
       'index' => args.index,
