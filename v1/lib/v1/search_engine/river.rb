@@ -172,7 +172,7 @@ module V1
         Config.search_endpoint + '/_river/' + name
       end
 
-      def self.verify_river_status(name=river_name)
+      def self.verify_river_status(name=nil)
         # Verify that the river was actually created successfully. ElasticSearch's initial
         # response in $create_result won't report if there was a deeper problem with the
         # river we tried to create.
@@ -231,7 +231,7 @@ module V1
       # @raise  [RuntimeError] if the HTTP request to the River endpoint fails
       # @see self.recreate_river
       #
-      def self.last_sequence(name=river_name)
+      def self.last_sequence(name=nil)
         # name will be present but nil when called from a rake task
         name ||= river_name
         response = HTTParty.get(endpoint(name) + '/_seq')
@@ -258,7 +258,7 @@ module V1
       # @return true
       # @raise [RuntimeError]  if HTTP transaction fails
       #
-      def self.last_sequence!(last_seq, rname=river_name)
+      def self.last_sequence!(last_seq, rname=nil)
         # rname will be present but nil when called from a rake task
         rname ||= river_name
         body = {couchdb: {last_seq: last_seq}}.to_json
@@ -268,7 +268,7 @@ module V1
         true
       end
 
-      def self.current_velocity(name=river_name)
+      def self.current_velocity(name=nil)
         # Sadly, a delta of 10 does not guarantee 10 docs have been processed, but this
         # is still a relatively useful metric. Zero velocity means "no activity at all."
         name ||= river_name
