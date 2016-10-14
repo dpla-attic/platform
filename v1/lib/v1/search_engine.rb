@@ -72,7 +72,7 @@ module V1
     def self.recreate_env!
       recreate_index!
       import_test_dataset
-      create_river
+      create_river("0")
       puts "ElasticSearch docs: #{ doc_count }"
     end
 
@@ -148,7 +148,7 @@ module V1
       endpoint_config_check
 
       name = create_index
-      River.create_river('index' => name, 'river' => name)
+      River.create_river('index' => name, 'river' => name, 'last_seq' => "0")
       name
     end
     
@@ -245,7 +245,7 @@ module V1
       delete_river(index)
       delete_river
       previous_index = move_alias_to(index)
-      create_river
+      create_river("0")
       puts "Index '#{index}' deployed OK."
 
       if previous_index && previous_index != index
@@ -294,13 +294,16 @@ module V1
       alias_object ? alias_object.index.first : nil
     end
 
+    ##
+    # Is only called by V1::Repository.recreate_env, which is only supposed to
+    # run in development.
     def self.recreate_river
       delete_river
-      create_river
+      create_river("0")
     end
 
-    def self.create_river
-      River.create_river
+    def self.create_river(last_seq)
+      River.create_river({'last_seq' => last_seq})
     end
 
     def self.delete_river(*args)
