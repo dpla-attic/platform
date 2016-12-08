@@ -6,8 +6,6 @@ gem 'rubygems-bundler', '~> 1.4.3'
 gem 'pg', '~> 0.17.1', :require => 'pg'
 gem 'sqlite3', '~> 1.3.0'
 gem 'devise', '~> 2.1.2'
-gem 'jquery-rails', '~> 3.1.0'
-gem 'jquery-ui-rails', '~> 5.0'
 gem 'dpla_search_api_v1', :path => 'v1'
 gem 'public_suffix', '~> 1.4.0'
 
