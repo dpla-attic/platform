@@ -64,13 +64,19 @@ def analyze_file(excluded_keys)
   puts "Omitting keys: #{skip_keys.keys}"
 
   # Rails log format
-  target_regexp = /^Started GET "([^"]+)" for .* at (\d{4}-\d{2}-\d{2})/
+  target_regexp = /^Started GET "([^"]+)" for .* at (\d{4}-\d{2}-\d{2})/u
   last_date = nil
   dates = {}
   keys = {}
   
   begin
     $stdin.each_line do |line|
+      # Converting the encoding to UTF-16 and then back to UTF-8 is necessary
+      # because the 'encode' method will not execute on a string if the string
+      # is detected to already be encoded in the specified encoding
+      line = line.force_encoding('UTF-8')
+        .encode('UTF-16', :invalid => :replace, :replace => '?')
+        .encode('UTF-8')
       next unless line =~ target_regexp
 
       url, date = $1, $2
