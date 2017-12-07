@@ -60,7 +60,14 @@ module V1
           end
           
           # Default
-          return { '_score' => { 'order' => 'desc' } }
+          return {
+            '_score' => {
+              'order' => 'desc'
+            },
+            '_id' => {
+              'order' => 'asc'
+            }
+          }
         end
 
         sort_field = sort_by(resource, sort_by_name)
