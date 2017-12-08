@@ -8,6 +8,7 @@ gem 'sqlite3', '~> 1.3.0'
 gem 'devise', '~> 2.1.2'
 gem 'dpla_search_api_v1', :path => 'v1'
 gem 'public_suffix', '~> 1.4.0'
+gem 'httparty', '~> 0.14.0'
 
 # twitter-bootstrap-rails can have problems finding itself when it is in the assets group
 gem 'twitter-bootstrap-rails', '~> 2.2.8'
