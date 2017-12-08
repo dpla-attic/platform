@@ -102,7 +102,10 @@ module V1
           params = {}
           expect(
                  subject.build_sort_attributes(resource, params)
-                 ).to eq({ '_score' => {'order' => 'desc'} })
+                 ).to eq({
+                  '_score' => {'order' => 'desc'},
+                  '_id' => {'order' => 'asc'}
+                 })
         end
 
         it "uses default sort_order if no sort_order param present" do
