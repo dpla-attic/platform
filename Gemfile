@@ -9,6 +9,7 @@ gem 'devise', '~> 2.1.2'
 gem 'dpla_search_api_v1', :path => 'v1'
 gem 'public_suffix', '~> 1.4.0'
 gem 'httparty', '~> 0.14.0'
+gem 'nokogiri', '< 1.7'
 
 # twitter-bootstrap-rails can have problems finding itself when it is in the assets group
 gem 'twitter-bootstrap-rails', '~> 2.2.8'
@@ -16,6 +17,7 @@ gem 'turnout', '~> 2.4.0'
 
 group :assets do
   gem 'sass-rails',   '~> 3.2.3'
+  gem 'sass', '< 3.5'
   gem 'coffee-rails', '~> 3.2.1'
   gem 'therubyracer', :platforms => :ruby
   gem 'uglifier', '~> 3.0.0'
@@ -25,6 +27,7 @@ end
 group :test do
   gem 'database_cleaner', '~> 1.5.0'
   gem 'cucumber-rails', '~> 1.4.0', :require => false
+  gem 'cucumber-core', '< 3.0'
 end
 
 group :test, :development do
@@ -33,6 +36,6 @@ group :test, :development do
   gem 'awesome_print', '~> 1.7.0'
 
   gem 'pry'
-  gem 'pry-doc'
+  gem 'pry-doc', '< 0.11'
   gem 'pry-rails'
 end
