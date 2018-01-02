@@ -485,4 +485,4 @@ License
 --------
 This application is released under a AGPLv3 license.
 
-Copyright Digital Public Library of America, 2013-2017
+Copyright Digital Public Library of America, 2013-2018
