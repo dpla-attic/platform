@@ -82,6 +82,10 @@ module V1
       
       store
     end
+
+    def self.google_analytics_tid
+      dpla['google_analytics']['tid'] rescue nil
+    end
     
   end
 

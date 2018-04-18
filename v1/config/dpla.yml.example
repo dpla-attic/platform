@@ -75,4 +75,7 @@ field_boosts:
   collection:
     title: 1
 
+google_analytics:
+  tid: UA-XXXX-Y
+
         

@@ -1,4 +1,5 @@
 require 'v1/results_cache'
+require 'v1/google_analytics'
 
 #TODO: eliminate new duplication between resources here and break this into ItemsController and CollectionsController (to invert the current topology)
 #TODO: Consider handling all our own exception classes in a: rescue_from SearchError
@@ -46,11 +47,11 @@ module V1
             e
           end
         end
-        # render :json => render_as_json(results, params)
       rescue SearchError => e
         # render_error(e, params)
         results = e
       end
+      GoogleAnalytics.track_items(request, results, "Item search results")
       render_search_results(results, params)
     end
 
@@ -67,6 +68,7 @@ module V1
         results = Rails.cache.fetch(fetch_cache_key('items', params), :raw => true) do
           Item.fetch(params[:ids].split(/,\s*/)).to_json
         end
+        GoogleAnalytics.track_items(request, results, "Fetch items")
         render :json => render_as_json(results, params)
       rescue NotFoundSearchError => e
         render_error(e, params)
