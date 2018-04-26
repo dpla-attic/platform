@@ -52,7 +52,6 @@ module V1
         results = e
       end
       Thread.new do
-        sleep(20)
         GoogleAnalytics.track_items(request, results, "Item search results")
       end
       render_search_results(results, params)
@@ -72,7 +71,6 @@ module V1
           Item.fetch(params[:ids].split(/,\s*/)).to_json
         end
         Thread.new do
-          sleep(20)
           GoogleAnalytics.track_items(request, results, "Fetch items")
         end
         render :json => render_as_json(results, params)
