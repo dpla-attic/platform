@@ -53,6 +53,7 @@ module V1
       end
       Thread.new do
         GoogleAnalytics.track_items(request, results, "Item search results")
+        sleep(20)
       end
       render_search_results(results, params)
     end
@@ -72,6 +73,7 @@ module V1
         end
         Thread.new do
           GoogleAnalytics.track_items(request, results, "Fetch items")
+          sleep(20)
         end
         render :json => render_as_json(results, params)
       rescue NotFoundSearchError => e
