@@ -51,7 +51,9 @@ module V1
         # render_error(e, params)
         results = e
       end
-      GoogleAnalytics.track_items(request, results, "Item search results")
+      Thread.new do
+        GoogleAnalytics.track_items(request, results, "Item search results")
+      end
       render_search_results(results, params)
     end
 
@@ -68,7 +70,9 @@ module V1
         results = Rails.cache.fetch(fetch_cache_key('items', params), :raw => true) do
           Item.fetch(params[:ids].split(/,\s*/)).to_json
         end
-        GoogleAnalytics.track_items(request, results, "Fetch items")
+        Thread.new do
+          GoogleAnalytics.track_items(request, results, "Fetch items")
+        end
         render :json => render_as_json(results, params)
       rescue NotFoundSearchError => e
         render_error(e, params)
