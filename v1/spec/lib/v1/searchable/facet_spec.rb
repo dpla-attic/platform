@@ -9,7 +9,7 @@ module V1
 
       describe "CONSTANTS" do
         it "VALID_DATE_INTERVALS has the correct value" do
-          expect(subject::VALID_DATE_INTERVALS).to match_array( %w( century decade year month day ) )
+          expect(subject::VALID_DATE_INTERVALS).to match_array( %w( century decade year month ) )
         end
         it "FILTER_FACET_FLAGS has the correct value" do
           expect(subject::FILTER_FACET_FLAGS).to match_array %w( CASE_INSENSITIVE DOTALL )
@@ -17,19 +17,13 @@ module V1
       end
       
       describe "#build_all" do
-        it "returns true if it created any facets"
-        it "returns false if it did not create any facets" do
-          expect(subject.build_all(resource, double, {}, false)).to be_false
-        end
-        it "calls the search.facet block with the correct params"
         it "raises an error for a facet request on a invalid field" do
           invalid_name = 'invalid_field_name'
-          field = double(:facetable? => false)
           subject.stub(:expand_facet_fields) { [invalid_name] }
           subject.stub(:parse_facet_name) { nil }
 
           expect {
-            subject.build_all(double, double, {'facets' => invalid_name})
+            subject.build_all(double, {'facets' => invalid_name})
           }.to raise_error BadRequestSearchError, /Invalid field.+ specified in facets parameter: #{invalid_name}/i
 
         end
@@ -39,7 +33,7 @@ module V1
           subject.stub(:parse_facet_name) { field }
 
           expect {
-            subject.build_all(double, double, {'facets' => 'title'})
+            subject.build_all(double, {'facets' => 'title'})
           }.to raise_error BadRequestSearchError, /Non-facetable field.+ parameter: title/i
         end
       end
@@ -81,12 +75,12 @@ module V1
         
         it "returns 'date' for date type field with no interval" do
           field = double(:geo_point? => false, :date? => true, :facet_modifier => nil)
-          expect(subject.facet_type(field)).to eq 'date'
+          expect(subject.facet_type(field)).to eq 'date_histogram'
         end
         
         it "returns 'date' for date type field with a date_histogram interval" do
           field = double(:geo_point? => false, :date? => true, :facet_modifier => 'year')
-          expect(subject.facet_type(field)).to eq 'date'
+          expect(subject.facet_type(field)).to eq 'date_histogram'
         end
         
         it "returns 'range' for date type field with a custom range interval" do
@@ -166,12 +160,6 @@ module V1
           Schema.stub(:field).with(resource, 'somefield') { field }
           expect(subject.facet_field_name(field)).to eq 'somename'
         end
-        it "returns correct value for compound fields" do
-          field = double(:compound_fields => ['field1, field2'], 
-            :date? => false, :not_analyzed_field => false)
-          Schema.stub(:field).with(resource, 'somefield') { field }
-          expect(subject.facet_field_name(field)).to eq ['field1, field2']
-        end
         it "returns correct value for non-date, non-analzyed, non-compound field" do
           field = double(:date? => false, :not_analyzed_field => false, 
             :compound_fields => nil, :name => 'somename')
@@ -191,6 +179,78 @@ module V1
         end
       end
 
+      describe "#build_facet_params" do
+
+        it "returns array of 'terms', the name, and params (#1 - basic)" do
+          field = double(:name => 'somename', :geo_point? => false,
+            :date? => false, :multi_field_date? => false,
+            :not_analyzed_field => false, :compound_fields => false,
+            :facetable? => true)
+          expect(subject.build_facet_params(field, {}))
+            .to eq ["terms", "somename", {:size=>50, :order=> {"_count" => "desc"}}]
+        end
+
+        it "returns array of 'terms', the name, and params (#2 - geo point)" do
+          field = double(:name => 'somename', :geo_point? => true,
+            :date? => false, :multi_field_date? => false,
+            :not_analyzed_field => false, :compound_fields => false,
+            :facetable? => true,
+            :facet_modifier => '42:-71:10')
+          expect(subject.build_facet_params(field, {}))
+            .to eq [
+              "geo_distance",
+              "somename",
+              {
+                :origin => "42, -71",
+                :unit => "mi",
+                :ranges => [
+                  {"to" => 10}, {"from" => 10, "to" => 20},
+                  {"from" => 20, "to" => 30}, {"from" => 30, "to" => 40},
+                  {"from" => 40, "to" => 50}, {"from" => 50, "to" => 60},
+                  {"from" => 60, "to" => 70}, {"from" => 70, "to" => 80},
+                  {"from" => 80, "to" => 90}, {"from" => 90, "to" => 100},
+                  {"from" => 100, "to" => 110}, {"from" => 110, "to" => 120},
+                  {"from" => 120, "to" => 130}, {"from" => 130, "to" => 140},
+                  {"from" => 140, "to" => 150}, {"from" => 150, "to" => 160},
+                  {"from" => 160, "to" => 170}, {"from" => 170, "to" => 180},
+                  {"from" => 180, "to" => 190}, {"from" => 190, "to" => 200},
+                  {"from" => 200, "to" => 210}, {"from" => 210}
+                ]
+              }
+            ]
+        end
+
+        it "returns array of 'terms', the name, and params (#3 - date)" do
+          field = double(:name => 'somename', :geo_point? => false,
+            :date? => true, :multi_field_date? => false,
+            :not_analyzed_field => false, :compound_fields => false,
+            :facetable? => true,
+            :facet_modifier => 'year')
+          expect(subject.build_facet_params(field, {}))
+            .to eq ["date_histogram", "somename", {:interval=>"year", :order=> {"_key" => "desc"}, :min_doc_count => 2}]
+        end
+
+        it "returns array of 'terms', the name, and params (#4 - multi-field date)" do
+          field = double(:name => 'somename', :geo_point? => false,
+            :date? => true, :multi_field_date? => true,
+            :not_analyzed_field => false, :compound_fields => false,
+            :facetable? => true,
+            :facet_modifier => 'year')
+          expect(subject.build_facet_params(field, {}))
+            .to eq ["date_histogram", "somename", {:interval=>"year", :order=> {"_key" => "desc"}, :min_doc_count => 2}]
+        end
+
+        it "returns array of 'terms', the name, and params (#5 - not_analyzed field)" do
+          not_analyzed = double(:name =>'nafield', :facetable? => true)
+          field = double(:name => 'somename', :geo_point? => false,
+            :date? => false, :multi_field_date? => false,
+            :not_analyzed_field => not_analyzed, :compound_fields => false,
+            :facetable? => true)
+          expect(subject.build_facet_params(field, {}))
+            .to eq ["terms", "nafield", {:size=>50, :order=> {"_count" => "desc"}}]
+        end
+
+      end
 
     end
 

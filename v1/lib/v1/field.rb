@@ -18,7 +18,11 @@ module V1
     end
 
     def type
-      @mapping['type']
+      if multi_field?
+        multi_field_default.type
+      else
+        @mapping['type']
+      end
     end
 
     def simple_name
@@ -96,7 +100,7 @@ module V1
     end
 
     def analyzed?
-      @mapping['index'] != 'not_analyzed'
+      @mapping['type'] != 'keyword'
     end
 
     def enabled?
@@ -112,20 +116,16 @@ module V1
     end
 
     def string?
-      type == 'string'
+      type == 'keyword' || type == 'text'
     end
 
     def multi_field?
-      type == 'multi_field'
+      @mapping.has_key?('fields')
     end
 
     def multi_field_date?
       # aka "a date field wrapped in a multi_field"
       multi_field? && multi_field_default && multi_field_default.date?
-    end
-
-    def compound_fields
-      @mapping['compound_fields']
     end
   end
 

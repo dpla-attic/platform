@@ -125,10 +125,3 @@ Feature: Search the DPLA using facets (UC010)
       And request the "sourceResource.date.begin" facet
     Then the API returns the "sourceResource.date.begin" facets
     And the facets should be sorted by count descending
-
-  Scenario: Retrieve contributingInstitution facet with compound fields
-    When I make an empty item-search
-      And request the "admin.contributingInstitution" facet
-    Then the API returns the "admin.contributingInstitution" facets
-    And the facets should contain correct counts for "Sadie, RangerDanger, Winnie Peaches"
-

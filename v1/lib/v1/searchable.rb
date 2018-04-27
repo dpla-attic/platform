@@ -6,7 +6,7 @@ require_relative 'searchable/facet'
 require_relative 'searchable/filter'
 require_relative 'searchable/query'
 require_relative 'searchable/sort'
-require 'tire'
+require 'httparty'
 require 'active_support/core_ext'
 
 module V1
@@ -38,50 +38,73 @@ module V1
       queries.any?
     end
 
-    def build_facets(resource, search, params, global)
-      Searchable::Facet.build_all(resource, search, params, global)
-    end
-
-    def build_sort(resource, search, params)
-      Searchable::Sort.build_sort(resource, search, params)
+    def build_sort(resource, params)
+      Searchable::Sort.build_sort_attributes(resource, params)
     end
 
     def search(params={})
       validate_query_params(params)
       validate_field_params(params)
 
-      search = Tire.search(Config.search_index + '/' + resource,
-                           search_type: 'dfs_query_then_fetch') do |search|
-        global_facets = nil
-
-        search.query do |query|
-          query.filtered do |filtered|
-            global_facets = !build_queries(resource, filtered, params)
-          end
-        end
-
-        build_facets(resource, search, params, global_facets)
-        build_sort(resource, search, params)
-
-        search.from search_offset(params)
-        search.size search_page_size(params)
-
-        search.fields(params['fields'].to_s.split(/,\s*/)) if params['fields'].present?
-
-        # for testability, this block should always return its search object
-        search
-      end
+      query_part = {
+        'query' => Searchable::Query.build_all(resource, params)
+      }
+      facet_part =
+        !params['facets'].blank? \
+        ? {'aggs' => Searchable::Facet.build_all(resource, params)} \
+        : {}
+      sort_part = {'sort' => build_sort(resource, params)}
+      offset_part = {'from' => search_offset(params)}
+      pagesize_part = {'size' => search_page_size(params)}
+      req_body =
+        query_part.merge(facet_part).merge(sort_part).merge(offset_part)
+          .merge(pagesize_part).merge(search_fields(params))
 
       begin
-        if (Rails.env.development? rescue false)
-          Rails.logger.debug "CURL: #{search.to_curl}"
+        url = Config.search_endpoint + '/' + Config.search_index + '/' +
+          resource + '/_search?search_type=dfs_query_then_fetch'
+        if (!Rails.env.testing? rescue false)
+          Rails.logger.debug "ES URL: #{url}"
+          Rails.logger.debug "ES QUERY: #{req_body.to_json}"
         end
-        return wrap_results(search, params)
-      rescue Tire::Search::SearchRequestFailed => e
-        error = JSON.parse(search.response.body)['error'] rescue nil
-        raise InternalServerSearchError, error
-      rescue RestClient::RequestTimeout => e
-        raise ServiceUnavailableSearchError, e.to_s
+        http_response = HTTParty.post(
+          url,
+          {
+            :body => req_body.to_json,
+            :headers => {
+              'Content-Type' => 'application/json',
+              'Accept' => 'application/json'
+            }
+          }
+        )
+        code = http_response.response.code
+        case code
+        when "200"
+          result = http_response.to_hash
+          return wrap_results(result, params)
+        else
+          if (!Rails.env.testing? rescue false)
+            Rails.logger.error "Got HTTP #{code} from Elasticsearch for\n#{req_body.to_json}"
+            Rails.logger.error "\n#{http_response.body}"
+          end
+          raise InternalServerSearchError, "Got error response from search engine"
+        end
+      rescue InternalServerSearchError
+        raise
+      rescue => e
+        if (!Rails.env.testing?)
+          Rails.logger.error e.message
+          Rails.logger.error e.backtrace.join("\n")
+        end
+        raise InternalServerSearchError, "Encountered an unexpected error querying search engine"
+      end
+    end
+
+    def search_fields(params)
+      if params['fields'].present?
+        {'_source' => params['fields'].to_s.split(/,\s*/)}
+      else
+        {}
       end
     end
 
@@ -107,98 +130,178 @@ module V1
       end
     end
 
-    def wrap_results(search, params)
-      results = search.results
+    def wrap_results(result, params)
       {
-        'count' => results.total,
-        'start' => search.options[:from],
-        'limit' => search.options[:size],
-        'docs' => format_results(results),
-        'facets' => format_facets(results.facets, get_facet_size(params))
+        'count' => result['hits']['total'],
+        'start' => search_offset(params),
+        'limit' => search_page_size(params),
+        'docs' => format_results(result['hits']['hits'], params),
+        'facets' => format_facets(result['aggregations'], get_facet_size(params))
       }
     end
 
-    def format_results(results)
+    def format_results(results, params)
       results.map do |doc|
         if doc['_source'].present?
           doc['_source'].delete_if {|k,v| k =~ /^_type/}
           doc['_source'].merge!({'score' => doc['_score']})
+          flatten_fields!(doc['_source'], params)
+          doc['_source']
         else
           doc['fields'] || {}
         end
       end
     end
 
-    def format_facets(facets, facet_size)
-      return [] unless facets
-
-      facet_keys = {
-        'date_histogram' => 'entries',
-        'terms' => 'terms',
-        'geo_distance' => 'ranges',
-        'range' => 'ranges'
-      }
-
-      facets.each do |name, payload|
-
-        type = payload['_type']
-        payload_key = facet_keys[type]
-        facet_values = payload[payload_key]
-
-        name =~ /(.+)\.(.*)$/
-        modifier = $2
-        
-        if type == 'date_histogram'
-          # Delete facets generated by the default date values of -9999 and 9999. It might
-          # be possible to automatically exclude these with a built-in facet filter....
-          #TODO: This might not be needed if we're faceting dates on their new not_analyzed
-          #multi-field values (with no defaults)...
-          payload[payload_key].delete_if {|value_hash| [-377705116800000, 253370764800000].include?(value_hash['time'])}
-          
-          # Format
-          payload[payload_key].each do |value_hash|
-            value_hash['time'] = format_date_facet(value_hash['time'], modifier)
+    def flatten_fields!(doc_source, params)
+      # Elasticsearch 6 returns fields specified in the '_source' parameter
+      # (which was the 'fields' parameter in ES 0.90) as objects when they
+      # are given in dotted form, like 'sourceResource.title' (for example,
+      # {"sourceResource": {"title": "x"}}) but ES 0.90 used to return them
+      # in dotted form (for example, {"sourceResource.title": "x"}). We have
+      # to "flatten" the result coming back from Elasticsearch to keep our
+      # output consistent with what we've been delivering.
+      if params['fields'].present?
+        toplevel_keys = {}
+        params['fields'].split(',').each do |field|
+          accumulator = doc_source
+          if field[/\./]
+            toplevel_keys[field.split('.')[0]] = true
           end
-        elsif type == 'range' && %w( decade century ).include?(modifier)
-          # Make range facet on a date field look like date_histogram with interval
-          # Override payload_key to point to where we moving the data
-          payload_key = 'entries'
-
-          # Delete zero-count facet values to better emulate date_histogram facets
-          facet_values.delete_if {|vh| vh['count'] == 0}
-          
-          # Format
-          payload[payload_key] = facet_values.map do |value_hash|
-            { 'time' => value_hash['from_str'], 'count' => value_hash['count'] }
+          field.split('.').each do |part|
+            accumulator = accumulator[part] rescue nil
           end
-
-          payload['_type'] = 'date_histogram'
-          payload.delete 'ranges'
+          if !accumulator.nil?
+            doc_source[field] = accumulator
+          end
         end
-
-        # Sort: Default sort from ElasticSearch for date_histogram is count ascending, we want desc
-        payload[payload_key].reverse! if payload['_type'] == 'date_histogram'
-
-        if facet_size
-          # trim this facet to the requested limit after it has been optionally re-sorted
-          payload[payload_key] = payload[payload_key].first(facet_size.to_i)
-        end
-
+        toplevel_keys.keys.each {|k| doc_source.delete(k)}
+        true
+      else
+        false
       end
     end
 
+    def format_facets(facets, facet_size)
+      return [] unless facets
+
+      facet_types = {
+        'date' => 'date_histogram',
+        'keyword' => 'terms',
+        'text' => 'terms',
+        'geo_point' => 'geo_distance'
+      }
+      facet_keys = {
+        'date' => 'entries',
+        'keyword' => 'terms',
+        'text' => 'terms',
+        'geo_point' => 'ranges'
+      }
+
+      formatted = {}
+
+      facets.each do |name, payload|
+
+        facet_values = payload['buckets']
+        actual_field = actual_field(name)
+        modifier = facet_modifier(name)
+
+        field = Schema.field(resource, actual_field, modifier)
+
+        if field.date?
+
+          facet_values.delete_if do |v|
+            v['doc_count'] == 0 ||
+              v['key'] == -377705116800000 ||
+              v['key'] == 253370764800000
+          end
+          
+          facet_values.each do |v|
+            bucket_item_key = v.key?('from') ? 'from' : 'key'
+            v['time'] =
+              format_date_facet(v[bucket_item_key], modifier)
+          end
+        end
+
+        if facet_size
+          # trim this facet to the requested limit after it has been optionally re-sorted
+          facet_values = facet_values.first(facet_size.to_i)
+        end
+
+        formatted[es0_compat_field(name)] = {
+          '_type' => facet_types[field.type],
+          facet_keys[field.type] => facet_values.map do |v|
+            if field.type == 'date'
+              {
+                'time' => v['time'],
+                'count' => v['doc_count']
+              }
+            elsif field.type == 'geo_point'
+              {
+                'from' => v['from'] || 0,
+                'to' => v['to'] || 0,
+                'count' => v['doc_count']
+              }
+            else
+              {
+                'term' => v['key'],
+                'count' => v['doc_count']
+              }
+            end
+          end.sort {|a, b| b['time'] <=> a['time']}  # reverse date order
+          # ^^^ Although V1::Searchable::FacetOptions.options_for_date_histogram
+          # specifies a descending facet sort order on the date, it doesn't
+          # apply with our "decade" and "century" facet modifiers, which are
+          # expressed to Elasticsdarch as a "ranges" query prarmeter; so we
+          # still have to do this sort. At least the sort won't have anything
+          # to do in the typical case.
+        }
+
+      end
+
+      formatted
+    end
+
+    # Given a field name as returned by Elasticsearch under `facets', massage
+    # the name to make sure it's formatted as it used to be under
+    # Elasticsearch 0.90.
+    #
+    # So far, this applies only to the geographic coordinates facet, given the
+    # modifier like ":42:-70".
+    #
+    def es0_compat_field(field_name)
+      if field_name[/:/]
+        field_name[/^(.*?):/, 1]
+      else
+        field_name
+      end
+    end
+
+    def actual_field(field_name)
+      if field_name[/:/]
+        field_name[/^(.*?):/, 1]
+      else
+        field_name[/^(.*?)\.?(year|decade|century)?$/, 1]
+      end
+    end
+
+    def facet_modifier(field_name)
+      field_name[/^(.*?)\.?(year|decade|century)?$/, 2]
+    end
+
     def format_date_facet(value, interval=nil)
+
       # Value is from ElasticSearch and it is in UTC milliseconds since the epoch
       formats = {
         'day' => '%F',
         'month' => '%Y-%m',
-        'year' => '%Y'
+        'year' => '%Y',
+        'century' => '%Y',
+        'decade' => '%Y'
       }      
 
-      # temporary hack to work around ElasticSearch adjusting timezones and breaking our dates
+      # hack to work around ElasticSearch adjusting timezones and breaking our dates
       offset = 5 * 60 * 60 * 1000 #5 hours in milliseconds
-      # offset *= -1 if value < 0  #TODO: subtract for pre-epoch dates, add for post-epoch
-      #      Rails.logger.debug "offset/value: #{offset} / #{value}"
       date = Time.at( (value+offset)/1000 ).to_date
 
       # Default to 'day' format (e.g. '1993-01-31')
@@ -250,10 +353,6 @@ module V1
 
     def get_facet_size(params)
       Searchable::FacetOptions.facet_size(params)
-    end
-
-    def verbose_debug(search)
-      puts "CURL: #{search.to_curl}"
     end
 
     def json_ld_context

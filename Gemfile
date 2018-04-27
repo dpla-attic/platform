@@ -24,7 +24,6 @@ end
 
 group :test do
   gem 'database_cleaner', '~> 1.5.0'
-  gem 'cucumber-rails', '~> 1.4.0', :require => false
 end
 
 group :test, :development do

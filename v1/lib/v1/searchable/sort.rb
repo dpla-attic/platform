@@ -11,11 +11,6 @@ module V1
       DEFAULT_SORT_ORDER = 'asc'
       VALID_SORT_ORDERS = %w( asc desc )
 
-      def self.build_sort(resource, search, params)
-        sort_attrs = build_sort_attributes(resource, params)
-        search.sort { by(sort_attrs) }
-      end
-
       def self.sort_order(params)
         raw_order = params['sort_order'].to_s
         order = raw_order.downcase
@@ -84,14 +79,10 @@ module V1
           raise "Cannot script-sort on analyzed field" if sort_field.analyzed?
           {
             '_script' => {
-              'script' => "s='';foreach(val : doc['#{sort_field.name}'].values) {s += val + ' '} s",
+              'script' => "doc['#{sort_field.name}'].join(' ');",
               'type' => 'string',
               'order' => sort_order
             }
-          }
-        elsif sort_field.sort == 'shadow'
-          {
-            'admin.' + sort_field.name => { 'order' => sort_order }
           }
         elsif sort_field.sort == 'geo_distance'
           if params['sort_by_pin'].to_s == ''

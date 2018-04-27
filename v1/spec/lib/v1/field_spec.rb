@@ -6,43 +6,41 @@ module V1
     let(:resource) { 'item' }
     let(:item_mapping) {
       {
-        'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
-        'title' => { 'type' => 'string' },
-        'description' => { 'type' => 'string' },
+        'id' => { 'type' => 'keyword', 'sort' => 'field' },
+        'title' => { 'type' => 'text' },
+        'description' => { 'type' => 'text' },
         'date' => { 'type' => 'date', 'facet' => true },
         'subject' => {
           'properties' => {
-            '@id' => { 'type' => 'string', 'index' => 'not_analyzed' },
-            '@type' => { 'type' => 'string', 'index' => 'not_analyzed' },
-            'name' => { 'type' => 'string' }
+            '@id' => { 'type' => 'keyword' },
+            '@type' => { 'type' => 'keyword' },
+            'name' => { 'type' => 'text' }
           }
         },
         'multisubject' => {
           'properties' => {
             'name' => {
-              'type' => 'multi_field',
               'fields' => {
-                'name' => { 'type' => 'string', 'sort' => 'script' },
-                'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                'name' => { 'type' => 'text', 'sort' => 'multi_field' },
+                'not_analyzed' => { 'type' => 'keyword', 'sort' => 'script', 'facet' => true }
               }
             }                      
           }
         },
         'spatial' => {
           'properties' => {
-            'city' => { 'type' => 'string', 'index' => "not_analyzed" },
-            'iso3166-2' => { 'type' => 'string', :index => 'not_analyzed', 'facet' => true },
+            'city' => { 'type' => 'keyword' },
+            'iso3166-2' => { 'type' => 'keyword', 'facet' => true },
             'coordinates' => { 'type' => "geo_point" }
           }
         },
         'isPartOf' => {
           'properties' => {
-            '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'facet' => true },
+            '@id' => { 'type' => 'keyword', 'facet' => true },
             'name' => {
-              'type' => 'multi_field',
               'fields' => {
-                'name' => {'type' => 'string' },
-                'not_analyzed' => {'type' => 'string', 'index' => 'not_analyzed', 'facet' => true }
+                'name' => {'type' => 'text', 'sort' => 'multi_field'},
+                'not_analyzed' => {'type' => 'keyword', 'sort' => 'script', 'facet' => true }
               }
             }
           }
@@ -51,8 +49,8 @@ module V1
           'properties' => {
             'level2' => {
               'properties' => {
-                'level3A' => { 'type' => 'string'},
-                'level3B' => { 'type' => 'string'}
+                'level3A' => { 'type' => 'text'},
+                'level3B' => { 'type' => 'text'}
               }
             }
           }
@@ -60,18 +58,14 @@ module V1
         'field1' => {
           'properties' => {
             'name' => {
-              'type' => 'multi_field',
               'fields' => {
-                'name' => {'type' => 'string', 'index' => 'analyzed' }
+                'name' => {'type' => 'text' }
               }
             }
           }
         },
         'disabledField' => {
           'enabled' => false
-        },
-        'compoundFields' => {
-          'compound_fields' => ['field1, field2']
         }
       }
     }
@@ -84,7 +78,7 @@ module V1
         expect(field.resource).to eq resource
       end
       it "assigns type param to a .type attr" do
-        expect(field.type).to eq 'string'
+        expect(field.type).to eq 'keyword'
       end
       it "assigns name param to a .name attr" do
         expect(field.name).to eq name
@@ -95,7 +89,7 @@ module V1
       end
 
       it "returns the type value via its type method" do
-        expect(field.type).to eq 'string'
+        expect(field.type).to eq 'keyword'
       end
       it "raises an exception when passed a nil mapping" do
         expect {
@@ -161,7 +155,7 @@ module V1
 
       it "implements correct sort and sortable? for multi_field field" do
         field = Field.new(resource, 'multisubject.name', item_mapping['multisubject']['properties']['name'])
-        expect(field.sort).to eq 'script'
+        expect(field.sort).to eq 'multi_field'
       end
     end
 
@@ -332,12 +326,6 @@ module V1
       end
     end
 
-    describe "#compound_fields" do
-      it "returns the 'compound_fields' property" do
-        field = Field.new(resource, 'compound_fields', item_mapping['compoundFields'])
-        expect(field.compound_fields).to eq ['field1, field2']
-      end
-    end
   end
 
 end

@@ -16,8 +16,6 @@ module Dpla
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
 
-    config.logger = Logger.new("#{Rails.root}/var/log/#{Rails.env}.log")
-
     # Custom directories with classes and modules you want to be autoloadable.
     # config.autoload_paths += %W(#{config.root}/lib)
     config.autoload_paths += Dir["#{config.root}/lib/**/"]
