@@ -22,7 +22,7 @@ module V1
         self.track_events(request, parsed_results, page_title, "View API Item")
       rescue Exception => e
         # Fail silently if there are any unexpected errors.
-        Rails.logger.error("Attempt at Google Analytics tracking failed with "\
+        Rails.logger.debug("Attempt at Google Analytics tracking failed with "\
           "the following message: #{e.message}")
       end
     end
@@ -78,11 +78,11 @@ module V1
       begin
         response = HTTParty.post(path, { body: body  })
         # TODO: Is this the correct data to add to the log? May be too verbose.
-        Rails.logger.info("Google Analytics POST: #{response.request.uri} "\
+        Rails.logger.debug("Google Analytics POST: #{response.request.uri} "\
           "#{response.request.raw_body}")
-        Rails.logger.info("Google Analytics RESPONSE CODE: #{response.code}")
+        Rails.logger.debug("Google Analytics RESPONSE CODE: #{response.code}")
       rescue Exception => e
-        Rails.logger.error("Google Analytics POST attempt failed with the "\
+        Rails.logger.debug("Google Analytics POST attempt failed with the "\
           "following message: #{e.message}")
       end
     end
