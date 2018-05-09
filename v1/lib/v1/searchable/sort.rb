@@ -64,7 +64,7 @@ module V1
             '_score' => {
               'order' => 'desc'
             },
-            '_id' => {
+            'id' => {
               'order' => 'asc'
             }
           }
