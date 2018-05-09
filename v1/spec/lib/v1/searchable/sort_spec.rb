@@ -104,7 +104,7 @@ module V1
                  subject.build_sort_attributes(resource, params)
                  ).to eq({
                   '_score' => {'order' => 'desc'},
-                  '_id' => {'order' => 'asc'}
+                  'id' => {'order' => 'asc'}
                  })
         end
 
