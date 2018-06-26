@@ -18,6 +18,9 @@ module V1
 
     # Default max page size
     MAX_PAGE_SIZE = 500
+
+    # Maximum page number
+    MAX_PAGE_NUM = 100
     
     # General query params that are not resource-specific
     BASE_QUERY_PARAMS = %w( q controller action sort_by sort_by_pin sort_order
@@ -84,6 +87,9 @@ module V1
 
     def search_offset(params)
       page = params["page"].to_i
+      if page > MAX_PAGE_NUM
+        raise BadRequestSearchError, "Page value #{page} is too high"
+      end
       page == 0 ? 0 : search_page_size(params) * (page - 1)
     end
 
