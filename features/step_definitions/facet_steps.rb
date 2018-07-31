@@ -116,12 +116,3 @@ Then /^the API returns items that contain the query string$/ do
     expect( doc.to_s =~ /#{@query_string}/i ).to be_true
   end
 end
-
-Then(/^the facets should contain correct counts for "(.*?)"$/) do |facet_values|
-  terms_facets = @results['facets']['admin.contributingInstitution']['terms']
-  expect(terms_facets).to include(
-    {"term" => "Sadie", "count" => 2},
-    {"term" => "RangerDanger", "count" => 2},
-    {"term" => "Winnie Peaches", "count" => 1}
-  )
-end

@@ -40,16 +40,16 @@ module V1
                   subject.default_geo_distance_miles,
                   subject.default_geo_distance_miles,
                   subject.default_geo_buckets,
+                  true,
                   true
                   ) { [geo_facet_stub] }
 
           expect(subject.options_for_geo_distance('geo_distance', field, {}))
-            .to eq([
-                    'spatial.coordinates',
-                    {:lat => '42', :lon => '-71'},
-                    [geo_facet_stub],
-                    'unit' => 'mi'
-                   ])
+            .to eq({
+              :origin => "42, -71",
+              :unit => "mi",
+              :ranges => [geo_facet_stub]
+            })
         end
 
         it "returns correct options for geo_point fields with explicit range"  do
@@ -60,42 +60,43 @@ module V1
                   50,
                   50,
                   subject.default_geo_buckets,
+                  true,
                   true
                   ) { [geo_facet_stub] }
 
           expect(subject.options_for_geo_distance('geo_distance', field, {}))
-            .to eq([
-                    'spatial.coordinates',
-                    {:lat => '42', :lon => '-71'},
-                    [geo_facet_stub],
-                     'unit' => 'mi'
-                   ])
+            .to eq({
+              :origin=>"42, -71",
+              :unit=>"mi",
+              :ranges=>[geo_facet_stub]
+            })
         end
         
       end
 
       describe "#build_options" do
-        #TODO: refactor this to only test wiring and rename facet-type-specific tests
         it "returns correct options for date_histogram facet with a native interval"  do
           field = double(:name => 'date', :facet_modifier => 'year')
-          expect(subject.build_options('date', field, {}))
+          expect(subject.build_options('date_histogram', field, {}))
             .to eq({
                      :interval => 'year',
-                     :order => 'count'
+                     :order => {'_key' => 'desc'},
+                     :min_doc_count => 2
                    })
         end
         it "raises an error for an unrecognized interval on a date_histogram facet" do
           field = double(:name => 'date', :facet_modifier => 'invalid_interval')
           expect {
-            subject.build_options('date', field, {})
+            subject.build_options('date_histogram', field, {})
           }.to raise_error BadRequestSearchError, /date facet 'date.invalid_interval' has invalid interval/i
         end
         it "returns correct default interval for date_histogram facet with no interval"  do
           field = double(:name => 'date', :facet_modifier => nil)
-          expect(subject.build_options('date', field, {}))
+          expect(subject.build_options('date_histogram', field, {}))
             .to eq({
-                     :interval => 'day',
-                     :order => 'count'
+                     :interval => 'year',
+                     :order => {'_key' => 'desc'},
+                     :min_doc_count => 2
                    })
         end
         it "returns correct hash for decade date range facet"  do
@@ -124,7 +125,7 @@ module V1
           expect(subject.build_options('terms', field, {}))
             .to eq({
                      :size => 50,
-                     :order => 'count'
+                     :order=> {'_count' => 'desc'}
                    })
         end
       end

@@ -40,26 +40,20 @@ module V1
     def items
       begin
         results = Rails.cache.fetch(search_cache_key('items', params), :raw => true) do
-          begin
-            Item.search(params).to_json
-          rescue BadRequestSearchError => e
-            # This requests's params will always return this error, so cache it as such
-            e
-          end
+          Item.search(params).to_json
         end
+        # Clone for extra thread safety
+        results_clone = results.clone
+        request_clone = request.clone
+        Thread.new do
+          GoogleAnalytics.track_items(request_clone,
+                                      results_clone,
+                                      "Item search results")
+        end
+        render_search_results(results, params)
       rescue SearchError => e
-        # render_error(e, params)
-        results = e
+        render_error(e, params)
       end
-      # Clone for extra thread safety
-      results_clone = results.clone
-      request_clone = request.clone
-      Thread.new do
-        GoogleAnalytics.track_items(request_clone,
-                                    results_clone,
-                                    "Item search results")
-      end
-      render_search_results(results, params)
     end
 
     def render_search_results(results, options)
@@ -103,15 +97,10 @@ module V1
     def collections
       begin
         results = Rails.cache.fetch(search_cache_key('collections', params), :raw => true) do
-          begin
-            Collection.search(params).to_json
-          rescue BadRequestSearchError => e
-            # This requests's params will always return this error, so cache it as such
-            e
-          end
+          Collection.search(params).to_json
         end
       rescue SearchError => e
-        results = e
+        render_error(e, params)
       end
       render_search_results(results, params)
     end

@@ -7,10 +7,7 @@ module V1
   module Searchable
 
     module Facet
-      #TODO: Add support for integer and integer+unit(h|d|w) intervals or just let any
-      # suffix through and let ElasticSearch complain if it is not valid
-      # ElasticSearch's built-in intervals
-      VALID_DATE_INTERVALS = %w( century decade year month day )
+      VALID_DATE_INTERVALS = %w( century decade year month )
       FILTER_FACET_FLAGS = %w( CASE_INSENSITIVE DOTALL )
 
       def self.valid_date_intervals
@@ -25,43 +22,34 @@ module V1
         valid_date_intervals.include?(interval)
       end
 
-      def self.build_all(resource, search, params, global=false)
-        # Run facets from params['facets'] against the search object
-        # Returns boolean for "did we create any facets?"
-        requested = params['facets'].to_s.split(/,\s*/)
-        return false if requested.empty?
-
-        requested = expand_facet_fields(resource, requested)
-
-        requested.each do |name|
+      def self.build_all(resource, params)
+        facet_names = expand_facet_fields(
+          resource,
+          params['facets'].to_s.split(/,\s*/)
+        )
+        rv = {}
+        facet_names.each do |name|
           field = parse_facet_name(resource, name)
-
           if field.nil?
             raise BadRequestSearchError, "Invalid field(s) specified in facets parameter: #{name}"
           end
-
           if !field.facetable?
             raise BadRequestSearchError, "Non-facetable field(s) specified in facets parameter: #{name}"
           end
-          
-          global_hash = global ? {:global => true} : {}
-          search.facet(facet_display_name(field), global_hash) do |faceter|
-            faceter.send(*build_facet_params(field, params))
-          end
+          fp = build_facet_params(field, params)
+          starter = {'field' => fp[1]}
+          rv[name] = {
+            fp[0] => starter.merge(fp[2])  # type => starter + other params
+          }
         end
-
-        requested.any?
+        rv
       end
 
       def self.build_facet_params(field, params)
         type = facet_type(field)
         options = FacetOptions.build_options(type, field, params)
 
-        if type == 'geo_distance'
-          [type, options].flatten(1)
-        else
-          [type, facet_field_name(field), options]
-        end
+        [type, facet_field_name(field), options]
       end
 
       def self.facet_field_name(field)
@@ -71,8 +59,6 @@ module V1
           field.name
         elsif field.not_analyzed_field && field.not_analyzed_field.facetable?
           field.not_analyzed_field.name
-        elsif field.compound_fields
-          field.compound_fields
         else
           field.name
         end
@@ -110,7 +96,7 @@ module V1
         elsif (field.date? || field.multi_field_date?) && %w( decade century ).include?(field.facet_modifier)
           'range'
         elsif field.date? || field.multi_field_date?
-          'date'
+          'date_histogram'
         else
           'terms'
         end

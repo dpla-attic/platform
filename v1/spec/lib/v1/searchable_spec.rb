@@ -1,19 +1,17 @@
 require 'v1/searchable'
+require 'httparty'
+
 
 module V1
 
   module SearchableItem
     extend Searchable
-    def self.resource; 'test_resource'; end
+    def self.resource; 'item'; end
   end
 
   module Searchable 
 
     describe Searchable do
-
-      before(:each) do
-        subject.stub(:verbose_debug)
-      end
 
       context "Module constants" do
         it "DEFAULT_PAGE_SIZE has the correct value" do
@@ -37,7 +35,7 @@ module V1
   end
 
   describe SearchableItem do
-    let(:resource) { 'test_resource' }
+    let(:resource) { 'item' }
     
     describe "#validate_query_params" do
       before(:each) do
@@ -191,8 +189,15 @@ module V1
 
     describe "#wrap_results" do
       it "wraps results set correctly" do
-        results = double("results", :total => 10, :facets => nil)
-        search = double("search", :results => results, :options => {:from => 0, :size => 10})
+
+        result = {
+          'hits' => {
+            'total' => 10,
+            'hits' => [],
+          },
+          'facets' => []
+        }
+
         formatted_results = double
         facets = double
         
@@ -200,8 +205,10 @@ module V1
         subject.stub(:format_facets) { facets }
         params = double
         subject.stub(:get_facet_size)
+        subject.stub(:search_page_size) { 10 }
+        subject.stub(:search_offset) { 0 }
 
-        expect(subject.wrap_results(search, params))
+        expect(subject.wrap_results(result, params))
           .to eq({
                    'count' => 10,
                    'limit' => 10,
@@ -213,120 +220,218 @@ module V1
     end
 
     describe "#format_facets" do
-      let(:facets) {
+      # date_facets: Facets that come back in the "aggregations" property of the
+      #              Elasticsearch response.
+      let(:date_facets) {
         {
-          "date.begin.year" => {
-            "_type" => "date_histogram",
-            "entries" => [
-                          {
-                            "time" => 157784400000,
-                            "count" => 1
-                          },
-                          {
-                            "time" => 946702800000,
-                            "count" => 2
-                          }
-                         ]
+          "sourceResource.date.begin" => {
+            "buckets" => [
+              {
+                "key_as_string" => "1975-01-01T00:00:00.000Z",
+                "key" => 157784400000,
+                "doc_count" => 1
+              },
+              {
+                "key_as_string" => "2000-01-01T00:00:00.000Z",
+                "key" => 946702800000,
+                "doc_count" => 2
+              }
+            ]
           },
-          "date.begin.century" => {
-            "_type"=>"range",
-            "ranges"=> [
-                        {"from"=>946684800000.0,
-                          "from_str"=>"2000",
-                          "to"=>4102444800000.0,
-                          "to_str"=>"2100",
-                          "count"=>1,
-                          "min"=>959817600000.0,
-                          "max"=>959817600000.0,
-                          "total_count"=>1,
-                          "total"=>959817600000.0,
-                          "mean"=>959817600000.0},
-                        {"from"=>-2208988800000.0,
-                          "from_str"=>"1900",
-                          "to"=>946684800000.0,
-                          "to_str"=>"2000",
-                          "count"=>9,
-                          "min"=>104025600000.0,
-                          "max"=>378691200000.0,
-                          "total_count"=>9,
-                          "total"=>2818022400000.0,
-                          "mean"=>313113600000.0}
-                       ]
+          "sourceResource.date.begin.year" => {
+            "buckets" => [
+              {
+                "key_as_string" => "1975-01-01T00:00:00.000Z",
+                "key" => 157784400000,
+                "doc_count" => 1
+              },
+              {
+                "key_as_string" => "2000-01-01T00:00:00.000Z",
+                "key" => 946702800000,
+                "doc_count" => 2
+              }
+            ]
           },
-          "date.begin.decade" => {
-            "_type"=>"range",
-            "ranges"=> [
-                        {"from"=>0.0,
-                          "from_str"=>"1970",
-                          "to"=>315532800000.0,
-                          "to_str"=>"1980",
-                          "count"=>3,
-                          "min"=>104025600000.0,
-                          "max"=>252460800000.0,
-                          "total_count"=>3,
-                          "total"=>577411200000.0,
-                          "mean"=>192470400000.0},
-                        {"from"=>315532800000.0,
-                          "from_str"=>"1980",
-                          "to"=>631152000000.0,
-                          "to_str"=>"1990",
-                          "count"=>6,
-                          "min"=>347155200000.0,
-                          "max"=>378691200000.0,
-                          "total_count"=>6,
-                          "total"=>2240611200000.0,
-                          "mean"=>373435200000.0},
-                        {"from"=>631152000000.0,
-                          "from_str"=>"1990",
-                          "to"=>946684800000.0,
-                          "to_str"=>"2000",
-                          "count"=>0,
-                          "total_count"=>0,
-                          "total"=>0.0,
-                          "mean"=>0.0}
-                       ]
+          "sourceResource.date.begin.century" => {
+            "buckets" => [
+                {
+                    "key" => "1900-01-01T00:00:00.000Z-2000-01-01T00:00:00.000Z",
+                    "from" => -2208988800000,
+                    "from_as_string" => "1900-01-01T00:00:00.000Z",
+                    "to" => 946684800000,
+                    "to_as_string" => "2000-01-01T00:00:00.000Z",
+                    "doc_count" => 9
+                },
+                {
+                    "key" => "2000-01-01T00:00:00.000Z-2100-01-01T00:00:00.000Z",
+                    "from" => 946684800000,
+                    "from_as_string" => "2000-01-01T00:00:00.000Z",
+                    "to" => 4102444800000,
+                    "to_as_string" => "2100-01-01T00:00:00.000Z",
+                    "doc_count" => 1
+                }
+            ]
           },
-          "subject.name" => {
-            "_type" => "terms",
-            "terms" => [
-                        {
-                          "term" => "Noodle Bar",
-                          "count" => 1
-                        }
-                       ]
+          "sourceResource.date.begin.decade" => {
+            "buckets" => [
+                {
+                    "key" => "1970-01-01T00:00:00.000Z-1980-01-01T00:00:00.000Z",
+                    "from" => 0,
+                    "from_as_string" => "1970-01-01T00:00:00.000Z",
+                    "to" => 315532800000,
+                    "to_as_string" => "1980-01-01T00:00:00.000Z",
+                    "doc_count" => 3
+                },
+                {
+                    "key" => "1980-01-01T00:00:00.000Z-1990-01-01T00:00:00.000Z",
+                    "from" => 315532800000,
+                    "from_as_string" => "1980-01-01T00:00:00.000Z",
+                    "to" => 631152000000,
+                    "to_as_string" => "1990-01-01T00:00:00.000Z",
+                    "doc_count" => 6
+                },
+                {   # This one should not be included because count is 0.
+                    "key" => "1990-01-01T00:00:00.000Z-2000-01-01T00:00:00.000Z",
+                    "from" => 631152000000,
+                    "from_as_string" => "1990-01-01T00:00:00.000Z",
+                    "to" => 946684800000,
+                    "to_as_string" => "2000-01-01T00:00:00.000Z",
+                    "doc_count" => 0
+                }
+            ]
+          }
+        }
+      }
+
+      let(:language_facets) {
+        {
+          "sourceResource.language.iso639_3" => {
+            "doc_count_error_upper_bound" => 0,
+            "sum_other_doc_count" => 0,
+            "buckets" => [
+                {
+                    "key" => "eng",
+                    "doc_count" => 292
+                },
+                {
+                    "key" => "jpn",
+                    "doc_count" => 19
+                },
+                {
+                    "key" => "lat",
+                    "doc_count" => 6
+                }
+            ]
+          }
+        }
+      }
+
+      let(:geo_facets) {
+        {
+          "sourceResource.spatial.coordinates" => {
+            "buckets" => [
+                {
+                    "key" => "*-100.0",
+                    "from" => 0,
+                    "to" => 100,
+                    "doc_count" => 0
+                },
+                {
+                    "key" => "100.0-200.0",
+                    "from" => 100,
+                    "to" => 200,
+                    "doc_count" => 5
+                },
+                {
+                    "key" => "200.0-300.0",
+                    "from" => 200,
+                    "to" => 300,
+                    "doc_count" => 4
+                }
+            ]
           }
         }
       }
       
       it "formats date facets" do
-        subject.should_receive(:format_date_facet).with(157784400000, 'year')
-        subject.should_receive(:format_date_facet).with(946702800000, 'year')
-        subject.format_facets(facets, nil)
+        subject.should_receive(:format_date_facet).with(anything(), nil).exactly(2).times
+        subject.should_receive(:format_date_facet).with(anything(), 'year').exactly(2).times
+        subject.should_receive(:format_date_facet).with(anything(), 'century').exactly(2).times
+        subject.should_receive(:format_date_facet).with(anything(), 'decade').exactly(2).times
+        subject.format_facets(date_facets, nil)
+      end
+
+      it "returns a date_histogram facet without a field modifier" do
+        # Without "year", "decade", or "century"
+        expect(subject.format_facets(date_facets, nil)['sourceResource.date.begin']['entries'])
+          .to eq([{"time"=>"2000-01-01", "count"=>2}, {"time"=>"1975-01-01", "count"=>1}])
       end
       
       it "sorts the date_histogram facet by count descending, by default" do
-        expect(subject.format_facets(facets, nil)['date.begin.year']['entries'])
+        expect(subject.format_facets(date_facets, nil)['sourceResource.date.begin.year']['entries'])
           .to eq([{"time"=>"2000", "count"=>2}, {"time"=>"1975", "count"=>1}])
       end
       
       it "identifies date facets with century interval as _type: 'date_histogram'" do
-        expect(subject.format_facets(facets, nil)['date.begin.century']['_type'])
+        expect(subject.format_facets(date_facets, nil)['sourceResource.date.begin.century']['_type'])
           .to eq 'date_histogram'
       end
 
       it "formats and sorts date facets with century interval like native date_histogram facets" do
-        expect(subject.format_facets(facets, nil)['date.begin.century']['entries'])
-          .to eq([{"time"=>"1900", "count"=>9}, {"time"=>"2000", "count"=>1}])
+        expect(subject.format_facets(date_facets, nil)['sourceResource.date.begin.century']['entries'])
+          .to eq([{"time"=>"2000", "count"=>1}, {"time"=>"1900", "count"=>9}])
       end
 
       it "formats and sorts date facets with decade interval like native date_histogram facets" do
-        expect(subject.format_facets(facets, nil)['date.begin.decade']['entries'])
+        expect(subject.format_facets(date_facets, nil)['sourceResource.date.begin.decade']['entries'])
           .to eq([{"time"=>"1980", "count"=>6}, {"time"=>"1970", "count"=>3}])
       end
       
+      it "formats language facets" do
+        expected = {
+          "sourceResource.language.iso639_3" => {
+            "_type" => "terms",
+            "terms" => [
+              {"term"=>"eng", "count"=>292},
+              {"term"=>"jpn", "count"=>19},
+              {"term"=>"lat", "count"=>6}
+            ]
+          }
+        }
+        actual = subject.format_facets(language_facets, nil)
+        expect(actual).to eq expected
+      end
+
+      it "formats geo coordinate facets" do
+        expected = {
+          "sourceResource.spatial.coordinates" => {
+            "_type" => "geo_distance",
+            "ranges" => [
+              {
+                "from" => 0,
+                "to" => 100,
+                "count" => 0
+              },
+              {
+                "from" => 100,
+                "to" => 200,
+                "count" => 5
+              },
+              {
+                "from" => 200,
+                "to" => 300,
+                "count" => 4
+              }
+            ]
+          }
+        }
+        actual = subject.format_facets(geo_facets, nil)
+        expect(actual).to eq expected
+      end
+
       it "enforces facet_size limit" do
         # returned facets should all have 1 value hash in them
-        formatted = subject.format_facets(facets, 1)
+        formatted = subject.format_facets(date_facets, 1)
         
         formatted.each do |name, payload|
           facet_values = payload['entries'] || payload['terms']
@@ -373,7 +478,7 @@ module V1
             "description" => "desc"
           }
         }]
-        expect(subject.format_results(docs)).to match_array(
+        expect(subject.format_results(docs, {})).to match_array(
           [{
              "_id" => "1",
              "title" => "banana",
@@ -391,7 +496,7 @@ module V1
           "_score" => 1.0,
           "fields" => {"title" => "banana"}
         }]
-        expect(subject.format_results(docs)).to match_array(
+        expect(subject.format_results(docs, {})).to match_array(
           [{"title" => "banana"}]
         )
       end
@@ -403,11 +508,29 @@ module V1
           "_id" => "1",
           "_score" => 1.0
         }]
-        expect(subject.format_results(docs)).to match_array(
+        expect(subject.format_results(docs, {})).to match_array(
           [{}]
         )
       end
 
+    end
+
+    describe "#flatten_fields!" do
+      it "flattens fields correctly" do
+        doc_source = {
+          "id" => "77d5d0016b2e4b45e0efa9d3dea16912",
+          "sourceResource" => {"title" => ["House on West Adams"]},
+          "object" => "https://thumbnails.calisphere.org/clip/150x150/b5cf866178a138dbcfaacb485c6b05d5"
+        }
+        params = {"fields" => "id,sourceResource.title,object"}
+        expected = {
+          "sourceResource.title" => ["House on West Adams"],
+          "id" => "77d5d0016b2e4b45e0efa9d3dea16912",
+          "object" => "https://thumbnails.calisphere.org/clip/150x150/b5cf866178a138dbcfaacb485c6b05d5"
+        }
+        subject.flatten_fields!(doc_source, params)
+        expect(doc_source).to eq expected
+      end
     end
 
     describe "#get_facet_size" do
@@ -431,10 +554,13 @@ module V1
     end
 
     describe "#search" do
-      let(:mock_search) { double('mock_search').as_null_object }
+      let(:httparty_response) { double('httparty_response').as_null_object }
+      let(:response_value) { double('response_value').as_null_object }
 
       before(:each) do
-        Tire.stub(:search).and_yield(mock_search)
+        HTTParty.stub(:post).with(anything(), anything()) { httparty_response }
+        httparty_response.stub(:response) { response_value }
+        response_value.stub(:code) { "200" }
         subject.stub(:wrap_results)
         subject.stub(:validate_query_params)
         subject.stub(:validate_field_params)
@@ -449,36 +575,56 @@ module V1
         subject.search(params)
       end
 
-      it "restricts all searches to a resource" do
-        params = {'q' => 'banana'}
-        Tire.should_receive(:search).with(
-          Config.search_index + '/' + resource,
-          {search_type: 'dfs_query_then_fetch'}
-        )
-        subject.search(params)
-      end
-
-      # it "calls build_querie with correct params" do
-      #   params = {'q' => 'banana'}
-      #   subject.should_receive(:build_queries).with(resource, mock_search, params)
-      #   subject.search(params)
-      # end
-
       it "returns search.results() with dictionary wrapper" do
         params = {'q' => 'banana'}
         results = double("results")
         dictionary_results = double("dictionary_wrapped")
-        mock_search.stub(:results) { results }
-        subject.stub(:wrap_results).with(mock_search, params) { dictionary_results }
+        httparty_response.stub(:results) { results }
+        subject.stub(:wrap_results).with(httparty_response, params) { dictionary_results }
         expect(subject.search(params)).to eq dictionary_results
       end
 
       it "limits the requested fields if fields param is present" do
-        params = {'fields' => 'title,type'}
-        mock_search.should_receive(:fields).with( %w( title type ) )
+        Searchable::Query.stub(:build_all) {{}}
+        Searchable::Facet.stub(:build_all) {{}}
+        subject.stub(:search_offset) {0}
+        subject.stub(:search_page_size) {0}
+        params = {'fields' => 'x,y'}
+        subject.should_receive(:search_fields).with(params).and_return({})
         subject.search(params)
       end
 
+      it "raises InternalServerSearchError on HTTP error response from ES" do
+        response_value.stub(:code) { "400" }
+        expect {subject.search()}.to raise_error(V1::InternalServerSearchError)
+      end
+
+    end
+
+    describe "#search_fields" do
+      it "returns a hash w '_source' property in proper format for 'fields' param" do
+        params = {'fields' => 'x,y'}
+        expect(subject.search_fields(params)).to eq({'_source' => ['x', 'y']})
+      end
+
+      it "returns empty hash for params with no 'fields' property" do
+        expect(subject.search_fields({})).to eq({})
+      end
+    end
+
+    describe "#actual_field" do
+      it "returns actual field name if it has no modifier" do
+        expect(subject.actual_field("sourceResource.title"))
+          .to eq "sourceResource.title"
+      end
+      it "returns actual field name for a date field with modifier" do
+        expect(subject.actual_field("sourceResource.date.begin.decade"))
+          .to eq "sourceResource.date.begin"
+      end
+      it "returns actual field name for a coordinates field with modifier" do
+        expect(subject.actual_field("sourceResource.spatial.coordinates:42:-77"))
+          .to eq "sourceResource.spatial.coordinates"
+      end
     end
 
   end

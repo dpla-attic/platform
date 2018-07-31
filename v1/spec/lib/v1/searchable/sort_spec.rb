@@ -24,16 +24,6 @@ module V1
 
       end
 
-      describe "#build_sort" do
-
-        it "calls search.sort" do
-          subject.stub(:build_sort_attributes) { double }
-          search.should_receive(:sort)
-          subject.build_sort(resource, search, double)
-        end
-
-      end
-
       describe "#sort_order" do
 
         it "supplies a default value" do
@@ -139,27 +129,13 @@ module V1
                  ).to eq( 
                          {
                            '_script' => {
-                             'script' => "s='';foreach(val : doc['#{name}'].values) {s += val + ' '} s",
+                             'script' => "doc['title'].join(' ');",
                              'type' => "string",
                              'order' => 'asc'
                            }
                          }
                          )
 
-        end
-
-        it "returns correct value for shadow sort" do
-          name = 'sourceResource.title'
-          params = {'sort_by' => name}
-          field = double(:name => name, :sort => 'shadow', :sortable? => true ) #, :analyzed? => true
-
-          subject.stub(:sort_by).with(resource, name) { field }
-          expect(
-                 subject.build_sort_attributes(resource, params)
-                 ).to eq( 
-                         { 'admin.sourceResource.title' => {'order' => 'asc'} }
-                         )
-          
         end
 
       end

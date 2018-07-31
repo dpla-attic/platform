@@ -4,98 +4,9 @@ require 'v1/api_auth'
 
 namespace :v1 do
 
-  # NOTE: Any task that calls a method that internally makes calls to Tire, must pass
-  # the :environment symbol in the task() call so the Tire initializer gets called.
-
-  desc "Updates existing ElasticSearch schema *without* deleting the current index"
-  task :update_search_schema => :environment do
-    V1::SearchEngine.update_schema
-  end
-
-  desc "Deploys search index by updating dpla_alias and its river"
-  task :deploy_search_index, [:index] => :environment do |t, args|
-    raise "Missing required index argument to rake task" unless args.index
-    V1::SearchEngine.deploy_index(args.index)
-  end
-
-  desc "Creates new ElasticSearch index"
-  task :create_search_index => :environment do
-    V1::SearchEngine.create_index
-  end
-
   desc "Lists ElasticSearch indices"
   task :search_indices => :environment do
     V1::SearchEngine.display_indices
-  end
-
-  desc "Deletes the named ElasticSearch index. Requires 'really' as second param to confirm delete."
-  task :delete_search_index, [:index,:really] => :environment do |t, args|
-    if args.really != 'really'
-      raise "Missing/incorrect 'really' parameter. Hint: It must be the string: really"
-    end
-    V1::SearchEngine.safe_delete_index(args.index)
-  end
-
-  desc "Creates new ElasticSearch index and river"
-  task :create_search_index_with_river => :environment do
-    V1::SearchEngine.create_index_with_river
-  end
-
-  desc "Creates new ElasticSearch index and river and *immediately* deploys it"
-  task :create_and_deploy_index => :environment do
-    if Rails.env.production?
-      raise "Refusing to run create_and_deploy_index in production b/c it would deploy an empty index"
-    end
-    V1::SearchEngine.create_and_deploy_index
-  end
-
-  desc "Re-creates ElasticSearch river for the currently deployed index"
-  task :recreate_river => :environment do
-    V1::SearchEngine::River.recreate_river
-  end
-
-  desc "Creates new ElasticSearch river; see comment in " \
-       "v1/lib/tasks/dpla.rake re. formatting."
-  # BigCouch-style JSON array last sequence values should have quote and comma
-  # characters escaped as follows:
-  # rake v1:create_river[index_name,dpla_river,"[123\,\"abc123...\"]"]
-  task :create_river, [:index, :river, :last_seq] => :environment do |t, args|
-    V1::SearchEngine::River.create_river(
-      'index' => args.index,
-      'river' => args.river,
-      'last_seq' => args.last_seq
-    )
-  end
-
-  desc "Deletes ElasticSearch river"
-  task :delete_river, [:river] => :environment do |t, args|
-    V1::SearchEngine::River.delete_river(args.river) \
-      or puts "River does not exist, so nothing to delete"
-  end
-
-  desc "Displays the river's current indexing velocity"
-  task :river_velocity, [:river] => :environment do |t, args|
-    puts "River velocity: " + V1::SearchEngine::River.current_velocity(args.river)
-  end
-
-  desc "Lists ElasticSearch rivers"
-  task :river_list => :environment do
-    puts V1::SearchEngine::River.list_all
-  end
-
-  desc "Gets ElasticSearch river status"
-  task :river_status do
-    puts V1::SearchEngine::River.verify_river_status
-  end
-
-  desc "Gets ElasticSearch river last_sequence"
-  task :river_last_sequence do
-    puts V1::SearchEngine::River.last_sequence
-  end
-
-  desc "Tests river by posting test doc to CouchDB and verifying it in ElasticSearch"
-  task :river_test => :environment do
-    V1::SearchEngine::River.river_test
   end
 
   desc "Gets ElasticSearch search cluster status"
@@ -121,11 +32,6 @@ namespace :v1 do
   desc "Displays the current schema in ElasticSearch, according to ElasticSearch."
   task :search_schema => :environment do
     puts V1::SearchEngine.search_schema
-  end
-
-  desc "Displays the current schema as defined by the API. This is the canonical API schema."
-  task :show_api_schema do
-    puts JSON.pretty_generate(V1::Schema::ELASTICSEARCH_MAPPING)
   end
 
   desc "Show API key by [key_id] or [email]"
@@ -177,9 +83,9 @@ namespace :v1 do
     puts V1::Repository.doc_count
   end
 
-  desc "Re-creates CouchDB database, users, API keys and river"
+  desc "Re-creates CouchDB database, users, and API keys"
   task :recreate_repo_env => :environment do
-    V1::Repository.recreate_env(true)
+    V1::Repository.recreate_env
   end
 
   desc "Gets number of docs in search index and repository"

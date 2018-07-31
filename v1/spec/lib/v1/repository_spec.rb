@@ -2,14 +2,13 @@ require 'v1/repository'
 
 module V1
 
-  describe Repository do
+  describe Repository, couch: true do
 
     context "Module constants" do
 
       it "have the correct values" do
         expect(subject::DEFAULT_API_AUTH_DATABASE).to eq 'dpla_api_auth'
         expect(subject::DEFAULT_DASHBOARD_DATABASE).to eq 'dashboard'
-        expect(subject::DEFAULT_BULK_DOWNLOAD_DATABASE).to eq 'bulk_download'
       end
 
     end
@@ -25,30 +24,6 @@ module V1
           subject.recreate_database(couchdb)
         end
       end
-
-      describe "#recreate_env" do
-
-        before :each do
-          subject.stub(:doc_count)
-          subject.stub(:puts)
-          subject.should_receive(:recreate_doc_database)
-          subject.should_receive(:recreate_api_keys_database)
-          subject.should_receive(:recreate_users)
-          subject.should_receive(:import_test_api_keys)
-          subject.should_receive(:create_api_auth_views)
-        end
-        
-        it "does not recreate_river by default" do
-          SearchEngine.should_not_receive(:recreate_river)
-          subject.recreate_env
-        end
-
-        it "has all the right moves and creates the river if requested" do
-          SearchEngine.should_receive(:recreate_river)
-          subject.recreate_env(true)
-        end
-      end
-
     end
 
     describe "#format_results" do
@@ -122,46 +97,6 @@ module V1
         subject.fetch("1")
       end
 
-    end
-
-    describe "#import_data_file" do
-      it "calls import_docs with correct params" do
-        data_file = double
-        processed_input_file = double
-        SearchEngine.should_receive(:process_input_file).with(data_file, false) { processed_input_file }
-        subject.should_receive(:import_docs).with(processed_input_file)
-        subject.import_data_file(data_file)
-      end
-    end
-
-    describe "#import_test_dataset" do
-      it "imports test data for all resources" do
-        subject.should_receive(:import_data_file).with(SearchEngine::ITEMS_JSON_FILE)
-        subject.should_receive(:import_data_file).with(SearchEngine::COLLECTIONS_JSON_FILE)
-        subject.import_test_dataset
-      end
-    end
-
-    describe "#import_docs" do
-      it "imports the correct resource type via the admin endpoint" do
-        couchdb = double
-        subject.stub(:admin_cluster_database) { couchdb }
-
-        docs = [double]
-        couchdb.should_receive(:bulk_save).with(docs)
-
-        subject.import_docs(docs)
-      end
-
-      it "raises an Exception if the bulk_save raises a BadRequest exception" do
-        couchdb = double
-        subject.stub(:admin_cluster_database) { couchdb }
-        couchdb.stub(:bulk_save).and_raise RestClient::BadRequest
-
-        expect {
-          subject.import_docs([double])
-        }.to raise_error Exception, /^Error/
-      end
     end
 
     describe "#delete_docs" do
@@ -241,31 +176,6 @@ module V1
       end
     end
 
-    # describe "#assign_roles" do
-    #   it "should lock down database roles and create design doc for validation" do
-    #     db = double
-    #     CouchRest.stub(:database) { db }
-    #     db.should_receive(:get).with('_security') { nil }
-    #     db.should_receive(:save_doc)
-    #       .with({
-    #               '_id' => '_security',
-    #               'admins' => {'roles' => %w( admin )},
-    #               'readers' => {'roles' => %w( reader )}
-    #             }) { {'ok' => true} }
-
-    #     db.should_receive(:get).with('_design/auth') { nil }
-    #     db.should_receive(:save_doc)
-    #       .with({
-    #               '_id' => '_design/auth',
-    #               'language' => 'javascript',
-    #               'validate_doc_update' => "function(newDoc, oldDoc, userCtx) { if (userCtx.roles.indexOf('_admin') != -1) { return; } else { throw({forbidden: 'Only admins may edit the database'}); } }"
-    #             }) { {'ok' => true} }
-
-    #     subject.assign_roles
-    #   end
-
-    # end
-
     context "config accessors" do
       #TODO: comment this before block out
       before :each do
@@ -290,6 +200,7 @@ module V1
           expect(subject.cluster_host).to eq '1.2.3.4:5984'
         end
       end
+
       describe "#node_host" do
         it "defaults to correct host and IP when no hosts are defined" do
           Config.stub(:dpla) {{

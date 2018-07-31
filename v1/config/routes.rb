@@ -35,7 +35,6 @@ V1::Engine.routes.draw do
 
   # Monitoring endpoints
   get "/status/repository" => "status#repository", :defaults => { :format => 'json' }
-  # get "/status/river" => "status#river", :defaults => { :format => 'json' }
   # get "/status/search_engine" => "status#search_engine", :defaults => { :format => 'json' }
   # get "/status/search_shards" => "status#search_shards", :defaults => { :format => 'json' }
 

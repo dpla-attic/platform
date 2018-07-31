@@ -8,7 +8,6 @@ module V1
 
     DEFAULT_API_AUTH_DATABASE = 'dpla_api_auth'
     DEFAULT_DASHBOARD_DATABASE = 'dashboard'
-    DEFAULT_BULK_DOWNLOAD_DATABASE = 'bulk_download'
     
     def self.fetch(ids)
       # Accepts an array of ids or a string containing a comma separated list of ids
@@ -45,19 +44,12 @@ module V1
       recreate_database(admin_cluster_auth_database)
     end
     
-    def self.recreate_env(include_river=false)
+    def self.recreate_env
       recreate_doc_database
       recreate_api_keys_database
-      SearchEngine.recreate_river if include_river
       recreate_users
       import_test_api_keys
       create_api_auth_views
-    end
-
-    def self.recreate_env_with_docs(include_river=false)
-      recreate_env(include_river)
-      import_test_dataset
-      puts "CouchDB docs/views: #{ doc_count }"
     end
 
     def self.doc_count
@@ -65,28 +57,9 @@ module V1
       admin_cluster_database.info['doc_count'] rescue 'Error'
     end
 
-    def self.import_test_dataset
-      SearchEngine::dataset_files.each {|file| import_data_file file}
-    end
-
-    def self.import_data_file(file)
-      import_docs(SearchEngine.process_input_file(file, false))
-    end
-
     def self.save_doc(doc)
       begin
         admin_cluster_database.save_doc doc
-      rescue RestClient::BadRequest => e
-        error = JSON.parse(e.response) rescue {}
-        raise Exception, "Error: #{error['reason'] || e.to_s}"
-      end
-    end
-    
-
-    def self.import_docs(docs)
-      db = admin_cluster_database
-      begin
-        db.bulk_save docs
       rescue RestClient::BadRequest => e
         error = JSON.parse(e.response) rescue {}
         raise Exception, "Error: #{error['reason'] || e.to_s}"
@@ -318,11 +291,6 @@ module V1
       database(cluster_endpoint('reader', repo_name))
     end
 
-    def self.reader_cluster_bulk_download_database
-      name = Config.dpla['repository'].fetch('bulk_download_database', DEFAULT_BULK_DOWNLOAD_DATABASE)
-      database(cluster_endpoint('reader', name))
-    end
-
     def self.database(url)
       CouchRest.database(url)
     end
@@ -343,10 +311,6 @@ module V1
       end
       
       auth_string + host + suffix
-    end
-
-    def self.get_bulk_download_docs_by_contributor
-      reader_cluster_bulk_download_database.view('all_docs/by_contributor', {include_docs: true})
     end
 
   end

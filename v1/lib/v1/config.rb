@@ -1,4 +1,3 @@
-require 'tire'
 
 module V1
 
@@ -29,19 +28,6 @@ module V1
       (dpla['api_auth'] && dpla['api_auth']['skip_key_auth_completely'] === true)
     end
 
-    def self.initialize_search_engine
-      #TODO: Move to top level of this module and remove initializer from engine.rb
-      Tire::Configuration.url(search_endpoint)
-      Tire::Configuration.wrapper(Hash)
-    end
-
-    #TODO: Create helper method to handle default values and multi-level hash NilError cases
-    def self.configure_search_logging(env)
-      logfile = File.expand_path("../../../../var/log/elasticsearch-#{env}.log", __FILE__)
-      level = (dpla['search']['log_level'] rescue nil) || 'info'
-      Tire::Configuration.logger(logfile, :level => level)
-    end
-
     def self.search_index
       (dpla['search']['index_name'] rescue nil) || 'dpla'
     end
@@ -54,10 +40,6 @@ module V1
       (dpla['api']['email_from_address'] rescue nil) || 'dpla_default_sender@example.com'
     end
 
-    def self.river_name
-      (dpla['search']['river_name'] rescue nil) || 'dpla_river'
-    end
-    
     def self.cache_results
       (dpla['caching']['cache_results'] rescue nil) || false
     end

@@ -53,7 +53,42 @@ module V1
           expect {
             subject.build_filters(resource, params)
           }.to raise_error BadRequestSearchError, 'Invalid date in datefield field'
+        end
 
+        it "returns an array of filter type and parameters" do
+          params = {
+            'sourceResource.date.begin' => '2010',
+            'sourceResource.date.end' => '2014'
+          }
+          expect(subject.build_filters('item', params))
+            .to eq(
+              [
+                [
+                  "range",
+                  {
+                    "sourceResource.date.begin" => {
+                      "gte"=>"2010",
+                      "lt"=>"2011"
+                    }
+                  }
+                ],
+                [
+                  "range",
+                  {
+                    "sourceResource.date.end" => {
+                      "gte"=>"2014",
+                      "lt"=>"2015"
+                    }
+                  }
+                ]
+              ]
+            )
+        end
+
+        it "does not create a filter for a field that's not a date or " \
+             "geographic point" do
+          params = {'sourceResource.title' => 'x'}
+          expect(subject.build_filters('item', params)).to eq []
         end
       end
 
