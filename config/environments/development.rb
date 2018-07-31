@@ -38,4 +38,6 @@ Dpla::Application.configure do
   # Set Default ActionMailerURL for devise
   config.action_mailer.default_url_options = { :host => 'localhost:3000' }
 
+  config.logger = Logger.new("#{Rails.root}/var/log/#{Rails.env}.log")
+  config.logger.level = 0  # 0 is debug
 end

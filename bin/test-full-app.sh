@@ -9,4 +9,4 @@ if [ $TRAVIS == "true" ]
 then
   echo "Note: \$TRAVIS is \"true\"; skipping scenarios etc. tagged \"@travis-exclude\""
 fi
-bundle exec rspec spec v1/spec && bundle exec rake cucumber
+bundle exec rspec spec v1/spec # && bundle exec rake cucumber

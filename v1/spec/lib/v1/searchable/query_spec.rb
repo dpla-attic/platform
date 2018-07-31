@@ -9,31 +9,8 @@ module V1
 
       describe "#build_all" do
         it "executes an empty search if no explicit queries are created" do
-          search = double
-          subject.should_receive(:execute_empty_search).with(search)
-          expect(subject.build_all(resource, search, {})).to be_false
+          expect(subject.build_all(resource, {}).key?('match_all')).to eq(true)
         end
-        #TODO: all new unit tests for completely refactored implementation
-
-        # it "should set up proper 'boolean.must' blocks for each search field" do
-        #   params = {'title' => 'title1'  , 'description' => 'description2'}
-        #   subject.should_receive(:string_queries).with(params) { ['titleQString', 'descQString'] }
-        #   mock_boolean = double('boolean')
-        #   subject.should_receive(:lambda).twice.and_yield(mock_boolean)
-
-        #   mock_must = double('must')
-        #   mock_boolean.should_receive(:must).twice.and_yield(mock_must)
-
-        #   mock_must.should_receive(:string).with('titleQString')
-        #   mock_must.should_receive(:string).with('descQString')
-        #   subject.build_string_queries(resource, params)
-        # end
-
-        # it "returns generated queries as flattened array" do
-        #   subject.stub(:build_string_queries) { [:fq1, :fq2] }
-        #   subject.stub(:build_temporal_query) { [:tq1, :tq2] }
-        #   expect(subject.build_all(double, {})).to match_array [:fq1, :fq2, :tq1, :tq2]
-        # end
       end
 
       describe "#field_boost" do
@@ -66,6 +43,17 @@ module V1
         it "returns correct query string for a free text search" do
           params = {'q' => 'something'}
           attrs = subject.default_attributes.merge( {'fields'=>['_all']} )
+          # e.g.:
+          # [
+          #   [
+          #     "something",
+          #     {
+          #       "default_operator"=>"AND",
+          #       "lenient"=>true,
+          #       "fields"=>["_all"]
+          #     }
+          #   ]
+          # ]
           expect(subject.string_queries(resource, params))
             .to match_array(
                             [['something', attrs]]
@@ -127,69 +115,16 @@ module V1
           expect(subject.string_queries(resource, params)).to match_array []
         end
 
-        it "returns correct query string for regular compound field search" do
-          name = 'admin.contributingInstitution' 
-          field = double(:name => name, :geo_point? => false, :date? => false,
-            :multi_field_date? => false, :subfields? => false, 
-            :compound_fields => ['dataProvider.not_analyzed', 'intermediateProvider.not_analyzed'])
-          Schema.stub(:field).with(resource, name) { field }
-          params = {name => 'Provider A'}
-          attrs = subject.default_attributes
-            .merge( {'fields'=>['dataProvider','intermediateProvider']} )
-          expect(subject.string_queries(resource, params))
-            .to match_array(
-                             [['Provider A', attrs]]
-                           )
-        end
-
-        it "returns correct query string for exact_field_match compound " +
-           "field search" do
-          name = 'admin.contributingInstitution'
-          field = double(:name => name, :geo_point? => false, :date? => false,
-            :multi_field_date? => false, :subfields? => false,
-            :compound_fields => ['dataProvider.not_analyzed', 'intermediateProvider.not_analyzed'])
-          Schema.stub(:field).with(resource, name) { field }
-          Schema.stub(:field).with(resource, 'exact_field_match') { nil }
-          params = {name => 'Provider A', 'exact_field_match' => 'true'}
-          attrs = subject.default_attributes.merge({
-            'fields' => ['dataProvider.not_analyzed',
-                         'intermediateProvider.not_analyzed']
-          })
-          expect(subject.string_queries(resource, params))
-            .to match_array(
-                             [['"Provider A"', attrs]]  # Quoted!
-                           )
-        end
-
         it "treats fields correctly with `exact_field_match' but does not " +
            "quote the `q' parameter" do
-          name = 'admin.contributingInstitution'
-          field = double(:name => name, :geo_point? => false, :date? => false,
-            :multi_field_date? => false, :subfields? => false,
-            :compound_fields => ['dataProvider.not_analyzed', 'intermediateProvider.not_analyzed'])
-          boost_fields_all = ["sourceResource.title^2"]
-          Schema.stub(:field).with(resource, name) { field }
-          Schema.stub(:field).with(resource, 'exact_field_match') { nil }
-          subject.stub(:field_boost_for_all).with(resource) {
-            boost_fields_all
-          }
           params = {
-            name => 'Provider A',
+            'dataProvider' => 'Provider A',
             'q' => 'wonderful things',
             'exact_field_match' => 'true'
           }
-          field_attrs = subject.default_attributes.merge({
-            'fields' => ['dataProvider.not_analyzed',
-                         'intermediateProvider.not_analyzed']
-          })
-          q_attrs = subject.default_attributes.merge({
-            'fields' => boost_fields_all + ["_all"]
-          })
-          expect(subject.string_queries(resource, params))
-            .to match_array([
-                              ['"Provider A"', field_attrs],  # Quoted
-                              ['wonderful things', q_attrs]   # Not quoted
-                            ])
+          result = subject.string_queries('item', params)
+          expect(result[0][0]).to eq '"Provider A"'      # quoted
+          expect(result[1][0]).to eq 'wonderful things'  # not quoted
         end
 
       end

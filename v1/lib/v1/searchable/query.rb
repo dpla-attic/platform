@@ -13,48 +13,40 @@ module V1
       # not escaped, because they don't seem to need it: '+', '-',
       ESCAPED_METACHARACTERS = [ '!', '(', ')', '{', '}', '[', ']', '^', '~', '?', ':', '/' ]  # '"',
 
-      def self.execute_empty_search(search)
-        # We need to be explicit with an empty search
-        search.query { |q| q.all }
-      end
-
       # @param resource [String] "item" or "collection"
-      # @param search [Tire::Search::Search]
       # @param params [Hash]
-      def self.build_all(resource, search, params)
-        # Returns boolean for "did we run any queries?"
+      def self.build_all(resource, params)
         string_queries = string_queries(resource, params)
         date_range_queries = date_range_queries(params)
-        # ids_queries = ids_query(resource, params)
-        
-        # Only call search.query.boolean if we have some queries to pass it.
-        # Otherwise we'll get incorrect search results.
         if (string_queries + date_range_queries).empty?
-          execute_empty_search(search)
-          return false
+          {"match_all" => {}}
+        else
+          musts = string_query_arr(string_queries)
+            .concat(date_range_query_arr(date_range_queries))
+          {
+            "bool" => {
+              "must" => musts
+            }
+          }
         end
+      end
 
-        search.query do |query|
-          # if ids_queries.any?
-          #   query.ids *ids_queries
-          # end
-          query.boolean do |boolean|
-
-            string_queries.each do |query_string|
-              boolean.must do |must|
-                must.string *query_string
-              end
-            end
-
-            date_range_queries.each do |temporal|
-              boolean.must do |must|
-                must.range *temporal
-              end
-            end
-
-          end
+      def self.string_query_arr(queries)
+        queries.map do |q|
+          {
+            "query_string" => {"query" => q[0]}.merge(q[1])
+          }
         end
-        true
+      end
+
+      def self.date_range_query_arr(queries)
+        queries.map do |q|
+          {
+            "range" => {
+              q[0] => q[1]
+            }
+          }
+        end
       end
 
       def self.escaped_metacharacters
@@ -119,24 +111,7 @@ module V1
 
             next if field.nil? || field.date? || field.multi_field_date? || field.geo_point?
 
-            if field.compound_fields
-              # Assign `fields` as the corresponding analyzed fields.
-              #
-              # The only field that has compound fields is
-              # admin.contributingInstitution.
-              #
-              # Override the field names of "compound fields" (i.e. in
-              # admin.contributingInstitution) only if the "exact fields"
-              # option has not been selected.  (See .parse_compound_fields)
-              if exact_field_match
-                fields = field.compound_fields
-              else
-                fields = parse_compound_fields(field.compound_fields)
-              end
-
-            else
-              fields = field_boost_deep(resource, field)
-            end 
+            fields = field_boost_deep(resource, field)
           end
 
           query_strings << [
@@ -228,7 +203,6 @@ module V1
         boosted_subfields = field.subfields.map do |subfield|
           field_boost(resource, subfield) if is_boosted?(resource, subfield)
         end
-
         [field_boost(resource, field)] + boosted_subfields.compact
       end
 
@@ -288,24 +262,9 @@ module V1
             ranges << ["#{field_name}.begin", { :lte => value, :gt => '-9999' }]
           end
         end
+
         ranges
-      end
 
-      private
-
-      ##
-      # Remove substring ".not_analyzed" from end of each field name in the
-      # given array.
-      #
-      # This method would be better named `analyzed_fields` or inlined into
-      # self.string_queries.
-      #
-      # @param field_names [Array]
-      # @return Array
-      def self.parse_compound_fields(field_names)
-        field_names.map do |name|
-          name.gsub(/.not_analyzed\z/, "")
-        end
       end
 
     end

@@ -2,7 +2,7 @@ require 'v1/api_auth'
 
 module V1
 
-  describe ApiAuth do
+  describe ApiAuth, couch: true do
   
     context "API keys" do
 

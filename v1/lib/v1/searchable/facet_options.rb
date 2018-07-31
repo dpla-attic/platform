@@ -38,28 +38,21 @@ module V1
 
         range_size = bucket_size =~ /^(\d+)/ ? $1.to_i : default_geo_distance_miles
 
-        [
-          field.name,
-          {:lat => lat, :lon => lon},
-          facet_ranges(range_size, range_size, default_geo_buckets, true),
-          {'unit' => bucket_size =~ /([a-z]{2})$/ ? $1 : 'mi'}
-        ]
+        {
+          :origin => "#{lat}, #{lon}",
+          :unit => bucket_size =~ /([a-z]{2})$/ ? $1 : 'mi',
+          :ranges => facet_ranges(range_size, range_size, default_geo_buckets, true, true)
+        }
       end
 
-      def self.options_for_date(type, field, params)
+      def self.options_for_date_histogram(type, field, params)
         if field.facet_modifier && !Facet.valid_date_interval?(field.facet_modifier)
           raise BadRequestSearchError, "Date facet '#{field.name}.#{field.facet_modifier}' has invalid interval"
         end
-
-        #TODO: how do we want to handle timezones here?
-        #              options[:pre_zone] = '-12:00'
-        #              options[:pre_zone_adjust_large_interval] = true
-
-        # Tire defaults to 'day' too, but we set it here to improve testability
-        # NOTE: Tire requires the keys in this hash to be symbols
         {
-          :interval => field.facet_modifier || 'day',
-          :order => 'count'
+          :interval => field.facet_modifier || 'year',
+          :order => {"_key" => "desc"},
+          :min_doc_count => 2
         }
       end
 
@@ -89,14 +82,15 @@ module V1
         # This is the only facet type that supports size attr
         {
           :size => facet_size(params),
-          :order => 'count',
+          :order => {'_count' => 'desc'},
         }.merge(filter_facet(field.name, params))
       end
+
 
       def self.build_options(type, field, params)
         # Returns options for variable facet types.
 
-        supported_types = %w( geo_distance date range terms )
+        supported_types = %w( geo_distance date_histogram range terms )
         if !supported_types.include?(type)
           raise "Unsupported facet type requested '#{type}'"
         end        
@@ -116,7 +110,7 @@ module V1
         end
       end
 
-      def self.facet_ranges(start, size, count, endcaps=false)
+      def self.facet_ranges(start, size, count, endcaps=false, as_integer=false)
         start = start.to_i
         count = count.to_i
         size = size.to_i
@@ -134,8 +128,12 @@ module V1
           ranges = [ { 'to' => to }, *ranges, { 'from' => from } ]
         end
 
-        # ElasticSearch needs to see string type data for date range facets to work
-        ranges.each {|hash| hash.each {|k,v| hash[k] = v.to_s} }
+        ranges.each do |hash|
+          hash.each do |k,v|
+            proper_value = as_integer ? v.to_i : v.to_s
+            hash[k] = proper_value
+          end
+        end
       end
 
 

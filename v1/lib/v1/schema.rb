@@ -6,87 +6,60 @@ module V1
     
     ELASTICSEARCH_MAPPING = {
       'collection' => {
-        'date_detection' => false,
         'properties' => {
-          '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
-          'admin' => {
-            'properties' => {
-              'valid_after_enrich' => { 'type' => 'boolean'},
-              'validation_message' => { 'enabled' => 'false'},
-              'ingestType' => { 'enabled' => false },
-              'ingestDate' => { 'type' => 'date' },
-            }
-          },
-          'description' => { 'type' => 'string' },
-          'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
+          '@id' => { 'type' => 'keyword', 'sort' => 'field' },
+          'description' => { 'type' => 'text' },
+          'id' => { 'type' => 'keyword', 'sort' => 'field' },
           'title' => {
-            'type' => 'multi_field',
             'fields' => {
-              'title' => { 'type' => 'string', 'sort' => 'multi_field' },
-              'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+              'title' => { 'type' => 'text', 'sort' => 'multi_field' },
+              'not_analyzed' => { 'type' => 'keyword', 'sort' => 'script', 'facet' => true }
             }
-          },
-          'ingestType' => { 'enabled' => false },
-          'ingestDate' => { 'enabled' => false },
-          '_rev' => { 'enabled' => false },
+          }
         }
       },  #/collection
       'item' => {
-        'date_detection' => false,
         'properties' => {
-          '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
+          '@id' => { 'type' => 'keyword', 'sort' => 'field' },
           'admin' => {
             'properties' => {
-              'sourceResource' => {  #shadow_sort fields
-                'properties' => {
-                  'title' => { 'type' => 'string', 'analyzer' => 'canonical_sort', 'null_value' => 'zzzzzzzz' },
-                }
-              },
-              'valid_after_enrich' => { 'type' => 'boolean'},
-              'validation_message' => { 'enabled' => 'false'},
-              'ingestType' => { 'enabled' => false },
-              'ingestDate' => { 'type' => 'date' },
               'contributingInstitution' => {
-                'type' => 'string',
+                'type' => 'keyword',
                 'enabled' => false,
                 'include_in_all' => false,
-                'compound_fields' => ['dataProvider.not_analyzed','intermediateProvider.not_analyzed'],
                 'facet' => true
               }
             }
           },
-          'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
+          'id' => { 'type' => 'keyword', 'sort' => 'field' },
           'sourceResource' => {
             'properties' => {
-              'identifier' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
+              'identifier' => { 'type' => 'keyword', 'sort' => 'field' },
               'collection' => {
                 'properties' => {
-                  '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-                  'id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-                  'description' => { 'type' => 'string' },
+                  '@id' => { 'type' => 'keyword', 'sort' => 'field', 'facet' => true },
+                  'id' => { 'type' => 'keyword', 'sort' => 'field', 'facet' => true },
+                  'description' => { 'type' => 'text' },
                   'title' => {
-                    'type' => 'multi_field',
                     'fields' => {
-                      'title' => { 'type' => 'string', 'sort' => 'multi_field' },
-                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                      'title' => { 'type' => 'text', 'sort' => 'multi_field' },
+                      'not_analyzed' => { 'type' => 'keyword', 'sort' => 'script', 'facet' => true }
                     }
                   }
                 }
               },
-              'contributor' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-              'creator' => { 'type' => 'string' },
+              'contributor' => { 'type' => 'keyword', 'sort' => 'field', 'facet' => true },
+              'creator' => { 'type' => 'text' },
               'date' => {
                 'properties' => {
-                  'displayDate' =>  { 'type' => 'string', 'index' => 'not_analyzed'},
+                  'displayDate' =>  { 'type' => 'text'},
                   'begin' => {
-                    'type' => 'multi_field',
                     'fields' => {
                       'begin' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '-9999', 'ignore_malformed' => true },
                       'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true, 'ignore_malformed' => true }
                     }
                   },
                   'end' => {
-                    'type' => 'multi_field',
                     'fields' => {
                       'end' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '9999', 'ignore_malformed' => true },
                       'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true, 'ignore_malformed' => true }
@@ -94,95 +67,80 @@ module V1
                   }
                 }
               },
-              'description' => { 'type' => 'string' },
-              'extent' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
+              'description' => { 'type' => 'text' },
+              'extent' => { 'type' => 'keyword', 'sort' => 'field' },
               'isPartOf' => { 'enabled' => false },
               'language' => {
                 'properties' => {
                   'name' => {
-                    'type' => 'multi_field',
                     'fields' => {
-                      'name' => { 'type' => 'string', 'sort' => 'multi_field' },
-                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true },
+                      'name' => { 'type' => 'text', 'sort' => 'multi_field' },
+                      'not_analyzed' => { 'type' => 'keyword', 'sort' => 'script', 'facet' => true },
                     }
                   },
-                  'iso639_3' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true }
+                  'iso639_3' => { 'type' => 'keyword', 'sort' => 'field', 'facet' => true }
                 }
               },
-              'format' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+              'format' => { 'type' => 'keyword', 'sort' => 'field', 'facet' => true },
               'publisher' => {
-                'type' => 'multi_field',
                 'fields' => {
-                  'publisher' => { 'type' => 'string' },
-                  'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'facet' => true }
+                  'publisher' => { 'type' => 'text' },
+                  'not_analyzed' => { 'type' => 'keyword', 'facet' => true }
                 }
               },
-              'rights' => { 'type' => 'string' },
-              'relation' => { 'type' => 'string' },
+              'rights' => { 'type' => 'text' },
+              'relation' => { 'type' => 'text' },
               'spatial' => {
                 'properties' => {
                   'name' => {
-                    'type' => 'multi_field',
                     'fields' => {
-                      'name' => { 'type' => 'string', 'sort' => 'multi_field' },
-                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                      'name' => { 'type' => 'text', 'sort' => 'multi_field' },
+                      'not_analyzed' => { 'type' => 'keyword', 'sort' => 'script', 'facet' => true }
                     }
                   },
                   'country' => {
-                    'type' => 'multi_field',
                     'fields' => {
-                      'country' => { 'type' => 'string', 'sort' => 'multi_field' },
-                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                      'country' => { 'type' => 'text', 'sort' => 'multi_field' },
+                      'not_analyzed' => { 'type' => 'keyword', 'sort' => 'script', 'facet' => true }
                     }
                   },
                   'region' => {
-                    'type' => 'multi_field',
                     'fields' => {
-                      'region' => { 'type' => 'string', 'sort' => 'multi_field' },
-                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                      'region' => { 'type' => 'text', 'sort' => 'multi_field' },
+                      'not_analyzed' => { 'type' => 'keyword', 'sort' => 'script', 'facet' => true }
                     }
                   },
                   'county' => {
-                    'type' => 'multi_field',
                     'fields' => {
-                      'county' => { 'type' => 'string', 'sort' => 'multi_field' },
-                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                      'county' => { 'type' => 'text', 'sort' => 'multi_field' },
+                      'not_analyzed' => { 'type' => 'keyword', 'sort' => 'script', 'facet' => true }
                     }
                   },
                   'state' => {
-                    'type' => 'multi_field',
                     'fields' => {
-                      'state' => { 'type' => 'string', 'sort' => 'multi_field' },
-                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                      'state' => { 'type' => 'text', 'sort' => 'multi_field' },
+                      'not_analyzed' => { 'type' => 'keyword', 'sort' => 'script', 'facet' => true }
                     }
                   },
                   'city' => {
-                    'type' => 'multi_field',
                     'fields' => {
-                      'city' => { 'type' => 'string', 'sort' => 'multi_field' },
-                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                      'city' => { 'type' => 'text', 'sort' => 'multi_field' },
+                      'not_analyzed' => { 'type' => 'keyword', 'sort' => 'script', 'facet' => true }
                     }
                   },
-                  'iso3166-2' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-                  'coordinates' => { 'type' => 'geo_point', 'index' => 'not_analyzed', 'sort' => 'geo_distance', 'facet' => true }
+                  'iso3166-2' => { 'type' => 'keyword', 'sort' => 'field', 'facet' => true },
+                  'coordinates' => { 'type' => 'geo_point', 'sort' => 'geo_distance', 'facet' => true }
                 }
               },
-              'specType' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-              'stateLocatedIn' => {
-                'properties' => {
-                  'name' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-                  'iso3166-2' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true }
-                }
-              },
+              'specType' => { 'type' => 'keyword', 'sort' => 'field', 'facet' => true },
               'subject' => {
                 'properties' => {
-                  '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-                  '@type' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
+                  '@id' => { 'type' => 'keyword', 'sort' => 'field', 'facet' => true },
+                  '@type' => { 'type' => 'keyword', 'sort' => 'field' },
                   'name' => {
-                    'type' => 'multi_field',
                     'fields' => {
-                      'name' => { 'type' => 'string', 'sort' => 'multi_field' },
-                      'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                      'name' => { 'type' => 'text', 'sort' => 'multi_field' },
+                      'not_analyzed' => { 'type' => 'keyword', 'sort' => 'script', 'facet' => true }
                     }
                   }
                 }
@@ -190,14 +148,12 @@ module V1
               'temporal' => {
                 'properties' => {
                   'begin' => {
-                    'type' => 'multi_field',
                     'fields' => {
                       'begin' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '-9999', 'ignore_malformed' => true },
                       'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true, 'ignore_malformed' => true }
                     }
                   },
                   'end' => {
-                    'type' => 'multi_field',
                     'fields' => {
                       'end' => { 'type' => 'date', 'sort' => 'multi_field', 'null_value' => '9999', 'ignore_malformed' => true },
                       'not_analyzed' => { 'type' => 'date', 'sort' => 'field', 'facet' => true, 'ignore_malformed' => true }
@@ -206,70 +162,65 @@ module V1
 
                 }
               },
-              'title' => { 'type' => 'string', 'sort' => 'shadow' },
-              'type' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+              'title' => {
+                'fields' => {
+                  'title' => { 'type' => 'text', 'sort' => 'multi_field'},
+                  'not_analyzed' => { 'type' => 'keyword', 'sort' => 'field', 'facet' => false }
+                }
+              },
+              'type' => { 'type' => 'keyword', 'sort' => 'field', 'facet' => true },
             }
           },  #/sourceResource
           'dataProvider' => {
-            'type' => 'multi_field',
             'fields' => {
-              'dataProvider' => { 'type' => 'string', 'sort' => 'multi_field' },
-              'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+              'dataProvider' => { 'type' => 'text', 'sort' => 'multi_field' },
+              'not_analyzed' => { 'type' => 'keyword', 'sort' => 'script', 'facet' => true }
             }
           },
           'hasView' => {
             'properties' => {
-              '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
-              'format' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true },
-              'rights' => { 'type' => 'string', 'index' => 'not_analyzed' },
+              '@id' => { 'type' => 'keyword', 'sort' => 'field', 'facet' => true },
+              'format' => { 'type' => 'keyword', 'sort' => 'script', 'facet' => true },
+              'rights' => { 'type' => 'keyword' },
               'edmRights' => { 
-                'type' => 'multi_field',
                 'fields' => {
-                  'edmRights' => { 'type' => 'string', 'sort' => 'multi_field' },
-                  'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                  'edmRights' => { 'type' => 'text', 'sort' => 'multi_field' },
+                  'not_analyzed' => { 'type' => 'keyword', 'sort' => 'script', 'facet' => true }
                 }
               }
             }
           },
           'intermediateProvider' => {
-            'type' => 'multi_field',
             'fields' => {
-              'intermediateProvider' => { 'type' => 'string', 'sort' => 'multi_field' },
-              'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+              'intermediateProvider' => { 'type' => 'text', 'sort' => 'multi_field' },
+              'not_analyzed' => { 'type' => 'keyword', 'sort' => 'script', 'facet' => true }
             }
           },
           'isPartOf' => {
             'properties' => {
-              '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+              '@id' => { 'type' => 'keyword', 'sort' => 'field', 'facet' => true },
               'name' => {
-                'type' => 'multi_field',
                 'fields' => {
-                  'name' => { 'type' => 'string', 'sort' => 'multi_field' },
-                  'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                  'name' => { 'type' => 'text', 'sort' => 'multi_field' },
+                  'not_analyzed' => { 'type' => 'keyword', 'sort' => 'script', 'facet' => true }
                 }
               }                      
             }
           },
-          'isShownAt' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
-          'object' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field' },
+          'isShownAt' => { 'type' => 'keyword', 'sort' => 'field' },
+          'object' => { 'type' => 'keyword', 'sort' => 'field' },
           'provider' => {
             'properties' => {
-              '@id' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'field', 'facet' => true },
+              '@id' => { 'type' => 'keyword', 'sort' => 'field', 'facet' => true },
               'name' => {
-                'type' => 'multi_field',
                 'fields' => {
-                  'name' => { 'type' => 'string', 'sort' => 'multi_field' },
-                  'not_analyzed' => { 'type' => 'string', 'index' => 'not_analyzed', 'sort' => 'script', 'facet' => true }
+                  'name' => { 'type' => 'text', 'sort' => 'multi_field' },
+                  'not_analyzed' => { 'type' => 'keyword', 'sort' => 'script', 'facet' => true }
                 }
               }                      
             }
           },
-          'rights' => { 'type' => 'string' },
-          '@context' => { 'type' => 'object', 'enabled' => false },
-          'originalRecord' => { 'type' => 'object', 'enabled' => false },
-          'ingestType' => { 'enabled' => false },
-          'ingestDate' => { 'enabled' => false },
-          '_rev' => { 'enabled' => false },
+          'rights' => { 'type' => 'text' }
         }
       }  #/item
     }.freeze
@@ -290,9 +241,6 @@ module V1
     #
     # @return [V1::Field] or [nil]
     def self.field(resource, name, modifier=nil)
-      # A "resource" is a top-level DPLA resource: 'item', 'collection', 'creator'
-      # TODO: memoize a hash value for every $name and return it if it exists. The modifier
-      # is a concern, though.
       raise "Invalid resource: #{resource}" unless full_mapping[resource]
 
       current_mapping = full_mapping[resource]
@@ -301,7 +249,6 @@ module V1
         # the rescue nil handles invalid field names at any level
         current_mapping = current_mapping['properties'][word] rescue nil
       end
-
       return Field.new(resource, name, current_mapping, modifier) if current_mapping
     end
 

@@ -38,12 +38,6 @@ search:
 
   # Name of the alias pointing to your deployed ElasticSearch index
   index_name: dpla_alias
-
-  # Name of your live river that points to your $index_name
-  river_name: dpla_river
-  
-  # Log level for search queries logged by Tire gem
-  log_level: debug
   
 api_auth:
   # You're probably going to want to run with the following options commented out.

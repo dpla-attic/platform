@@ -72,8 +72,3 @@ Feature: Search for items by keyword (UC002)
   Scenario: Basic keyword item-search of title field that excludes hits outside the 'item' resource
     When I item-search for "orange" in the "sourceResource.title" field
     Then the API should return no records
-
-  Scenario: Phrase search of compound field
-    When I item-search for "RangerDanger" in the "admin.contributingInstitution" field
-    Then the API should return record item-contributingInstitution1, item-contributingInstitution2
-

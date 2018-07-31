@@ -26,13 +26,6 @@ module V1
         expect(subject.search_index).to eq 'dpla'
       end
     end
-
-    describe "#configure_search_logging" do
-      it "should configure the Tire logger" do
-        Tire::Configuration.should_receive(:logger)
-        subject.configure_search_logging('env_string')
-      end
-    end
     
     describe "#dpla" do
       it "returns existing config file parsed as yaml" do
@@ -90,14 +83,6 @@ module V1
       it "returns true when the setting is present and set to true" do
         subject.stub(:dpla) { { 'api_auth' => {'skip_key_auth_completely' => true}} }
         expect(subject.skip_key_auth_completely?).to be_true
-      end
-    end
-
-    describe "#initialize_search_engine" do
-      it "sets url and wrapper options" do
-        Tire::Configuration.should_receive(:url).with(subject.search_endpoint)
-        Tire::Configuration.should_receive(:wrapper).with(Hash)
-        subject.initialize_search_engine
       end
     end
 
