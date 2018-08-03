@@ -42,7 +42,7 @@ module V1
       describe "#string_queries" do
         it "returns correct query string for a free text search" do
           params = {'q' => 'something'}
-          attrs = subject.default_attributes.merge( {'fields'=>['_all']} )
+          attrs = subject.default_attributes.merge( {'fields'=>[]} )
           # e.g.:
           # [
           #   [
@@ -50,7 +50,7 @@ module V1
           #     {
           #       "default_operator"=>"AND",
           #       "lenient"=>true,
-          #       "fields"=>["_all"]
+          #       "fields"=>[]
           #     }
           #   ]
           # ]

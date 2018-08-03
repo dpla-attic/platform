@@ -96,7 +96,7 @@ module V1
           next if name =~ /^.+\.(before|after)$/
 
           if name == 'q'
-            fields = field_boost_for_all(resource) + ['_all']
+            fields = field_boost_for_all(resource)
             # The `q' parameter always wants a tokenized search, so we won't
             # ask for it to be quoted below in our call to
             # `.protect_metacharacters'.
