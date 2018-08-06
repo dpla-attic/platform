@@ -64,8 +64,28 @@ caching:
 
 field_boosts:
   item:
+    # boosted
     sourceResource.title: 2
     sourceResource.description: 0.75
+    # not boosted: must be here to be included in the fields that are searched
+    sourceResource.subject: 1
+    sourceResource.collection.title: 1
+    sourceResource.collection.description: 1
+    sourceResource.contributor: 1
+    sourceResource.creator: 1
+    sourceResource.extent: 1
+    sourceResource.format: 1
+    sourceResource.genre: 1
+    sourceResource.language.name: 1
+    sourceResource.publisher: 1
+    sourceResource.relation: 1
+    sourceResource.spatial.name: 1
+    sourceResource.specType: 1
+    sourceResource.subject.name: 1
+    sourceResource.type: 1
+    dataProvider: 1
+    intermediateProvider: 1
+    provider.name: 1
   collection:
     title: 1
 
